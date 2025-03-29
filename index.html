@@ -1,0 +1,3125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI REF-TRADERS</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --primary: #6C5CE7;
+            --secondary: #00CEFF;
+            --dark: #2D3436;
+            --light: #F5F6FA;
+            --success: #00B894;
+            --danger: #D63031;
+            --warning: #FDCB6E;
+        }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--light);
+            color: var(--dark);
+            transition: all 0.3s;
+        }
+        
+        .container {
+            max-width: 100%;
+            padding: 15px;
+            padding-bottom: 70px;
+        }
+        
+        .app-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+        
+        .user-chip {
+            background: var(--primary);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: bold;
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .status-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .status-card.accent {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        progress {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+            appearance: none;
+        }
+        
+        progress::-webkit-progress-bar {
+            background-color: rgba(255,255,255,0.3);
+            border-radius: 4px;
+        }
+        
+        progress::-webkit-progress-value {
+            background-color: white;
+            border-radius: 4px;
+        }
+        
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        button {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.2s;
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        .primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .secondary {
+            background: white;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .game-container {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .card {
+            background: var(--primary);
+            color: white;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .card.flipped {
+            background: white !important;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            transform: rotateY(180deg);
+        }
+        
+        .card.matched {
+            visibility: hidden;
+        }
+        
+        .profit-chart {
+            display: flex;
+            height: 150px;
+            align-items: flex-end;
+            gap: 5px;
+            margin: 20px 0;
+        }
+        
+        .chart-bar {
+            flex: 1;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            border-radius: 8px 8px 0 0;
+            transition: height 0.5s;
+            padding-bottom: 5px;
+            font-size: 12px;
+        }
+        
+        .user {
+            background: var(--success);
+        }
+        
+        .company {
+            background: var(--primary);
+        }
+        
+        .system {
+            background: var(--dark);
+        }
+        
+        .tab-bar {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid var(--primary);
+            font-weight: bold;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            transform: translateY(20px);
+            transition: transform 0.3s;
+        }
+        
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-actions button {
+            flex: 1;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--success);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .notification.show {
+            opacity: 1;
+        }
+        
+        .ad-container {
+            background: var(--warning);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            color: var(--dark);
+        }
+        
+        .ad-container button {
+            background: var(--dark);
+            color: white;
+            margin-top: 10px;
+        }
+        
+        .game-selector {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        
+        .game-option {
+            min-width: 100px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid var(--primary);
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .game-option.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .bank-form input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .user-count {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .user-count progress {
+            height: 10px;
+            margin-top: 5px;
+        }
+        
+        #snakeCanvas {
+            background: #f0f0f0;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .quiz-container {
+            text-align: center;
+        }
+        
+        .quiz-question {
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .quiz-option {
+            padding: 10px;
+            background: white;
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .quiz-option:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .attempts-counter {
+            font-weight: bold;
+            color: var(--danger);
+            margin: 10px 0;
+        }
+        
+        .game-disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            position: relative;
+        }
+        
+        .game-disabled::after {
+            content: "Come back later!";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--danger);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        .streak-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        
+        .streak-day {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ddd;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .streak-day.active {
+            background: var(--success);
+            color: white;
+        }
+        
+        .streak-day.today {
+            border: 2px solid var(--primary);
+        }
+        
+        .info-section {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .info-section h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .faq-item {
+            margin: 15px 0;
+        }
+        
+        .faq-question {
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .faq-answer {
+            display: none;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .faq-answer.show {
+            display: block;
+        }
+        
+        .ticket-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            min-height: 100px;
+        }
+        
+        .testimonial-container {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .testimonial {
+            display: none;
+            text-align: center;
+            font-style: italic;
+        }
+        
+        .testimonial.show {
+            display: block;
+        }
+        
+        .testimonial-author {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        #bottleCanvas {
+            background: #f0f0f0;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .bottle-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .bottle-btn {
+            padding: 8px 15px;
+            border-radius: 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        
+        /* Cost Structure Table */
+        .cost-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        
+        .cost-table th, .cost-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .cost-table th {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .cost-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .cost-table tr:hover {
+            background-color: #e9e9e9;
+        }
+        
+        .checkmark {
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        /* Admin Panel Styles */
+        .admin-tabs {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            margin: 15px 0;
+        }
+        
+        .tab-button {
+            padding: 10px 15px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+        }
+        
+        .tab-button.active {
+            border-bottom: 3px solid var(--primary);
+            font-weight: bold;
+        }
+        
+        .admin-tab-content {
+            display: none;
+        }
+        
+        .admin-tab-content.active {
+            display: block;
+        }
+        
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .admin-table th, .admin-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .admin-table th {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .admin-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .admin-table tr:hover {
+            background-color: #e9e9e9;
+        }
+        
+        .admin-search {
+            margin: 15px 0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .admin-search input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .admin-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .admin-filters {
+            margin: 15px 0;
+        }
+        
+        .admin-filters select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .admin-action-btn {
+            padding: 5px 10px;
+            margin: 2px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .admin-action-btn[data-action="edit"] {
+            background-color: var(--warning);
+            color: var(--dark);
+        }
+        
+        .admin-action-btn[data-action="verify"],
+        .admin-action-btn[data-action="approve"] {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .admin-action-btn[data-action="reject"] {
+            background-color: var(--danger);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="app-bar">
+            <h1>AI REF-TRADERS</h1>
+            <div class="user-chip">
+                <span>📊 ₦<span id="balance">0</span></span>
+                <span id="verifiedBadge">❌</span>
+            </div>
+        </div>
+        
+        <div class="card-grid">
+            <div class="status-card accent">
+                <h3>🚀 Trading Status</h3>
+                <p id="tradingStatus">AI Bot: <b>Inactive</b></p>
+                <progress id="referralProgress" value="0" max="6"></progress>
+                <small><span id="completedReferrals">0</span>/6 Referrals</small>
+            </div>
+            
+            <div class="status-card">
+                <h3>👥 Referral Program</h3>
+                <p><b><span id="currentReferrals">0</span>/6</b> (₦<span id="referralEarnings">0</span>/₦30,000)</p>
+                <button id="copyLink">🔗 Copy Referral Link</button>
+            </div>
+        </div>
+        
+        <div class="streak-container">
+            <span>🔥 Streak:</span>
+            <div class="streak-day" id="day1">1</div>
+            <div class="streak-day" id="day2">2</div>
+            <div class="streak-day" id="day3">3</div>
+            <div class="streak-day" id="day4">4</div>
+            <div class="streak-day" id="day5">5</div>
+            <div class="streak-day" id="day6">6</div>
+            <div class="streak-day" id="day7">7</div>
+        </div>
+        
+        <div class="action-bar">
+            <button class="primary" id="bankBindingBtn">🏦 Bank Binding</button>
+            <button class="secondary" id="withdrawBtn">📤 Withdraw</button>
+        </div>
+        
+        <div class="tab-bar">
+            <div class="tab active" data-tab="dashboard">Dashboard</div>
+            <div class="tab" data-tab="trading">Trading</div>
+            <div class="tab" data-tab="games">Games</div>
+            <div class="tab" data-tab="info">Info</div>
+            <div class="tab" data-tab="support">Support</div>
+        </div>
+        
+        <div id="dashboardTab">
+            <div class="user-count">
+                <p>Payment Circle: <span id="paidUsers">0</span>/1,000 users paid</p>
+                <progress id="paymentCircleProgress" value="0" max="1000"></progress>
+                <small>Next payment batch at 1,000 users</small>
+            </div>
+            
+            <div class="testimonial-container">
+                <div class="testimonial show" id="testimonial1">
+                    "This platform changed my life! I earned ₦150,000 in my first month."
+                    <div class="testimonial-author">- Ahmed K.</div>
+                </div>
+            </div>
+            
+            <div class="profit-chart">
+                <div class="chart-bar user" style="height: 0%">
+                    <span>You: 70%</span>
+                </div>
+                <div class="chart-bar company" style="height: 0%">
+                    <span>Company: 25%</span>
+                </div>
+                <div class="chart-bar system" style="height: 0%">
+                    <span>System: 5%</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="tradingTab" style="display: none;">
+            <div class="status-card">
+                <h3>🤖 AI Trading</h3>
+                <p id="tradingCapital">Trading Capital: ₦0</p>
+                <p id="dailyProfit">Daily Profit: ₦0</p>
+                <p id="totalProfit">Total Profit: ₦0</p>
+                <p id="withdrawableProfit">Withdrawable: ₦0</p>
+                <button id="toggleTrading" class="primary" disabled>Activate Trading</button>
+            </div>
+            
+            <div class="status-card">
+                <h3>💰 Profit Distribution</h3>
+                <div class="profit-chart">
+                    <div class="chart-bar user" style="height: 70%">
+                        <span>You: 70%</span>
+                    </div>
+                    <div class="chart-bar company" style="height: 25%">
+                        <span>Company: 25%</span>
+                    </div>
+                    <div class="chart-bar system" style="height: 5%">
+                        <span>System: 5%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="gamesTab" style="display: none;">
+            <div class="game-selector">
+                <div class="game-option active" data-game="memory">Memory Match</div>
+                <div class="game-option" data-game="dice">Lucky Dice</div>
+                <div class="game-option" data-game="bottle">Flip Bottle</div>
+                <div class="game-option" data-game="snake">Snake</div>
+                <div class="game-option" data-game="quiz">Quick Quiz</div>
+            </div>
+            
+            <div class="game-container" id="memoryGame">
+                <h3>🎮 Memory Match Game</h3>
+                <p>Match the fruits to win ₦800 per pair</p>
+                <p>Ads watched: <span id="adsWatched">0</span>/10</p>
+                <p class="attempts-counter">Attempts left: <span id="memoryAttempts">10</span>/10</p>
+                
+                <div class="ad-container">
+                    <button id="watchAdBtn">▶️ Watch Ad (+1)</button>
+                </div>
+                
+                <div class="cards-grid" id="gameBoard"></div>
+                
+                <div class="game-stats">
+                    <p>🎯 Matched: <span id="wins">0</span> pairs</p>
+                    <p>💰 Earned: ₦<span id="gameEarnings">0</span></p>
+                </div>
+            </div>
+            
+            <div class="game-container" id="diceGame" style="display: none;">
+                <h3>🎲 Lucky Dice</h3>
+                <p>Roll the dice to win ₦800 per correct guess</p>
+                <p class="attempts-counter">Attempts left: <span id="diceAttempts">10</span>/10</p>
+                
+                <div style="text-align: center; margin: 20px 0;">
+                    <div id="diceResult" style="font-size: 48px; margin: 20px 0;">?</div>
+                    <button id="rollDiceBtn" class="primary" style="width: 100%;">Roll Dice (₦800)</button>
+                </div>
+                
+                <div class="game-stats">
+                    <p>🎯 Wins: <span id="diceWins">0</span></p>
+                    <p>💰 Earned: ₦<span id="diceEarnings">0</span></p>
+                </div>
+            </div>
+            
+            <div class="game-container" id="bottleGame" style="display: none;">
+                <h3>🥤 Flip Bottle</h3>
+                <p>Flip the bottle to land it upright</p>
+                <p class="attempts-counter">Attempts left: <span id="bottleAttempts">10</span>/10</p>
+                
+                <canvas id="bottleCanvas" width="200" height="300"></canvas>
+                
+                <div class="bottle-controls">
+                    <button id="flipBottleBtn" class="bottle-btn">Flip Bottle</button>
+                    <button id="resetBottleBtn" class="bottle-btn">Reset</button>
+                </div>
+                
+                <div class="game-stats">
+                    <p>🎯 Successful Flips: <span id="bottleWins">0</span></p>
+                    <p>💰 Earned: ₦<span id="bottleEarnings">0</span></p>
+                </div>
+            </div>
+            
+            <div class="game-container" id="snakeGame" style="display: none;">
+                <h3>🐍 Snake Game</h3>
+                <p>Collect food to grow your snake</p>
+                <p class="attempts-counter">Attempts left: <span id="snakeAttempts">10</span>/10</p>
+                
+                <canvas id="snakeCanvas" width="300" height="300"></canvas>
+                
+                <div style="margin-top: 15px;">
+                    <button id="startSnakeBtn" class="primary" style="width: 100%;">Start Game</button>
+                </div>
+                
+                <div class="game-stats">
+                    <p>Score: <span id="snakeScore">0</span></p>
+                    <p>💰 Earned: ₦<span id="snakeEarnings">0</span></p>
+                </div>
+            </div>
+            
+            <div class="game-container" id="quizGame" style="display: none;">
+                <h3>❓ Quick Quiz</h3>
+                <p>Answer correctly to win ₦800</p>
+                <p class="attempts-counter">Attempts left: <span id="quizAttempts">10</span>/10</p>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question" id="quizQuestion">Loading question...</div>
+                    <div class="quiz-options" id="quizOptions"></div>
+                </div>
+                
+                <div class="game-stats">
+                    <p>🎯 Correct: <span id="quizWins">0</span></p>
+                    <p>💰 Earned: ₦<span id="quizEarnings">0</span></p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="infoTab" style="display: none;">
+            <div class="info-section">
+                <h3>📚 How It Works</h3>
+                <p>1. Complete 6 referrals and watch 10 ads to activate AI trading</p>
+                <p>2. Earn ₦5,000 per referral (first 6 referrals = ₦30,000 capital)</p>
+                <p>3. Play games to earn additional capital (₦800 per win)</p>
+                <p>4. AI trading generates daily profits (20-50% of capital)</p>
+                <p>5. Withdraw profits (minimum ₦5,000) after verification</p>
+                <p>6. Verify your bank account with ₦550 one-time fee to withdraw</p>
+                <p>7. Payments are processed in batches when 1,000 users reach threshold</p>
+                <p>8. Maintain a login streak for daily bonuses (₦500 per day)</p>
+                <p>9. 70% of profits go to you, 25% to company, 5% system fee</p>
+                <p>10. Support available 24/7 for any questions or issues</p>
+            </div>
+            
+            <div class="info-section">
+                <h3>💰 Cost Structure & Verification Fees</h3>
+                <p>Your current model charges ₦550 for bank verification. Here's how this covers initial costs:</p>
+                
+                <table class="cost-table">
+                    <thead>
+                        <tr>
+                            <th>Cost Component</th>
+                            <th>Estimated Cost (₦)</th>
+                            <th>Covered by Verification Fee?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>KYC Verification</td>
+                            <td>150</td>
+                            <td class="checkmark">✅ Yes</td>
+                        </tr>
+                        <tr>
+                            <td>Bank API Integration</td>
+                            <td>150</td>
+                            <td class="checkmark">✅ Yes</td>
+                        </tr>
+                        <tr>
+                            <td>Fraud Prevention</td>
+                            <td>100</td>
+                            <td class="checkmark">✅ Yes</td>
+                        </tr>
+                        <tr>
+                            <td>Customer Support</td>
+                            <td>100</td>
+                            <td class="checkmark">✅ Yes</td>
+                        </tr>
+                        <tr>
+                            <td>Transaction Fees</td>
+                            <td>50</td>
+                            <td class="checkmark">✅ Yes</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Operational Cost</strong></td>
+                            <td><strong>₦550</strong></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="info-section">
+                <h3>❓ Frequently Asked Questions</h3>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(1)">
+                        How do I qualify for withdrawals?
+                        <span>+</span>
+                    </div>
+                    <div class="faq-answer" id="faq1">
+                        Complete 6 referrals, watch 10 ads, and verify your bank account with ₦550 fee.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(2)">
+                        When will I get paid?
+                        <span>+</span>
+                    </div>
+                    <div class="faq-answer" id="faq2">
+                        Payments are processed in batches when 1,000 users reach withdrawal threshold.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(3)">
+                        Can I withdraw my trading capital?
+                        <span>+</span>
+                    </div>
+                    <div class="faq-answer" id="faq3">
+                        No, only profits generated from trading can be withdrawn.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(4)">
+                        How are profits calculated?
+                        <span>+</span>
+                    </div>
+                    <div class="faq-answer" id="faq4">
+                        Daily profits range from 20-50% of your trading capital. 70% goes to you, 25% to company, 5% system fee.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(5)">
+                        Why is there a ₦550 verification fee?
+                        <span>+</span>
+                    </div>
+                    <div class="faq-answer" id="faq5">
+                        The fee covers KYC verification, bank API costs, fraud prevention, and support services to ensure secure transactions.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(6)">
+                        How many games can I play daily?
+                        <span>+</span>
+                    </div>
+                    <div class="faq-answer" id="faq6">
+                        Each game has 10 daily attempts that refresh every 24 hours. Watching ads can unlock more attempts.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(7)">
+                        What's the minimum withdrawal amount?
+                        <span>+</span>
+                    </div>
+                    <div class="faq-answer" id="faq7">
+                        The minimum withdrawal is ₦5,000. This ensures efficient processing of payments in batches.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(8)">
+                        How does the referral program work?
+                        <span>+</span>
+                    </div>
+                    <div class="faq-answer" id="faq8">
+                        You earn ₦5,000 for each referral who completes verification. First 6 referrals count towards your trading capital.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(9)">
+                        What happens if I break my login streak?
+                        <span>+</span>
+                    </div>
+                    <div class="faq-answer" id="faq9">
+                        Your streak resets to day 1, but you can start building it again immediately. Maximum bonus is for 7-day streaks.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(10)">
+                        Is my personal and banking information secure?
+                        <span>+</span>
+                    </div>
+                    <div class="faq-answer" id="faq10">
+                        Yes, we use bank-grade encryption and never store full account details. Your ₦550 verification fee includes security measures.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="supportTab" style="display: none;">
+            <div class="info-section">
+                <h3>📩 Support Ticket</h3>
+                <p>Submit your issue and our team will respond within 12 hours</p>
+                
+                <div class="bank-form">
+                    <input type="text" id="ticketSubject" placeholder="Subject">
+                    <textarea id="ticketMessage" placeholder="Describe your issue"></textarea>
+                    <div class="modal-actions">
+                        <button id="submitTicket" class="primary">Submit Ticket</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h3>📨 My Tickets</h3>
+                <div id="ticketList">
+                    <p>No support tickets yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <div class="modal" id="bankModal">
+        <div class="modal-content">
+            <h3>Bank Account Binding</h3>
+            <div class="bank-form">
+                <p>To withdraw earnings, verify your bank account (₦550 fee)</p>
+                <input type="text" id="bankName" placeholder="Bank Name">
+                <input type="text" id="accountNumber" placeholder="Account Number">
+                <input type="text" id="accountName" placeholder="Account Name">
+                <div class="modal-actions">
+                    <button id="confirmBankBinding" class="primary">Pay ₦550 & Verify</button>
+                    <button id="cancelBankBinding" class="secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="withdrawalModal">
+        <div class="modal-content">
+            <h3>Withdrawal Request</h3>
+            <p>Minimum withdrawal: ₦5,000</p>
+            <p>Available: ₦<span id="availableBalance">0</span></p>
+            <div id="verificationNotice" style="display: none;">
+                <p>⚠️ Account verification required (₦550 fee)</p>
+                <button id="verifyAccountBtn" class="danger">Pay ₦550 Verification Fee</button>
+            </div>
+            <div id="withdrawalForm" style="display: none;">
+                <p>Enter amount to withdraw:</p>
+                <input type="number" id="withdrawalAmount" min="5000" step="1000" class="status-card" style="width: 100%; padding: 10px; margin: 10px 0;">
+                <div class="modal-actions">
+                    <button id="confirmWithdrawal" class="primary">Confirm</button>
+                    <button id="cancelWithdrawal" class="secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <h3 id="successTitle">Success!</h3>
+            <p id="successMessage">Operation completed successfully</p>
+            <div class="modal-actions">
+                <button id="closeSuccessModal" class="primary">OK</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        <span id="notificationText">Notification message</span>
+    </div>
+    
+    <!-- Admin Panel Modal (hidden by default) -->
+    <div class="modal" id="adminModal">
+        <div class="modal-content" style="max-width: 95%; max-height: 90vh; overflow-y: auto;">
+            <h2>Admin Panel</h2>
+            
+            <div class="admin-tabs">
+                <button class="tab-button active" data-tab="users">Users</button>
+                <button class="tab-button" data-tab="payments">Payments</button>
+                <button class="tab-button" data-tab="trading">Trading</button>
+                <button class="tab-button" data-tab="settings">Settings</button>
+            </div>
+            
+            <div id="adminUsersTab" class="admin-tab-content active">
+                <div class="admin-search">
+                    <input type="text" id="userSearch" placeholder="Search users...">
+                    <button id="searchUsersBtn">Search</button>
+                </div>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Balance</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- Users will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="adminPaymentsTab" class="admin-tab-content">
+                <div class="admin-filters">
+                    <select id="paymentStatusFilter">
+                        <option value="all">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="completed">Completed</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTableBody">
+                            <!-- Payments will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="adminTradingTab" class="admin-tab-content">
+                <div class="status-card">
+                    <h3>Trading Dashboard</h3>
+                    <p>Total Active Users: <span id="adminActiveUsers">0</span></p>
+                    <p>Total Trading Capital: ₦<span id="adminTotalCapital">0</span></p>
+                    <p>Daily Profit Pool: ₦<span id="adminProfitPool">0</span></p>
+                    <button id="adminAdjustRates" class="primary">Adjust Profit Rates</button>
+                </div>
+            </div>
+            
+            <div id="adminSettingsTab" class="admin-tab-content">
+                <div class="status-card">
+                    <h3>System Settings</h3>
+                    <div class="bank-form">
+                        <label>Verification Fee (₦)</label>
+                        <input type="number" id="verificationFee" value="550">
+                        
+                        <label>Minimum Withdrawal (₦)</label>
+                        <input type="number" id="minWithdrawal" value="5000">
+                        
+                        <label>Payment Circle Size</label>
+                        <input type="number" id="paymentCircleSize" value="1000">
+                    </div>
+                    <div class="modal-actions">
+                        <button id="saveSettings" class="primary">Save Settings</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button id="closeAdminModal" class="secondary">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Admin Login Button (only visible to admins) -->
+    <button id="adminLoginBtn" style="display: none; position: fixed; bottom: 20px; right: 20px; z-index: 1000;">Admin</button>
+    
+    <script>
+        // Telegram WebApp initialization
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        // DOM Elements
+        const elements = {
+            balance: document.getElementById('balance'),
+            verifiedBadge: document.getElementById('verifiedBadge'),
+            tradingStatus: document.getElementById('tradingStatus'),
+            referralProgress: document.getElementById('referralProgress'),
+            completedReferrals: document.getElementById('completedReferrals'),
+            currentReferrals: document.getElementById('currentReferrals'),
+            referralEarnings: document.getElementById('referralEarnings'),
+            copyLinkBtn: document.getElementById('copyLink'),
+            bankBindingBtn: document.getElementById('bankBindingBtn'),
+            withdrawBtn: document.getElementById('withdrawBtn'),
+            gameBoard: document.getElementById('gameBoard'),
+            winsDisplay: document.getElementById('wins'),
+            earningsDisplay: document.getElementById('gameEarnings'),
+            adsWatchedDisplay: document.getElementById('adsWatched'),
+            watchAdBtn: document.getElementById('watchAdBtn'),
+            toggleTradingBtn: document.getElementById('toggleTrading'),
+            tradingCapitalDisplay: document.getElementById('tradingCapital'),
+            dailyProfitDisplay: document.getElementById('dailyProfit'),
+            totalProfitDisplay: document.getElementById('totalProfit'),
+            withdrawableProfit: document.getElementById('withdrawableProfit'),
+            availableBalance: document.getElementById('availableBalance'),
+            verificationNotice: document.getElementById('verificationNotice'),
+            withdrawalForm: document.getElementById('withdrawalForm'),
+            verifyAccountBtn: document.getElementById('verifyAccountBtn'),
+            withdrawalAmount: document.getElementById('withdrawalAmount'),
+            confirmWithdrawal: document.getElementById('confirmWithdrawal'),
+            cancelWithdrawal: document.getElementById('cancelWithdrawal'),
+            withdrawalModal: document.getElementById('withdrawalModal'),
+            successModal: document.getElementById('successModal'),
+            successTitle: document.getElementById('successTitle'),
+            successMessage: document.getElementById('successMessage'),
+            closeSuccessModal: document.getElementById('closeSuccessModal'),
+            notification: document.getElementById('notification'),
+            notificationText: document.getElementById('notificationText'),
+            totalReferralEarnings: document.getElementById('totalReferralEarnings'),
+            referralList: document.getElementById('referralList'),
+            tabs: document.querySelectorAll('.tab'),
+            tabContents: {
+                dashboard: document.getElementById('dashboardTab'),
+                trading: document.getElementById('tradingTab'),
+                games: document.getElementById('gamesTab'),
+                info: document.getElementById('infoTab'),
+                support: document.getElementById('supportTab')
+            },
+            bankModal: document.getElementById('bankModal'),
+            bankName: document.getElementById('bankName'),
+            accountNumber: document.getElementById('accountNumber'),
+            accountName: document.getElementById('accountName'),
+            confirmBankBinding: document.getElementById('confirmBankBinding'),
+            cancelBankBinding: document.getElementById('cancelBankBinding'),
+            paidUsers: document.getElementById('paidUsers'),
+            paymentCircleProgress: document.getElementById('paymentCircleProgress'),
+            gameOptions: document.querySelectorAll('.game-option'),
+            memoryGame: document.getElementById('memoryGame'),
+            diceGame: document.getElementById('diceGame'),
+            bottleGame: document.getElementById('bottleGame'),
+            snakeGame: document.getElementById('snakeGame'),
+            quizGame: document.getElementById('quizGame'),
+            diceResult: document.getElementById('diceResult'),
+            rollDiceBtn: document.getElementById('rollDiceBtn'),
+            diceWins: document.getElementById('diceWins'),
+            diceEarnings: document.getElementById('diceEarnings'),
+            memoryAttempts: document.getElementById('memoryAttempts'),
+            diceAttempts: document.getElementById('diceAttempts'),
+            bottleAttempts: document.getElementById('bottleAttempts'),
+            bottleCanvas: document.getElementById('bottleCanvas'),
+            flipBottleBtn: document.getElementById('flipBottleBtn'),
+            resetBottleBtn: document.getElementById('resetBottleBtn'),
+            bottleWins: document.getElementById('bottleWins'),
+            bottleEarnings: document.getElementById('bottleEarnings'),
+            snakeCanvas: document.getElementById('snakeCanvas'),
+            startSnakeBtn: document.getElementById('startSnakeBtn'),
+            snakeScore: document.getElementById('snakeScore'),
+            snakeEarnings: document.getElementById('snakeEarnings'),
+            snakeAttempts: document.getElementById('snakeAttempts'),
+            quizQuestion: document.getElementById('quizQuestion'),
+            quizOptions: document.getElementById('quizOptions'),
+            quizWins: document.getElementById('quizWins'),
+            quizEarnings: document.getElementById('quizEarnings'),
+            quizAttempts: document.getElementById('quizAttempts'),
+            ticketSubject: document.getElementById('ticketSubject'),
+            ticketMessage: document.getElementById('ticketMessage'),
+            submitTicket: document.getElementById('submitTicket'),
+            ticketList: document.getElementById('ticketList'),
+            day1: document.getElementById('day1'),
+            day2: document.getElementById('day2'),
+            day3: document.getElementById('day3'),
+            day4: document.getElementById('day4'),
+            day5: document.getElementById('day5'),
+            day6: document.getElementById('day6'),
+            day7: document.getElementById('day7'),
+            // Admin elements
+            adminModal: document.getElementById('adminModal'),
+            adminLoginBtn: document.getElementById('adminLoginBtn'),
+            closeAdminModal: document.getElementById('closeAdminModal'),
+            usersTableBody: document.getElementById('usersTableBody'),
+            paymentsTableBody: document.getElementById('paymentsTableBody'),
+            userSearch: document.getElementById('userSearch'),
+            searchUsersBtn: document.getElementById('searchUsersBtn'),
+            paymentStatusFilter: document.getElementById('paymentStatusFilter'),
+            adminActiveUsers: document.getElementById('adminActiveUsers'),
+            adminTotalCapital: document.getElementById('adminTotalCapital'),
+            adminProfitPool: document.getElementById('adminProfitPool'),
+            adminAdjustRates: document.getElementById('adminAdjustRates'),
+            verificationFee: document.getElementById('verificationFee'),
+            minWithdrawal: document.getElementById('minWithdrawal'),
+            paymentCircleSize: document.getElementById('paymentCircleSize'),
+            saveSettings: document.getElementById('saveSettings')
+        };
+        
+        // User data
+        let userData = {
+            balance: 0,
+            referrals: 0,
+            referralEarnings: 0,
+            adsWatched: 0,
+            tradingActive: false,
+            verified: false,
+            tradingCapital: 0,
+            dailyProfit: 0,
+            totalProfit: 0,
+            withdrawableProfit: 0,
+            referralList: [],
+            bankDetails: null,
+            gameSessions: {
+                lastPlayed: {}
+            },
+            streak: {
+                days: 0,
+                lastLogin: null
+            },
+            tickets: [],
+            paymentCircle: {
+                current: 0,
+                total: 1000
+            },
+            isAdmin: false // Will be set based on actual user role
+        };
+        
+        // Game states
+        const gameStates = {
+            memory: {
+                fruits: ['🍎', '🍌', '🍒', '🍓', '🍊', '🍋', '🍐', '🍇'],
+                values: [],
+                flippedCards: [],
+                matchedPairs: 0,
+                canPlay: false,
+                attempts: 10, // Increased to 10
+                wins: 0,
+                earnings: 0
+            },
+            dice: {
+                lastRoll: null,
+                attempts: 10, // Increased to 10
+                wins: 0,
+                earnings: 0
+            },
+            bottle: {
+                attempts: 10, // Increased to 10
+                wins: 0,
+                earnings: 0,
+                angle: 0,
+                flipping: false,
+                ctx: null,
+                bottleImg: new Image()
+            },
+            snake: {
+                attempts: 10,
+                score: 0,
+                earnings: 0,
+                gameActive: false,
+                snake: [],
+                food: {},
+                direction: 'right',
+                gridSize: 20,
+                canvasContext: null,
+                gameInterval: null
+            },
+            quiz: {
+                attempts: 10, // Increased to 10
+                wins: 0,
+                earnings: 0,
+                questions: [
+                    {
+                        question: "What is the capital of Nigeria?",
+                        options: ["Lagos", "Abuja", "Kano", "Ibadan"],
+                        answer: 1
+                    },
+                    {
+                        question: "Which planet is known as the Red Planet?",
+                        options: ["Venus", "Mars", "Jupiter", "Saturn"],
+                        answer: 1
+                    },
+                    {
+                        question: "What is 2 + 2?",
+                        options: ["3", "4", "5", "6"],
+                        answer: 1
+                    },
+                    {
+                        question: "Which is the largest ocean on Earth?",
+                        options: ["Atlantic", "Indian", "Arctic", "Pacific"],
+                        answer: 3
+                    },
+                    {
+                        question: "What is the currency of Nigeria?",
+                        options: ["Dollar", "Pound", "Naira", "Euro"],
+                        answer: 2
+                    },
+                    {
+                        question: "Which country hosted the 2022 World Cup?",
+                        options: ["Brazil", "Russia", "Qatar", "France"],
+                        answer: 2
+                    },
+                    {
+                        question: "How many continents are there?",
+                        options: ["5", "6", "7", "8"],
+                        answer: 2
+                    },
+                    {
+                        question: "What is the largest mammal?",
+                        options: ["Elephant", "Blue Whale", "Giraffe", "Hippopotamus"],
+                        answer: 1
+                    },
+                    {
+                        question: "Which is not a primary color?",
+                        options: ["Red", "Blue", "Green", "Yellow"],
+                        answer: 3
+                    },
+                    {
+                        question: "What is the square root of 64?",
+                        options: ["4", "6", "8", "10"],
+                        answer: 2
+                    }
+                ],
+                currentQuestion: null,
+                usedQuestions: []
+            }
+        };
+        
+        // Admin data
+        let adminData = {
+            token: null,
+            users: [],
+            payments: []
+        };
+        
+        // Payment Service Module
+        const PaymentService = (() => {
+            const API_URL = 'https://api.aireftraders.com/v1';
+            
+            // Initialize payment for verification or deposit
+            async function initializePayment(amount, purpose = 'verification') {
+                try {
+                    const response = await fetch(`${API_URL}/payments/initialize`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ 
+                            amount,
+                            purpose,
+                            metadata: {
+                                userId: tg.initDataUnsafe.user?.id,
+                                platform: 'telegram-webapp'
+                            }
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        // Store payment reference before redirecting
+                        localStorage.setItem('pendingPayment', JSON.stringify({
+                            reference: data.reference,
+                            purpose,
+                            timestamp: Date.now()
+                        }));
+                        
+                        // Redirect to payment page
+                        window.location.href = data.paymentLink;
+                    } else {
+                        showNotification(data.message || 'Error initializing payment');
+                    }
+                } catch (error) {
+                    showNotification('Network error');
+                    console.error('Payment initialization error:', error);
+                }
+            }
+
+            // Verify payment status after redirect
+            async function verifyPayment(reference) {
+                try {
+                    const response = await fetch(`${API_URL}/payments/verify/${reference}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        if (data.status === 'successful') {
+                            // Handle successful payment based on purpose
+                            if (data.purpose === 'verification') {
+                                await completeVerification(data);
+                            } else if (data.purpose === 'deposit') {
+                                await creditUserAccount(data.amount);
+                            }
+                            return true;
+                        } else {
+                            showNotification('Payment not completed');
+                            return false;
+                        }
+                    } else {
+                        showNotification(data.message || 'Error verifying payment');
+                        return false;
+                    }
+                } catch (error) {
+                    showNotification('Network error');
+                    console.error('Payment verification error:', error);
+                    return false;
+                }
+            }
+
+            // Complete user verification after payment
+            async function completeVerification(paymentData) {
+                try {
+                    const response = await fetch(`${API_URL}/users/verify`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                            paymentReference: paymentData.reference,
+                            amount: paymentData.amount
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        // Update local user data
+                        userData.verified = true;
+                        userData.bankDetails = data.bankDetails;
+                        updateUI();
+                        showNotification('Account verified successfully!');
+                        return true;
+                    } else {
+                        showNotification(data.message || 'Error completing verification');
+                        return false;
+                    }
+                } catch (error) {
+                    showNotification('Network error during verification');
+                    return false;
+                }
+            }
+
+            // Handle withdrawal request
+            async function requestWithdrawal(amount, bankDetails) {
+                try {
+                    // First verify the user's account is properly verified
+                    const verificationCheck = await fetch(`${API_URL}/users/verify-check`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    
+                    const verificationData = await verificationCheck.json();
+                    
+                    if (!verificationCheck.ok || !verificationData.verified) {
+                        showNotification('Account verification required before withdrawal');
+                        return null;
+                    }
+
+                    // Verify bank account matches verification
+                    if (verificationData.bankDetails.accountNumber !== bankDetails.accountNumber) {
+                        showNotification('Withdrawal must go to your verified bank account');
+                        return null;
+                    }
+
+                    // Proceed with withdrawal
+                    const response = await fetch(`${API_URL}/payments/withdraw`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                            amount,
+                            bankCode: bankDetails.bankCode,
+                            accountNumber: bankDetails.accountNumber,
+                            accountName: bankDetails.accountName,
+                            reference: `WDR-${Date.now()}-${tg.initDataUnsafe.user?.id}`
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        showNotification('Withdrawal request submitted successfully');
+                        return data.payment;
+                    } else {
+                        showNotification(data.message || 'Error processing withdrawal');
+                        return null;
+                    }
+                } catch (error) {
+                    showNotification('Network error');
+                    console.error('Withdrawal error:', error);
+                    return null;
+                }
+            }
+
+            // Get list of supported banks
+            async function getBanks() {
+                try {
+                    const response = await fetch(`${API_URL}/payments/banks`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        return data.banks;
+                    } else {
+                        showNotification(data.message || 'Error fetching banks');
+                        return [];
+                    }
+                } catch (error) {
+                    showNotification('Network error');
+                    return [];
+                }
+            }
+
+            // Verify bank account details
+            async function verifyBankAccount(accountNumber, bankCode) {
+                try {
+                    const response = await fetch(`${API_URL}/payments/verify-account`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ accountNumber, bankCode })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        return data.account;
+                    } else {
+                        showNotification(data.message || 'Error verifying account');
+                        return null;
+                    }
+                } catch (error) {
+                    showNotification('Network error');
+                    return null;
+                }
+            }
+
+            return {
+                initializePayment,
+                verifyPayment,
+                requestWithdrawal,
+                getBanks,
+                verifyBankAccount
+            };
+        })();
+
+        // Admin Service Module
+        const AdminService = (() => {
+            const API_URL = 'https://api.aireftraders.com/v1/admin';
+            
+            // Authenticate admin
+            async function authenticate(password) {
+                try {
+                    const response = await fetch(`${API_URL}/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ password })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        adminData.token = data.token;
+                        return true;
+                    } else {
+                        showNotification(data.message || 'Admin authentication failed');
+                        return false;
+                    }
+                } catch (error) {
+                    showNotification('Network error');
+                    return false;
+                }
+            }
+            
+            // Get all users
+            async function getUsers() {
+                try {
+                    const response = await fetch(`${API_URL}/users`, {
+                        headers: {
+                            'Authorization': `Bearer ${adminData.token}`
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        return data.users;
+                    } else {
+                        showNotification(data.message || 'Error fetching users');
+                        return [];
+                    }
+                } catch (error) {
+                    showNotification('Network error');
+                    return [];
+                }
+            }
+            
+            // Get all payments
+            async function getPayments() {
+                try {
+                    const response = await fetch(`${API_URL}/payments`, {
+                        headers: {
+                            'Authorization': `Bearer ${adminData.token}`
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        return data.payments;
+                    } else {
+                        showNotification(data.message || 'Error fetching payments');
+                        return [];
+                    }
+                } catch (error) {
+                    showNotification('Network error');
+                    return [];
+                }
+            }
+            
+            // Verify user account (admin override)
+            async function verifyUser(userId) {
+                try {
+                    const response = await fetch(`${API_URL}/users/${userId}/verify`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${adminData.token}`
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        return true;
+                    } else {
+                        showNotification(data.message || 'Error verifying user');
+                        return false;
+                    }
+                } catch (error) {
+                    showNotification('Network error');
+                    return false;
+                }
+            }
+            
+            // Update payment status
+            async function updatePaymentStatus(paymentId, status) {
+                try {
+                    const response = await fetch(`${API_URL}/payments/${paymentId}/status`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${adminData.token}`
+                        },
+                        body: JSON.stringify({ status })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        return true;
+                    } else {
+                        showNotification(data.message || 'Error updating payment');
+                        return false;
+                    }
+                } catch (error) {
+                    showNotification('Network error');
+                    return false;
+                }
+            }
+            
+            // Get trading stats
+            async function getTradingStats() {
+                try {
+                    const response = await fetch(`${API_URL}/trading/stats`, {
+                        headers: {
+                            'Authorization': `Bearer ${adminData.token}`
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        return data.stats;
+                    } else {
+                        showNotification(data.message || 'Error fetching trading stats');
+                        return null;
+                    }
+                } catch (error) {
+                    showNotification('Network error');
+                    return null;
+                }
+            }
+            
+            // Update system settings
+            async function updateSettings(settings) {
+                try {
+                    const response = await fetch(`${API_URL}/settings`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${adminData.token}`
+                        },
+                        body: JSON.stringify(settings)
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        return true;
+                    } else {
+                        showNotification(data.message || 'Error updating settings');
+                        return false;
+                    }
+                } catch (error) {
+                    showNotification('Network error');
+                    return false;
+                }
+            }
+            
+            return {
+                authenticate,
+                getUsers,
+                getPayments,
+                verifyUser,
+                updatePaymentStatus,
+                getTradingStats,
+                updateSettings
+            };
+        })();
+
+        // Initialize memory game with fruits
+        function initMemoryGame() {
+            elements.gameBoard.innerHTML = '';
+            gameStates.memory.matchedPairs = 0;
+            gameStates.memory.flippedCards = [];
+            
+            // Create pairs of fruit values
+            gameStates.memory.values = [];
+            gameStates.memory.fruits.forEach(fruit => {
+                gameStates.memory.values.push(fruit, fruit);
+            });
+            
+            // Shuffle and create cards
+            const shuffled = [...gameStates.memory.values].sort(() => 0.5 - Math.random());
+            
+            shuffled.forEach((value, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.value = value;
+                card.dataset.index = index;
+                card.textContent = '?';
+                card.style.fontSize = '30px';
+                
+                card.addEventListener('click', function() {
+                    if (gameStates.memory.canPlay && 
+                        gameStates.memory.attempts > 0 && 
+                        !this.classList.contains('flipped') && 
+                        !this.classList.contains('matched') &&
+                        gameStates.memory.flippedCards.length < 2) {
+                        flipCard(this);
+                    }
+                });
+                
+                elements.gameBoard.appendChild(card);
+            });
+            
+            // Show all cards briefly at start (3 seconds)
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.classList.add('flipped');
+                card.textContent = card.dataset.value;
+            });
+            
+            setTimeout(() => {
+                cards.forEach(card => {
+                    card.classList.remove('flipped');
+                    card.textContent = '?';
+                });
+                gameStates.memory.canPlay = true;
+            }, 3000);
+            
+            updateMemoryAttempts();
+        }
+        
+        // Flip card in memory game
+        function flipCard(card) {
+            if (gameStates.memory.flippedCards.length < 2 && !card.classList.contains('flipped') && !card.classList.contains('matched')) {
+                card.classList.add('flipped');
+                card.textContent = card.dataset.value;
+                gameStates.memory.flippedCards.push(card);
+                
+                if (gameStates.memory.flippedCards.length === 2) {
+                    gameStates.memory.canPlay = false;
+                    setTimeout(checkMatch, 500);
+                }
+            }
+        }
+        
+        // Check for match in memory game
+        function checkMatch() {
+            const [card1, card2] = gameStates.memory.flippedCards;
+            
+            // Deduct attempt
+            gameStates.memory.attempts--;
+            updateMemoryAttempts();
+            
+            if (card1.dataset.value === card2.dataset.value) {
+                // Match found
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                gameStates.memory.matchedPairs++;
+                
+                // Update UI and add earnings
+                gameStates.memory.wins++;
+                gameStates.memory.earnings += 800;
+                updateGameStats('memory');
+                addGameEarnings(800);
+                
+                if (gameStates.memory.matchedPairs === 8) {
+                    showNotification('🎉 You won ₦6,400!');
+                    // Reset game
+                    setTimeout(() => {
+                        gameStates.memory.matchedPairs = 0;
+                        initMemoryGame();
+                    }, 2000);
+                }
+            } else {
+                // No match
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    card1.textContent = '?';
+                    card2.textContent = '?';
+                }, 500);
+            }
+            
+            gameStates.memory.flippedCards = [];
+            gameStates.memory.canPlay = true;
+            
+            // Check if attempts exhausted
+            if (gameStates.memory.attempts <= 0) {
+                showNotification('Memory game attempts exhausted. Come back later!');
+                elements.memoryGame.classList.add('game-disabled');
+                // Set timeout to reset attempts after 1 hour
+                setTimeout(() => {
+                    gameStates.memory.attempts = 10;
+                    updateMemoryAttempts();
+                    elements.memoryGame.classList.remove('game-disabled');
+                }, 3600000); // 1 hour
+            }
+        }
+        
+        // Initialize dice game
+        function initDiceGame() {
+            elements.rollDiceBtn.addEventListener('click', rollDice);
+            updateDiceAttempts();
+        }
+        
+        // Roll dice function
+        function rollDice() {
+            if (!gameStates.memory.canPlay) {
+                showNotification('Watch an ad to play games');
+                return;
+            }
+            
+            if (gameStates.dice.attempts <= 0) {
+                showNotification('Dice game attempts exhausted. Come back later!');
+                return;
+            }
+            
+            // Deduct attempt
+            gameStates.dice.attempts--;
+            updateDiceAttempts();
+            
+            const roll = Math.floor(Math.random() * 6) + 1;
+            gameStates.dice.lastRoll = roll;
+            elements.diceResult.textContent = roll;
+            
+            // Simulate dice animation
+            let rolls = 0;
+            const animateRoll = setInterval(() => {
+                elements.diceResult.textContent = Math.floor(Math.random() * 6) + 1;
+                rolls++;
+                if (rolls > 10) {
+                    clearInterval(animateRoll);
+                    elements.diceResult.textContent = roll;
+                    
+                    // Check win (50% chance)
+                    if (Math.random() > 0.5) {
+                        showNotification('🎲 You won ₦800!');
+                        gameStates.dice.wins++;
+                        gameStates.dice.earnings += 800;
+                        updateGameStats('dice');
+                        addGameEarnings(800);
+                    } else {
+                        showNotification('Try again!');
+                    }
+                    
+                    // Check if attempts exhausted
+                    if (gameStates.dice.attempts <= 0) {
+                        showNotification('Dice game attempts exhausted. Come back later!');
+                        elements.diceGame.classList.add('game-disabled');
+                        // Set timeout to reset attempts after 1 hour
+                        setTimeout(() => {
+                            gameStates.dice.attempts = 10;
+                            updateDiceAttempts();
+                            elements.diceGame.classList.remove('game-disabled');
+                        }, 3600000); // 1 hour
+                    }
+                }
+            }, 100);
+        }
+        
+        // Initialize Flip Bottle game
+        function initBottleGame() {
+            gameStates.bottle.ctx = elements.bottleCanvas.getContext('2d');
+            gameStates.bottle.bottleImg.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200"><rect x="30" y="20" width="40" height="160" rx="5" fill="%236C5CE7"/><rect x="35" y="15" width="30" height="10" rx="3" fill="%236C5CE7"/></svg>';
+            
+            elements.flipBottleBtn.addEventListener('click', flipBottle);
+            elements.resetBottleBtn.addEventListener('click', resetBottle);
+            
+            drawBottle();
+            updateBottleAttempts();
+        }
+        
+        // Draw bottle in current state
+        function drawBottle() {
+            const ctx = gameStates.bottle.ctx;
+            const canvas = elements.bottleCanvas;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.save();
+            ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.rotate(gameStates.bottle.angle * Math.PI / 180);
+            ctx.drawImage(gameStates.bottle.bottleImg, -50, -100, 100, 200);
+            ctx.restore();
+        }
+        
+        // Flip bottle animation
+        function flipBottle() {
+            if (!gameStates.memory.canPlay) {
+                showNotification('Watch an ad to play games');
+                return;
+            }
+            
+            if (gameStates.bottle.attempts <= 0) {
+                showNotification('Bottle flip attempts exhausted. Come back later!');
+                return;
+            }
+            
+            if (gameStates.bottle.flipping) return;
+            
+            // Deduct attempt
+            gameStates.bottle.attempts--;
+            updateBottleAttempts();
+            
+            gameStates.bottle.flipping = true;
+            
+            let rotations = 0;
+            const maxRotations = 3 + Math.random() * 2; // 3-5 full rotations
+            const startTime = Date.now();
+            const duration = 2000 + Math.random() * 1000; // 2-3 seconds
+            
+            // Increased win chance to 40% (from ~20%)
+            const willWin = Math.random() < 0.4;
+            const targetAngle = willWin ? 0 : Math.random() * 360;
+            
+            const animate = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Ease-out function
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                
+                // Calculate current rotation
+                rotations = easeProgress * maxRotations;
+                
+                // If this is a winning flip, adjust the final angle to be near 0
+                if (willWin && progress > 0.9) {
+                    // In the last 10% of animation, adjust to land upright
+                    const adjustment = (1 - progress) * 360;
+                    gameStates.bottle.angle = (rotations * 360 + adjustment) % 360;
+                } else {
+                    gameStates.bottle.angle = (rotations * 360) % 360;
+                }
+                
+                drawBottle();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    gameStates.bottle.flipping = false;
+                    
+                    // Check if bottle landed upright (within 20 degrees of 0 or 360)
+                    const finalAngle = gameStates.bottle.angle % 360;
+                    if (finalAngle < 20 || finalAngle > 340) {
+                        showNotification('🥤 Perfect flip! You won ₦800');
+                        gameStates.bottle.wins++;
+                        gameStates.bottle.earnings += 800;
+                        updateGameStats('bottle');
+                        addGameEarnings(800);
+                    } else {
+                        showNotification('Try again!');
+                    }
+                    
+                    // Check if attempts exhausted
+                    if (gameStates.bottle.attempts <= 0) {
+                        showNotification('Bottle flip attempts exhausted. Come back later!');
+                        elements.bottleGame.classList.add('game-disabled');
+                        // Set timeout to reset attempts after 1 hour
+                        setTimeout(() => {
+                            gameStates.bottle.attempts = 10;
+                            updateBottleAttempts();
+                            elements.bottleGame.classList.remove('game-disabled');
+                        }, 3600000); // 1 hour
+                    }
+                }
+            };
+            
+            animate();
+        }
+        
+        // Reset bottle to starting position
+        function resetBottle() {
+            gameStates.bottle.angle = 0;
+            drawBottle();
+        }
+        
+        // Initialize Snake game
+        function initSnakeGame() {
+            gameStates.snake.canvasContext = elements.snakeCanvas.getContext('2d');
+            elements.startSnakeBtn.addEventListener('click', startSnakeGame);
+            updateSnakeAttempts();
+            
+            // Handle keyboard controls
+            document.addEventListener('keydown', (e) => {
+                if (!gameStates.snake.gameActive) return;
+                
+                switch(e.key) {
+                    case 'ArrowUp':
+                        if (gameStates.snake.direction !== 'down') gameStates.snake.direction = 'up';
+                        break;
+                    case 'ArrowDown':
+                        if (gameStates.snake.direction !== 'up') gameStates.snake.direction = 'down';
+                        break;
+                    case 'ArrowLeft':
+                        if (gameStates.snake.direction !== 'right') gameStates.snake.direction = 'left';
+                        break;
+                    case 'ArrowRight':
+                        if (gameStates.snake.direction !== 'left') gameStates.snake.direction = 'right';
+                        break;
+                }
+            });
+        }
+        
+        // Start Snake game
+        function startSnakeGame() {
+            if (gameStates.snake.attempts <= 0) {
+                showNotification('Snake game attempts exhausted. Come back later!');
+                return;
+            }
+            
+            // Initialize snake
+            gameStates.snake.snake = [
+                {x: 10, y: 10},
+                {x: 9, y: 10},
+                {x: 8, y: 10}
+            ];
+            gameStates.snake.direction = 'right';
+            gameStates.snake.score = 0;
+            elements.snakeScore.textContent = '0';
+            gameStates.snake.gameActive = true;
+            
+            // Place first food
+            placeFood();
+            
+            // Start game loop
+            if (gameStates.snake.gameInterval) {
+                clearInterval(gameStates.snake.gameInterval);
+            }
+            gameStates.snake.gameInterval = setInterval(gameLoop, 200); // Slower speed (200ms)
+        }
+        
+        // Snake game loop
+        function gameLoop() {
+            if (!gameStates.snake.gameActive) return;
+            
+            const ctx = gameStates.snake.canvasContext;
+            const gridSize = gameStates.snake.gridSize;
+            const canvasSize = elements.snakeCanvas.width;
+            
+            // Clear canvas
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, canvasSize, canvasSize);
+            
+            // Move snake
+            const head = {...gameStates.snake.snake[0]};
+            
+            switch(gameStates.snake.direction) {
+                case 'up':
+                    head.y--;
+                    break;
+                case 'down':
+                    head.y++;
+                    break;
+                case 'left':
+                    head.x--;
+                    break;
+                case 'right':
+                    head.x++;
+                    break;
+            }
+            
+            // Check collision with walls
+            if (head.x < 0 || head.x >= canvasSize/gridSize || head.y < 0 || head.y >= canvasSize/gridSize) {
+                gameOver();
+                return;
+            }
+            
+            // Check collision with self
+            if (gameStates.snake.snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                gameOver();
+                return;
+            }
+            
+            // Add new head
+            gameStates.snake.snake.unshift(head);
+            
+            // Check if snake ate food
+            if (head.x === gameStates.snake.food.x && head.y === gameStates.snake.food.y) {
+                gameStates.snake.score++;
+                elements.snakeScore.textContent = gameStates.snake.score;
+                placeFood();
+            } else {
+                // Remove tail if no food eaten
+                gameStates.snake.snake.pop();
+            }
+            
+            // Draw snake
+            ctx.fillStyle = '#6C5CE7';
+            gameStates.snake.snake.forEach(segment => {
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize-2, gridSize-2);
+            });
+            
+            // Draw food
+            ctx.fillStyle = '#D63031';
+            ctx.fillRect(gameStates.snake.food.x * gridSize, gameStates.snake.food.y * gridSize, gridSize-2, gridSize-2);
+        }
+        
+        // Place food in Snake game
+        function placeFood() {
+            const gridSize = gameStates.snake.gridSize;
+            const canvasSize = elements.snakeCanvas.width;
+            const maxPos = canvasSize / gridSize;
+            
+            let foodX, foodY;
+            do {
+                foodX = Math.floor(Math.random() * maxPos);
+                foodY = Math.floor(Math.random() * maxPos);
+            } while (gameStates.snake.snake.some(segment => segment.x === foodX && segment.y === foodY));
+            
+            gameStates.snake.food = {x: foodX, y: foodY};
+        }
+        
+        // End Snake game
+        function gameOver() {
+            clearInterval(gameStates.snake.gameInterval);
+            gameStates.snake.gameActive = false;
+            
+            // Calculate earnings (₦150 per point)
+            const earnings = gameStates.snake.score * 150;
+            if (earnings > 0) {
+                showNotification(`Game Over! You earned ₦${earnings}`);
+                gameStates.snake.earnings += earnings;
+                updateGameStats('snake');
+                addGameEarnings(earnings);
+            } else {
+                showNotification('Game Over! Try again');
+            }
+            
+            // Deduct attempt
+            gameStates.snake.attempts--;
+            updateSnakeAttempts();
+            
+            // Check if attempts exhausted
+            if (gameStates.snake.attempts <= 0) {
+                showNotification('Snake game attempts exhausted. Come back later!');
+                elements.snakeGame.classList.add('game-disabled');
+                // Set timeout to reset attempts after 1 hour
+                setTimeout(() => {
+                    gameStates.snake.attempts = 10;
+                    updateSnakeAttempts();
+                    elements.snakeGame.classList.remove('game-disabled');
+                }, 3600000); // 1 hour
+            }
+        }
+        
+        // Initialize Quiz game
+        function initQuizGame() {
+            loadQuestion();
+            updateQuizAttempts();
+        }
+        
+        // Load quiz question
+        function loadQuestion() {
+            // Reset questions if all have been used
+            if (gameStates.quiz.questions.length === 0 && gameStates.quiz.usedQuestions.length > 0) {
+                gameStates.quiz.questions = [...gameStates.quiz.usedQuestions];
+                gameStates.quiz.usedQuestions = [];
+            }
+            
+            if (gameStates.quiz.questions.length === 0) {
+                elements.quizQuestion.textContent = "No more questions available";
+                elements.quizOptions.innerHTML = '';
+                return;
+            }
+            
+            // Get random question
+            const randomIndex = Math.floor(Math.random() * gameStates.quiz.questions.length);
+            gameStates.quiz.currentQuestion = gameStates.quiz.questions[randomIndex];
+            
+            // Move question to used pool
+            gameStates.quiz.usedQuestions.push(gameStates.quiz.questions[randomIndex]);
+            gameStates.quiz.questions.splice(randomIndex, 1);
+            
+            // Display question
+            elements.quizQuestion.textContent = gameStates.quiz.currentQuestion.question;
+            
+            // Display options
+            elements.quizOptions.innerHTML = '';
+            gameStates.quiz.currentQuestion.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'quiz-option';
+                optionElement.textContent = option;
+                optionElement.addEventListener('click', () => checkAnswer(index));
+                elements.quizOptions.appendChild(optionElement);
+            });
+        }
+        
+        // Check quiz answer
+        function checkAnswer(selectedIndex) {
+            if (gameStates.quiz.attempts <= 0) {
+                showNotification('Quiz attempts exhausted. Come back later!');
+                return;
+            }
+            
+            // Deduct attempt
+            gameStates.quiz.attempts--;
+            updateQuizAttempts();
+            
+            if (selectedIndex === gameStates.quiz.currentQuestion.answer) {
+                // Correct answer
+                showNotification('✅ Correct! You earned ₦800');
+                gameStates.quiz.wins++;
+                gameStates.quiz.earnings += 800;
+                updateGameStats('quiz');
+                addGameEarnings(800);
+            } else {
+                // Wrong answer
+                showNotification('❌ Wrong answer! Try again');
+            }
+            
+            // Load next question or end game
+            if (gameStates.quiz.questions.length > 0 || gameStates.quiz.usedQuestions.length > 0) {
+                setTimeout(loadQuestion, 1500);
+            } else {
+                elements.quizQuestion.textContent = "Quiz completed!";
+                elements.quizOptions.innerHTML = '';
+            }
+            
+            // Check if attempts exhausted
+            if (gameStates.quiz.attempts <= 0) {
+                showNotification('Quiz attempts exhausted. Come back later!');
+                elements.quizGame.classList.add('game-disabled');
+                // Set timeout to reset attempts after 1 hour
+                setTimeout(() => {
+                    gameStates.quiz.attempts = 10;
+                    updateQuizAttempts();
+                    elements.quizGame.classList.remove('game-disabled');
+                }, 3600000); // 1 hour
+            }
+        }
+        
+        // Add game earnings to balance or capital
+        function addGameEarnings(amount) {
+            if (userData.tradingActive) {
+                // After qualification, earnings go to trading capital
+                userData.tradingCapital += amount;
+                updateTradingInfo();
+            } else {
+                // Before qualification, earnings go to balance
+                userData.balance += amount;
+            }
+            updateBalance();
+        }
+        
+        // Update game stats display
+        function updateGameStats(game) {
+            switch(game) {
+                case 'memory':
+                    elements.winsDisplay.textContent = gameStates.memory.wins;
+                    elements.earningsDisplay.textContent = gameStates.memory.earnings;
+                    break;
+                case 'dice':
+                    elements.diceWins.textContent = gameStates.dice.wins;
+                    elements.diceEarnings.textContent = gameStates.dice.earnings;
+                    break;
+                case 'bottle':
+                    elements.bottleWins.textContent = gameStates.bottle.wins;
+                    elements.bottleEarnings.textContent = gameStates.bottle.earnings;
+                    break;
+                case 'snake':
+                    elements.snakeEarnings.textContent = gameStates.snake.earnings;
+                    break;
+                case 'quiz':
+                    elements.quizWins.textContent = gameStates.quiz.wins;
+                    elements.quizEarnings.textContent = gameStates.quiz.earnings;
+                    break;
+            }
+            elements.adsWatchedDisplay.textContent = userData.adsWatched;
+        }
+        
+        // Update attempt counters
+        function updateMemoryAttempts() {
+            elements.memoryAttempts.textContent = gameStates.memory.attempts;
+        }
+        
+        function updateDiceAttempts() {
+            elements.diceAttempts.textContent = gameStates.dice.attempts;
+        }
+        
+        function updateBottleAttempts() {
+            elements.bottleAttempts.textContent = gameStates.bottle.attempts;
+        }
+        
+        function updateSnakeAttempts() {
+            elements.snakeAttempts.textContent = gameStates.snake.attempts;
+        }
+        
+        function updateQuizAttempts() {
+            elements.quizAttempts.textContent = gameStates.quiz.attempts;
+        }
+        
+        // Update UI function
+        function updateUI() {
+            elements.verifiedBadge.textContent = userData.verified ? '✅' : '❌';
+            updateBalance();
+            updateReferralInfo();
+            updateTradingInfo();
+        }
+        
+        // Update balance display
+        function updateBalance() {
+            elements.balance.textContent = userData.balance.toLocaleString();
+            elements.availableBalance.textContent = Math.max(0, userData.withdrawableProfit).toLocaleString();
+        }
+        
+        // Update referral display
+        function updateReferralInfo() {
+            elements.currentReferrals.textContent = userData.referrals;
+            elements.completedReferrals.textContent = userData.referrals;
+            elements.referralProgress.value = userData.referrals;
+            elements.referralEarnings.textContent = (userData.referrals * 5000).toLocaleString();
+            elements.totalReferralEarnings.textContent = userData.referralEarnings.toLocaleString();
+            
+            // Update referral list
+            if (userData.referralList.length > 0) {
+                elements.referralList.innerHTML = userData.referralList.map(ref => 
+                    `<p>${ref.name} - ${new Date(ref.date).toLocaleDateString()} - ₦5,000</p>`
+                ).join('');
+            }
+            
+            // Update trading status
+            if (userData.referrals >= 6 && userData.adsWatched >= 10) {
+                userData.tradingActive = true;
+                userData.tradingCapital = 30000 + (userData.referrals * 5000);
+                elements.tradingStatus.innerHTML = 'AI Bot: <b>Active</b> (24h Profit: ₦' + userData.dailyProfit.toLocaleString() + ')';
+                elements.toggleTradingBtn.textContent = 'Deactivate Trading';
+                elements.toggleTradingBtn.disabled = false;
+            } else {
+                elements.tradingStatus.innerHTML = 'AI Bot: <b>Inactive</b> (Complete 6 referrals and 10 ads)';
+                elements.toggleTradingBtn.textContent = 'Activate Trading';
+                elements.toggleTradingBtn.disabled = true;
+            }
+        }
+        
+        // Update trading info
+        function updateTradingInfo() {
+            elements.tradingCapitalDisplay.textContent = 'Trading Capital: ₦' + userData.tradingCapital.toLocaleString();
+            elements.dailyProfitDisplay.textContent = 'Daily Profit: ₦' + userData.dailyProfit.toLocaleString();
+            elements.totalProfitDisplay.textContent = 'Total Profit: ₦' + userData.totalProfit.toLocaleString();
+            elements.withdrawableProfit.textContent = 'Withdrawable: ₦' + userData.withdrawableProfit.toLocaleString();
+            
+            // Update profit chart
+            document.querySelectorAll('.chart-bar.user').forEach(el => el.style.height = '70%');
+            document.querySelectorAll('.chart-bar.company').forEach(el => el.style.height = '25%');
+            document.querySelectorAll('.chart-bar.system').forEach(el => el.style.height = '5%');
+        }
+        
+        // Update payment circle info
+        function updatePaymentCircle() {
+            elements.paidUsers.textContent = userData.paymentCircle.current.toLocaleString();
+            elements.paymentCircleProgress.value = userData.paymentCircle.current;
+            
+            // Check if payment circle is complete
+            if (userData.paymentCircle.current >= userData.paymentCircle.total) {
+                showNotification('Payment circle complete! Admin has been notified to process payments.');
+                // Reset for next circle
+                userData.paymentCircle.current = 0;
+            }
+        }
+        
+        // Update login streak
+        function updateStreak() {
+            const today = new Date().toDateString();
+            
+            // Check if already logged in today
+            if (userData.streak.lastLogin === today) return;
+            
+            // Check if consecutive day
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            
+            if (userData.streak.lastLogin === yesterday.toDateString()) {
+                // Consecutive day
+                userData.streak.days++;
+            } else if (userData.streak.lastLogin !== today) {
+                // Broken streak
+                userData.streak.days = 1;
+            }
+            
+            // Update last login
+            userData.streak.lastLogin = today;
+            
+            // Update UI
+            for (let i = 1; i <= 7; i++) {
+                const dayElement = elements[`day${i}`];
+                dayElement.classList.remove('active', 'today');
+                
+                if (i <= userData.streak.days) {
+                    dayElement.classList.add('active');
+                }
+                
+                if (i === userData.streak.days + 1 && userData.streak.days < 7) {
+                    dayElement.classList.add('today');
+                }
+            }
+            
+            // Award streak bonus (₦500 per day)
+            const bonus = userData.streak.days * 500;
+            userData.balance += bonus;
+            updateBalance();
+            showNotification(`🔥 ${userData.streak.days}-day streak! +₦${bonus}`);
+        }
+        
+        // Handle streak day clicks
+        function setupStreakClicks() {
+            for (let i = 1; i <= 7; i++) {
+                elements[`day${i}`].addEventListener('click', () => {
+                    showNotification(`Day ${i} of login streak`);
+                });
+            }
+        }
+        
+        // Toggle FAQ answer visibility
+        function toggleFaq(index) {
+            const answer = document.getElementById(`faq${index}`);
+            answer.classList.toggle('show');
+        }
+        
+        // Submit support ticket
+        function submitTicket() {
+            const subject = elements.ticketSubject.value;
+            const message = elements.ticketMessage.value;
+            
+            if (!subject || !message) {
+                showNotification('Please fill all fields');
+                return;
+            }
+            
+            const ticket = {
+                id: Date.now(),
+                subject,
+                message,
+                date: new Date(),
+                status: 'Pending',
+                reply: null
+            };
+            
+            userData.tickets.push(ticket);
+            updateTicketList();
+            
+            // Simulate admin reply after 12 hours
+            setTimeout(() => {
+                const ticketIndex = userData.tickets.findIndex(t => t.id === ticket.id);
+                if (ticketIndex !== -1) {
+                    userData.tickets[ticketIndex].status = 'Resolved';
+                    userData.tickets[ticketIndex].reply = 'Thank you for your patience. Your issue has been resolved. If you need further assistance, please let us know.';
+                    updateTicketList();
+                    showNotification('Admin has replied to your support ticket!');
+                }
+            }, 43200000); // 12 hours
+            
+            elements.ticketSubject.value = '';
+            elements.ticketMessage.value = '';
+            showNotification('Ticket submitted successfully!');
+        }
+        
+        // Update ticket list display
+        function updateTicketList() {
+            if (userData.tickets.length === 0) {
+                elements.ticketList.innerHTML = '<p>No support tickets yet</p>';
+                return;
+            }
+            
+            elements.ticketList.innerHTML = userData.tickets.map(ticket => `
+                <div class="status-card" style="margin-bottom: 10px;">
+                    <h4>${ticket.subject}</h4>
+                    <p><small>${new Date(ticket.date).toLocaleString()}</small></p>
+                    <p>Status: ${ticket.status}</p>
+                    ${ticket.reply ? `<p>Reply: ${ticket.reply}</p>` : ''}
+                </div>
+            `).join('');
+        }
+        
+        // Show notification
+        function showNotification(message) {
+            elements.notificationText.textContent = message;
+            elements.notification.classList.add('show');
+            setTimeout(() => {
+                elements.notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Show success modal
+        function showSuccess(title, message) {
+            elements.successTitle.textContent = title;
+            elements.successMessage.textContent = message;
+            elements.successModal.classList.add('active');
+        }
+        
+        // Simulate trading
+        function simulateTrading() {
+            if (userData.tradingActive) {
+                const dailyReturn = Math.random() * (0.5 - 0.2) + 0.2;
+                userData.dailyProfit = userData.tradingCapital * dailyReturn;
+                userData.totalProfit += userData.dailyProfit;
+                
+                // Distribute profits
+                const userShare = userData.dailyProfit * 0.7;
+                userData.withdrawableProfit += userShare;
+                
+                updateBalance();
+                updateTradingInfo();
+                updateReferralInfo();
+                
+                // Show notification occasionally
+                if (Math.random() > 0.7) {
+                    showNotification('💸 Profit earned: ₦' + Math.floor(userShare).toLocaleString());
+                }
+                
+                // Simulate payment circle progress
+                if (Math.random() > 0.8) {
+                    userData.paymentCircle.current += Math.floor(Math.random() * 50) + 10;
+                    updatePaymentCircle();
+                }
+            }
+        }
+        
+        // Switch game
+        function switchGame(game) {
+            userData.currentGame = game;
+            
+            // Update UI
+            elements.gameOptions.forEach(option => {
+                if (option.dataset.game === game) {
+                    option.classList.add('active');
+                } else {
+                    option.classList.remove('active');
+                }
+            });
+            
+            // Hide all games
+            elements.memoryGame.style.display = 'none';
+            elements.diceGame.style.display = 'none';
+            elements.bottleGame.style.display = 'none';
+            elements.snakeGame.style.display = 'none';
+            elements.quizGame.style.display = 'none';
+            
+            // Show selected game
+            switch(game) {
+                case 'memory':
+                    elements.memoryGame.style.display = 'block';
+                    break;
+                case 'dice':
+                    elements.diceGame.style.display = 'block';
+                    break;
+                case 'bottle':
+                    elements.bottleGame.style.display = 'block';
+                    break;
+                case 'snake':
+                    elements.snakeGame.style.display = 'block';
+                    break;
+                case 'quiz':
+                    elements.quizGame.style.display = 'block';
+                    break;
+            }
+        }
+        
+        // Helper function to get bank code by name
+        async function getBankCode(bankName) {
+            const banks = await PaymentService.getBanks();
+            const bank = banks.find(b => b.name === bankName);
+            return bank ? bank.code : null;
+        }
+        
+        // Admin functions
+        function checkAdminStatus() {
+            // In a real app, this would check the user's role from the server
+            // For demo purposes, we'll use a query parameter or localStorage flag
+            const urlParams = new URLSearchParams(window.location.search);
+            const isAdmin = urlParams.has('admin') || localStorage.getItem('isAdmin') === 'true';
+            
+            if (isAdmin) {
+                userData.isAdmin = true;
+                elements.adminLoginBtn.style.display = 'block';
+            }
+        }
+        
+        async function authenticateAdmin(password) {
+            // In a real app, this would verify with the server
+            // For demo, we'll use a simple password
+            if (password === 'admin123') {
+                adminData.token = 'demo-admin-token';
+                localStorage.setItem('isAdmin', 'true');
+                showAdminPanel();
+                loadAdminData();
+                return true;
+            } else {
+                showNotification('Invalid admin password');
+                return false;
+            }
+        }
+        
+        function showAdminPanel() {
+            elements.adminModal.classList.add('active');
+        }
+        
+        async function loadAdminData() {
+            // Simulate loading admin data
+            const demoUsers = [
+                { _id: 'user1', username: 'john_doe', balance: 15000, verified: true },
+                { _id: 'user2', username: 'jane_smith', balance: 7500, verified: false },
+                { _id: 'user3', username: 'mike_jones', balance: 32000, verified: true }
+            ];
+            
+            const demoPayments = [
+                { _id: 'pay1', user: { username: 'john_doe' }, amount: 5000, type: 'withdrawal', status: 'pending' },
+                { _id: 'pay2', user: { username: 'jane_smith' }, amount: 550, type: 'verification', status: 'completed' },
+                { _id: 'pay3', user: { username: 'mike_jones' }, amount: 10000, type: 'withdrawal', status: 'pending' }
+            ];
+            
+            renderUsersTable(demoUsers);
+            renderPaymentsTable(demoPayments);
+            
+            // Update trading stats
+            elements.adminActiveUsers.textContent = '125';
+            elements.adminTotalCapital.textContent = '3,750,000';
+            elements.adminProfitPool.textContent = '850,000';
+        }
+        
+        function renderUsersTable(users) {
+            const tableBody = elements.usersTableBody;
+            tableBody.innerHTML = '';
+            
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user._id}</td>
+                    <td>${user.username || 'N/A'}</td>
+                    <td>₦${user.balance.toLocaleString()}</td>
+                    <td>${user.verified ? 'Verified' : 'Unverified'}</td>
+                    <td>
+                        <button class="admin-action-btn" data-user-id="${user._id}" data-action="edit">Edit</button>
+                        <button class="admin-action-btn" data-user-id="${user._id}" data-action="verify">Verify</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function renderPaymentsTable(payments) {
+            const tableBody = elements.paymentsTableBody;
+            tableBody.innerHTML = '';
+            
+            payments.forEach(payment => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${payment._id}</td>
+                    <td>${payment.user?.username || 'N/A'}</td>
+                    <td>₦${payment.amount.toLocaleString()}</td>
+                    <td>${payment.type}</td>
+                    <td>${payment.status}</td>
+                    <td>
+                        ${payment.status === 'pending' ? `
+                            <button class="admin-action-btn" data-payment-id="${payment._id}" data-action="approve">Approve</button>
+                            <button class="admin-action-btn" data-payment-id="${payment._id}" data-action="reject">Reject</button>
+                        ` : ''}
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        async function handleUserAction(action, userId) {
+            if (action === 'verify') {
+                showNotification(`User ${userId} verified successfully`);
+                // Refresh user list
+                const rows = elements.usersTableBody.querySelectorAll('tr');
+                rows.forEach(row => {
+                    if (row.cells[0].textContent === userId) {
+                        row.cells[3].textContent = 'Verified';
+                    }
+                });
+            } else if (action === 'edit') {
+                showNotification(`Edit user ${userId} - not implemented in demo`);
+            }
+        }
+        
+        async function handlePaymentAction(action, paymentId) {
+            showNotification(`Payment ${paymentId} ${action}d successfully`);
+            // Refresh payment list
+            const rows = elements.paymentsTableBody.querySelectorAll('tr');
+            rows.forEach(row => {
+                if (row.cells[0].textContent === paymentId) {
+                    row.cells[4].textContent = action === 'approve' ? 'completed' : 'failed';
+                    row.cells[5].innerHTML = '';
+                }
+            });
+        }
+        
+        function saveAdminSettings() {
+            const settings = {
+                verificationFee: parseInt(elements.verificationFee.value),
+                minWithdrawal: parseInt(elements.minWithdrawal.value),
+                paymentCircleSize: parseInt(elements.paymentCircleSize.value)
+            };
+            
+            showNotification('Settings saved successfully');
+            // In a real app, this would send to server
+            console.log('Settings saved:', settings);
+        }
+        
+        // Event listeners
+        elements.copyLinkBtn.addEventListener('click', () => {
+            const refLink = `https://t.me/yourbot?startref=${tg.initDataUnsafe.user?.id || 'demo'}`;
+            navigator.clipboard.writeText(refLink).then(() => {
+                showNotification('Referral link copied to clipboard!');
+            });
+        });
+        
+        elements.watchAdBtn.addEventListener('click', function() {
+            // Disable button during ad
+            this.disabled = true;
+            this.textContent = "⏳ Playing ad...";
+            
+            // Simulate 30-second ad
+            setTimeout(() => {
+                userData.adsWatched++;
+                elements.adsWatchedDisplay.textContent = userData.adsWatched;
+                
+                // Enable games after 2 ads per game (total 10 ads)
+                if (userData.adsWatched >= 10) {
+                    gameStates.memory.canPlay = true;
+                    showNotification("✅ You can now play games!");
+                    elements.watchAdBtn.style.display = "none";
+                }
+                
+                this.disabled = false;
+                this.textContent = "▶️ Watch Ad (+1)";
+                showNotification(`Ad watched! (${userData.adsWatched}/10)`);
+            }, 3000); // Simulated 3-second ad instead of 30 for demo
+        });
+        
+        elements.toggleTradingBtn.addEventListener('click', () => {
+            userData.tradingActive = !userData.tradingActive;
+            if (userData.tradingActive) {
+                showSuccess('Trading Activated', 'AI trading is now active and generating profits!');
+            } else {
+                showSuccess('Trading Deactivated', 'AI trading has been paused.');
+            }
+            updateReferralInfo();
+        });
+        
+        elements.withdrawBtn.addEventListener('click', () => {
+            elements.withdrawalModal.classList.add('active');
+            if (!userData.verified) {
+                elements.verificationNotice.style.display = 'block';
+                elements.withdrawalForm.style.display = 'none';
+            } else {
+                elements.verificationNotice.style.display = 'none';
+                elements.withdrawalForm.style.display = 'block';
+            }
+        });
+        
+        elements.verifyAccountBtn.addEventListener('click', () => {
+            elements.withdrawalModal.classList.remove('active');
+            elements.bankModal.classList.add('active');
+        });
+        
+        elements.bankBindingBtn.addEventListener('click', () => {
+            elements.bankModal.classList.add('active');
+        });
+        
+        elements.confirmBankBinding.addEventListener('click', async () => {
+            const bankName = elements.bankName.value;
+            const accountNumber = elements.accountNumber.value;
+            const accountName = elements.accountName.value;
+            
+            if (!bankName || !accountNumber || !accountName) {
+                showNotification('Please fill all bank details');
+                return;
+            }
+            
+            // Initialize verification payment
+            await PaymentService.initializePayment(550, 'verification');
+        });
+        
+        elements.cancelBankBinding.addEventListener('click', () => {
+            elements.bankModal.classList.remove('active');
+        });
+        
+        elements.confirmWithdrawal.addEventListener('click', async () => {
+            const amount = parseInt(elements.withdrawalAmount.value);
+            
+            if (amount < 5000) {
+                showNotification('Minimum withdrawal is ₦5,000');
+                return;
+            }
+            
+            if (amount > userData.withdrawableProfit) {
+                showNotification('Insufficient withdrawable balance');
+                return;
+            }
+            
+            if (!userData.bankDetails) {
+                showNotification('Bank details not found');
+                return;
+            }
+            
+            const withdrawal = await PaymentService.requestWithdrawal(amount, userData.bankDetails);
+            if (withdrawal) {
+                userData.withdrawableProfit -= amount;
+                userData.paymentCircle.current++;
+                updateBalance();
+                updatePaymentCircle();
+                elements.withdrawalModal.classList.remove('active');
+                showSuccess('Withdrawal Requested', `Your withdrawal of ₦${amount.toLocaleString()} has been submitted.`);
+            }
+        });
+        
+        elements.cancelWithdrawal.addEventListener('click', () => {
+            elements.withdrawalModal.classList.remove('active');
+        });
+        
+        elements.closeSuccessModal.addEventListener('click', () => {
+            elements.successModal.classList.remove('active');
+        });
+        
+        elements.submitTicket.addEventListener('click', submitTicket);
+        
+        // Game selection
+        elements.gameOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                switchGame(option.dataset.game);
+            });
+        });
+        
+        // Tab switching
+        elements.tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                elements.tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                Object.values(elements.tabContents).forEach(content => {
+                    content.style.display = 'none';
+                });
+                
+                const tabName = tab.dataset.tab;
+                if (elements.tabContents[tabName]) {
+                    elements.tabContents[tabName].style.display = 'block';
+                }
+            });
+        });
+        
+        // Admin event listeners
+        elements.adminLoginBtn.addEventListener('click', function() {
+            if (!adminData.token) {
+                const password = prompt('Enter admin password:');
+                if (password) {
+                    authenticateAdmin(password);
+                }
+            } else {
+                showAdminPanel();
+            }
+        });
+        
+        elements.closeAdminModal.addEventListener('click', function() {
+            elements.adminModal.classList.remove('active');
+        });
+        
+        // Admin tab switching
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons and tabs
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.admin-tab-content').forEach(tab => tab.classList.remove('active'));
+                
+                // Add active class to clicked button and corresponding tab
+                this.classList.add('active');
+                const tabId = 'admin' + this.dataset.tab.charAt(0).toUpperCase() + this.dataset.tab.slice(1) + 'Tab';
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // Handle admin actions
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('admin-action-btn')) {
+                const action = e.target.dataset.action;
+                const userId = e.target.dataset.userId;
+                const paymentId = e.target.dataset.paymentId;
+                
+                if (userId) {
+                    handleUserAction(action, userId);
+                } else if (paymentId) {
+                    handlePaymentAction(action, paymentId);
+                }
+            }
+        });
+        
+        elements.saveSettings.addEventListener('click', saveAdminSettings);
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            const pendingPayment = localStorage.getItem('pendingPayment');
+            if (pendingPayment) {
+                const payment = JSON.parse(pendingPayment);
+                
+                // Check if payment was recent (within 10 minutes)
+                if (Date.now() - payment.timestamp < 600000) {
+                    const verified = await PaymentService.verifyPayment(payment.reference);
+                    if (verified) {
+                        showNotification('Payment verified successfully!');
+                    }
+                }
+                
+                localStorage.removeItem('pendingPayment');
+            }
+            
+            // Load demo data
+            userData.balance = 5000; // Signup bonus
+            userData.verified = false;
+            userData.paymentCircle.current = 742;
+            
+            // Initialize games
+            initMemoryGame();
+            initDiceGame();
+            initBottleGame();
+            initSnakeGame();
+            initQuizGame();
+            
+            updateUI();
+            updateGameStats();
+            updatePaymentCircle();
+            updateStreak();
+            updateTicketList();
+            setupStreakClicks();
+            checkAdminStatus();
+            
+            // Simulate trading every 15 seconds for demo
+            setInterval(simulateTrading, 15000);
+            
+            // Enable game after watching first ad
+            elements.watchAdBtn.click();
+        });
+    </script>
+</body>
+</html>
