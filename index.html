@@ -170,35 +170,124 @@
         
         .profit-chart {
             display: flex;
-            height: 150px;
+            height: 200px;
             align-items: flex-end;
-            gap: 5px;
-            margin: 20px 0;
+            gap: 8px;
+            margin: 25px 0;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         
         .chart-bar {
             flex: 1;
             display: flex;
-            align-items: flex-end;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
             color: white;
             font-weight: bold;
             border-radius: 8px 8px 0 0;
-            transition: height 0.5s;
-            padding-bottom: 5px;
-            font-size: 12px;
+            transition: height 0.8s ease-out;
+            position: relative;
+            min-width: 60px;
+            box-shadow: 0 -3px 10px rgba(0,0,0,0.1);
         }
         
-        .user {
-            background: var(--success);
-        }
-        
-        .company {
-            background: var(--primary);
-        }
-        
-        .system {
+        .chart-bar::after {
+            content: attr(data-percentage);
+            position: absolute;
+            top: -25px;
+            font-size: 14px;
             background: var(--dark);
+            padding: 3px 8px;
+            border-radius: 15px;
+            white-space: nowrap;
+        }
+        
+        .chart-bar.user {
+            background: linear-gradient(to top, var(--success), #00d6a0);
+            height: 70%;
+        }
+        
+        .chart-bar.company {
+            background: linear-gradient(to top, var(--primary), #7d6bff);
+            height: 25%;
+        }
+        
+        .chart-bar.system {
+            background: linear-gradient(to top, var(--dark), #4a5568);
+            height: 5%;
+        }
+        
+        .chart-label {
+            margin-top: 8px;
+            font-weight: bold;
+            font-size: 12px;
+            color: var(--dark);
+        }
+        
+        .streak-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 15px 0;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .streak-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .streak-day {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f0f0;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .streak-day.active {
+            background: var(--success);
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .streak-day.missed {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .streak-day.today {
+            border: 3px solid var(--primary);
+            box-sizing: border-box;
+        }
+        
+        .streak-day::before {
+            content: attr(data-day);
+            position: absolute;
+            top: -20px;
+            font-size: 10px;
+            color: var(--dark);
+        }
+        
+        .streak-rewards {
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--dark);
+            text-align: center;
         }
         
         .tab-bar {
@@ -405,34 +494,6 @@
             font-size: 12px;
         }
         
-        .streak-container {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin: 10px 0;
-        }
-        
-        .streak-day {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #ddd;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .streak-day.active {
-            background: var(--success);
-            color: white;
-        }
-        
-        .streak-day.today {
-            border: 2px solid var(--primary);
-        }
-        
         .info-section {
             background: white;
             border-radius: 12px;
@@ -482,12 +543,20 @@
             border-radius: 12px;
             padding: 15px;
             margin: 15px 0;
+            position: relative;
+            min-height: 120px;
         }
         
         .testimonial {
             display: none;
             text-align: center;
             font-style: italic;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
         .testimonial.show {
@@ -497,6 +566,7 @@
         .testimonial-author {
             font-weight: bold;
             margin-top: 10px;
+            color: var(--primary);
         }
         
         #bottleCanvas {
@@ -658,6 +728,27 @@
             background-color: var(--danger);
             color: white;
         }
+        
+        /* Testimonial navigation dots */
+        .testimonial-dots {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            gap: 8px;
+        }
+        
+        .testimonial-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ddd;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .testimonial-dot.active {
+            background: var(--primary);
+        }
     </style>
 </head>
 <body>
@@ -686,15 +777,16 @@
         </div>
         
         <div class="streak-container">
-            <span>🔥 Streak:</span>
-            <div class="streak-day" id="day1">1</div>
-            <div class="streak-day" id="day2">2</div>
-            <div class="streak-day" id="day3">3</div>
-            <div class="streak-day" id="day4">4</div>
-            <div class="streak-day" id="day5">5</div>
-            <div class="streak-day" id="day6">6</div>
-            <div class="streak-day" id="day7">7</div>
+            <span class="streak-title">🔥 Streak:</span>
+            <div class="streak-day" id="day1" data-day="Day 1">1</div>
+            <div class="streak-day" id="day2" data-day="Day 2">2</div>
+            <div class="streak-day" id="day3" data-day="Day 3">3</div>
+            <div class="streak-day" id="day4" data-day="Day 4">4</div>
+            <div class="streak-day" id="day5" data-day="Day 5">5</div>
+            <div class="streak-day" id="day6" data-day="Day 6">6</div>
+            <div class="streak-day" id="day7" data-day="Day 7">7</div>
         </div>
+        <div class="streak-rewards">Complete 7-day streak for ₦3,500 bonus!</div>
         
         <div class="action-bar">
             <button class="primary" id="bankBindingBtn">🏦 Bank Binding</button>
@@ -718,20 +810,138 @@
             
             <div class="testimonial-container">
                 <div class="testimonial show" id="testimonial1">
-                    "This platform changed my life! I earned ₦150,000 in my first month."
-                    <div class="testimonial-author">- Ahmed K.</div>
+                    "This platform changed my life! I earned ₦150,000 in my first month with no prior trading experience."
+                    <div class="testimonial-author">- Ahmed K., Lagos, Nigeria</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial2">
+                    "From Zero to ₦200,000 in 3 Weeks! I joined with no trading experience. By completing referrals and playing games, I built my capital."
+                    <div class="testimonial-author">- Daniel O., Abuja, Nigeria</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial3">
+                    "Legit & Transparent – Paid as Promised! I was skeptical at first, but after my first withdrawal of ₦15,000 hit my account, I became a believer."
+                    <div class="testimonial-author">- Fatima B., Verified Trader</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial4">
+                    "The Games Made It Fun to Earn! I earned ₦12,000 just from the memory match and dice games while waiting for my trading capital to grow."
+                    <div class="testimonial-author">- Chinedu E., Student, UNILAG</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial5">
+                    "Verified in 1 Hour, Withdrew ₦50K Next Day. Paid the ₦550 verification fee, and my account was approved instantly."
+                    <div class="testimonial-author">- Adebola S., Entrepreneur</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial6">
+                    "My Side Hustle Now Earns More Than My Salary. I combine referrals with daily trading profits. Last month I made ₦180K!"
+                    <div class="testimonial-author">- Grace L., Part-Time User</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial7">
+                    "As a retiree, this has been a perfect way to supplement my pension. The AI trading is stress-free and profitable."
+                    <div class="testimonial-author">- Michael T., Retired Banker</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial8">
+                    "I was able to pay my school fees from the profits! Started with just ₦5,500 and now making consistent income."
+                    <div class="testimonial-author">- Amina K., University Student</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial9">
+                    "The referral program is amazing. I earned ₦30,000 just by introducing 6 friends to the platform."
+                    <div class="testimonial-author">- Johnson P., Freelancer</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial10">
+                    "Customer support is excellent. They resolved my withdrawal issue within hours."
+                    <div class="testimonial-author">- Sarah M., Small Business Owner</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial11">
+                    "The 7-day streak bonus motivated me to log in daily. Made an extra ₦3,500 last week!"
+                    <div class="testimonial-author">- David U., Content Creator</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial12">
+                    "I love the variety of games. The bottle flip is my favorite - earned ₦4,800 from it yesterday."
+                    <div class="testimonial-author">- Jennifer A., Stay-at-home Mom</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial13">
+                    "The profit sharing is fair - 70% for me, 25% company, 5% system. Everyone wins!"
+                    <div class="testimonial-author">- Emeka C., Civil Servant</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial14">
+                    "Withdrawals are processed in batches, but always arrive as promised. Got my ₦25,000 last week."
+                    <div class="testimonial-author">- Bisi O., Fashion Designer</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial15">
+                    "The ₦550 verification fee is worth it. Gives me confidence the platform is serious about security."
+                    <div class="testimonial-author">- Tunde L., IT Professional</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial16">
+                    "I was able to quit my stressful job thanks to this platform. Now I earn more working from home."
+                    <div class="testimonial-author">- Ngozi E., Former Bank Employee</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial17">
+                    "The memory game is addictive! I've earned over ₦15,000 from it while watching TV."
+                    <div class="testimonial-author">- Yusuf B., College Student</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial18">
+                    "My trading capital has grown from ₦30,000 to ₦85,000 in just 2 months through profits."
+                    <div class="testimonial-author">- Funke A., Teacher</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial19">
+                    "The FAQ section answered all my questions before I even needed to contact support."
+                    <div class="testimonial-author">- Ibrahim D., Medical Student</div>
+                </div>
+                
+                <div class="testimonial" id="testimonial20">
+                    "I've tried many platforms, but this one is different. The combination of games, referrals and AI trading is genius."
+                    <div class="testimonial-author">- Chioma N., Entrepreneur</div>
+                </div>
+                
+                <div class="testimonial-dots">
+                    <div class="testimonial-dot active" data-testimonial="1"></div>
+                    <div class="testimonial-dot" data-testimonial="2"></div>
+                    <div class="testimonial-dot" data-testimonial="3"></div>
+                    <div class="testimonial-dot" data-testimonial="4"></div>
+                    <div class="testimonial-dot" data-testimonial="5"></div>
+                    <div class="testimonial-dot" data-testimonial="6"></div>
+                    <div class="testimonial-dot" data-testimonial="7"></div>
+                    <div class="testimonial-dot" data-testimonial="8"></div>
+                    <div class="testimonial-dot" data-testimonial="9"></div>
+                    <div class="testimonial-dot" data-testimonial="10"></div>
+                    <div class="testimonial-dot" data-testimonial="11"></div>
+                    <div class="testimonial-dot" data-testimonial="12"></div>
+                    <div class="testimonial-dot" data-testimonial="13"></div>
+                    <div class="testimonial-dot" data-testimonial="14"></div>
+                    <div class="testimonial-dot" data-testimonial="15"></div>
+                    <div class="testimonial-dot" data-testimonial="16"></div>
+                    <div class="testimonial-dot" data-testimonial="17"></div>
+                    <div class="testimonial-dot" data-testimonial="18"></div>
+                    <div class="testimonial-dot" data-testimonial="19"></div>
+                    <div class="testimonial-dot" data-testimonial="20"></div>
                 </div>
             </div>
             
             <div class="profit-chart">
-                <div class="chart-bar user" style="height: 0%">
-                    <span>You: 70%</span>
+                <div class="chart-bar user" data-percentage="70%">
+                    <div class="chart-label">You</div>
                 </div>
-                <div class="chart-bar company" style="height: 0%">
-                    <span>Company: 25%</span>
+                <div class="chart-bar company" data-percentage="25%">
+                    <div class="chart-label">Company</div>
                 </div>
-                <div class="chart-bar system" style="height: 0%">
-                    <span>System: 5%</span>
+                <div class="chart-bar system" data-percentage="5%">
+                    <div class="chart-label">System</div>
                 </div>
             </div>
         </div>
@@ -749,14 +959,14 @@
             <div class="status-card">
                 <h3>💰 Profit Distribution</h3>
                 <div class="profit-chart">
-                    <div class="chart-bar user" style="height: 70%">
-                        <span>You: 70%</span>
+                    <div class="chart-bar user" data-percentage="70%">
+                        <div class="chart-label">You</div>
                     </div>
-                    <div class="chart-bar company" style="height: 25%">
-                        <span>Company: 25%</span>
+                    <div class="chart-bar company" data-percentage="25%">
+                        <div class="chart-label">Company</div>
                     </div>
-                    <div class="chart-bar system" style="height: 5%">
-                        <span>System: 5%</span>
+                    <div class="chart-bar system" data-percentage="5%">
+                        <div class="chart-label">System</div>
                     </div>
                 </div>
             </div>
@@ -1341,7 +1551,7 @@
                 current: 0,
                 total: 1000
             },
-            isAdmin: false // Will be set based on actual user role
+            isAdmin: false
         };
         
         // Game states
@@ -1352,18 +1562,18 @@
                 flippedCards: [],
                 matchedPairs: 0,
                 canPlay: false,
-                attempts: 10, // Increased to 10
+                attempts: 10,
                 wins: 0,
                 earnings: 0
             },
             dice: {
                 lastRoll: null,
-                attempts: 10, // Increased to 10
+                attempts: 10,
                 wins: 0,
                 earnings: 0
             },
             bottle: {
-                attempts: 10, // Increased to 10
+                attempts: 10,
                 wins: 0,
                 earnings: 0,
                 angle: 0,
@@ -1384,7 +1594,7 @@
                 gameInterval: null
             },
             quiz: {
-                attempts: 10, // Increased to 10
+                attempts: 10,
                 wins: 0,
                 earnings: 0,
                 questions: [
@@ -1437,6 +1647,217 @@
                         question: "What is the square root of 64?",
                         options: ["4", "6", "8", "10"],
                         answer: 2
+                    },
+                    // New questions added below
+                    {
+                        question: "Which Nigerian musician is known as the 'African Giant'?",
+                        options: ["Wizkid", "Davido", "Burna Boy", "Olamide"],
+                        answer: 2
+                    },
+                    {
+                        question: "What is the chemical symbol for gold?",
+                        options: ["Go", "Gd", "Au", "Ag"],
+                        answer: 2
+                    },
+                    {
+                        question: "Which of these is not a Nigerian bank?",
+                        options: ["GTBank", "First Bank", "Zenith Bank", "Barclays Africa"],
+                        answer: 3
+                    },
+                    {
+                        question: "What year did Nigeria gain independence?",
+                        options: ["1957", "1960", "1963", "1970"],
+                        answer: 1
+                    },
+                    {
+                        question: "Which Nigerian city is known as the 'Centre of Excellence'?",
+                        options: ["Abuja", "Lagos", "Port Harcourt", "Kano"],
+                        answer: 1
+                    },
+                    {
+                        question: "How many sides does a hexagon have?",
+                        options: ["4", "5", "6", "7"],
+                        answer: 2
+                    },
+                    {
+                        question: "Which of these is not a social media platform?",
+                        options: ["Facebook", "Instagram", "Twitter", "Googles"],
+                        answer: 3
+                    },
+                    {
+                        question: "What is the main ingredient in bread?",
+                        options: ["Rice", "Corn", "Wheat", "Potato"],
+                        answer: 2
+                    },
+                    {
+                        question: "Which country is the most populous in Africa?",
+                        options: ["Egypt", "South Africa", "Nigeria", "Ethiopia"],
+                        answer: 2
+                    },
+                    {
+                        question: "What is the name of Nigeria's current currency denomination with the highest value?",
+                        options: ["₦20", "₦50", "₦100", "₦1000"],
+                        answer: 3
+                    },
+                    {
+                        question: "Which of these is not a programming language?",
+                        options: ["Python", "Java", "HTML", "C++"],
+                        answer: 2
+                    },
+                    {
+                        question: "What is the tallest mountain in Africa?",
+                        options: ["Mount Kenya", "Mount Kilimanjaro", "Mount Cameroon", "Atlas Mountains"],
+                        answer: 1
+                    },
+                    {
+                        question: "Which Nigerian food is made from cassava?",
+                        options: ["Jollof Rice", "Pounded Yam", "Garri", "Suya"],
+                        answer: 2
+                    },
+                    {
+                        question: "What is the capital of the United States?",
+                        options: ["New York", "Los Angeles", "Washington D.C.", "Chicago"],
+                        answer: 2
+                    },
+                    {
+                        question: "Which of these is not a Nigerian state?",
+                        options: ["Lagos", "Abuja", "Kano", "Ghana"],
+                        answer: 3
+                    },
+                    {
+                        question: "What is the name of the longest river in Nigeria?",
+                        options: ["River Niger", "River Benue", "River Osun", "River Kaduna"],
+                        answer: 0
+                    },
+                    {
+                        question: "Which of these is not a Nigerian movie industry?",
+                        options: ["Nollywood", "Kannywood", "Yorubawood", "Bollywood"],
+                        answer: 3
+                    },
+                    {
+                        question: "What is the name of Nigeria's president in 2023?",
+                        options: ["Muhammadu Buhari", "Bola Tinubu", "Atiku Abubakar", "Peter Obi"],
+                        answer: 1
+                    },
+                    {
+                        question: "Which of these is not a continent?",
+                        options: ["Africa", "Europe", "Asia", "Pacific"],
+                        answer: 3
+                    },
+                    {
+                        question: "What is the name of the popular Nigerian soup made with okra?",
+                        options: ["Egusi", "Ogbono", "Okra soup", "Efo riro"],
+                        answer: 2
+                    },
+                    {
+                        question: "Which of these is not a type of computer?",
+                        options: ["Desktop", "Laptop", "Tablet", "Smartfridge"],
+                        answer: 3
+                    },
+                    {
+                        question: "What is the name of the popular Nigerian street food made from beans?",
+                        options: ["Akara", "Moi Moi", "Suya", "Puff Puff"],
+                        answer: 0
+                    },
+                    {
+                        question: "Which of these is not a Nigerian university?",
+                        options: ["UNILAG", "UI", "OAU", "Harvard"],
+                        answer: 3
+                    },
+                    {
+                        question: "What is the name of the popular Nigerian rice dish?",
+                        options: ["Fried Rice", "Jollof Rice", "Coconut Rice", "Ofada Rice"],
+                        answer: 1
+                    },
+                    {
+                        question: "Which of these is not a Nigerian musician?",
+                        options: ["Wizkid", "Davido", "Burna Boy", "Drake"],
+                        answer: 3
+                    },
+                    {
+                        question: "What is the name of the popular Nigerian pepper soup?",
+                        options: ["Egusi Soup", "Ogbono Soup", "Pepper Soup", "Vegetable Soup"],
+                        answer: 2
+                    },
+                    {
+                        question: "Which of these is not a Nigerian language?",
+                        options: ["Yoruba", "Hausa", "Igbo", "Swahili"],
+                        answer: 3
+                    },
+                    {
+                        question: "What is the name of the popular Nigerian snack made from corn?",
+                        options: ["Puff Puff", "Akara", "Kuli Kuli", "Corn Chips"],
+                        answer: 3
+                    },
+                    {
+                        question: "Which of these is not a Nigerian bank?",
+                        options: ["GTBank", "First Bank", "Zenith Bank", "Barclays"],
+                        answer: 3
+                    },
+                    {
+                        question: "What is the name of the popular Nigerian drink made from hibiscus?",
+                        options: ["Zobo", "Kunu", "Fura", "Palm Wine"],
+                        answer: 0
+                    },
+                    {
+                        question: "Which of these is not a Nigerian state?",
+                        options: ["Lagos", "Abuja", "Kano", "Ghana"],
+                        answer: 3
+                    },
+                    {
+                        question: "What is the name of the popular Nigerian street food made from plantain?",
+                        options: ["Boli", "Suya", "Akara", "Puff Puff"],
+                        answer: 0
+                    },
+                    {
+                        question: "Which of these is not a Nigerian football club?",
+                        options: ["Enyimba", "Rangers", "Kano Pillars", "Chelsea"],
+                        answer: 3
+                    },
+                    {
+                        question: "What is the name of the popular Nigerian soup made with melon seeds?",
+                        options: ["Egusi Soup", "Ogbono Soup", "Efo Riro", "Pepper Soup"],
+                        answer: 0
+                    },
+                    {
+                        question: "Which of these is not a Nigerian artist?",
+                        options: ["Davido", "Wizkid", "Burna Boy", "Jay-Z"],
+                        answer: 3
+                    },
+                    {
+                        question: "What is the name of the popular Nigerian snack made from peanuts?",
+                        options: ["Kuli Kuli", "Groundnut", "Coconut", "Cashew"],
+                        answer: 0
+                    },
+                    {
+                        question: "Which of these is not a Nigerian city?",
+                        options: ["Lagos", "Abuja", "Port Harcourt", "Nairobi"],
+                        answer: 3
+                    },
+                    {
+                        question: "What is the name of the popular Nigerian dish made from yam?",
+                        options: ["Pounded Yam", "Amala", "Eba", "Fufu"],
+                        answer: 0
+                    },
+                    {
+                        question: "Which of these is not a Nigerian food?",
+                        options: ["Jollof Rice", "Pounded Yam", "Sushi", "Efo Riro"],
+                        answer: 2
+                    },
+                    {
+                        question: "What is the name of the popular Nigerian drink made from millet?",
+                        options: ["Kunu", "Zobo", "Fura", "Palm Wine"],
+                        answer: 0
+                    },
+                    {
+                        question: "Which of these is not a Nigerian state?",
+                        options: ["Lagos", "Abuja", "Kano", "Accra"],
+                        answer: 3
+                    },
+                    {
+                        question: "What is the name of the popular Nigerian snack made from wheat?",
+                        options: ["Puff Puff", "Akara", "Masa", "Kuli Kuli"],
+                        answer: 0
                     }
                 ],
                 currentQuestion: null,
@@ -1451,432 +1872,48 @@
             payments: []
         };
         
-        // Payment Service Module
-        const PaymentService = (() => {
-            const API_URL = 'https://api.aireftraders.com/v1';
-            
-            // Initialize payment for verification or deposit
-            async function initializePayment(amount, purpose = 'verification') {
-                try {
-                    const response = await fetch(`${API_URL}/payments/initialize`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        },
-                        body: JSON.stringify({ 
-                            amount,
-                            purpose,
-                            metadata: {
-                                userId: tg.initDataUnsafe.user?.id,
-                                platform: 'telegram-webapp'
-                            }
-                        })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        // Store payment reference before redirecting
-                        localStorage.setItem('pendingPayment', JSON.stringify({
-                            reference: data.reference,
-                            purpose,
-                            timestamp: Date.now()
-                        }));
-                        
-                        // Redirect to payment page
-                        window.location.href = data.paymentLink;
-                    } else {
-                        showNotification(data.message || 'Error initializing payment');
-                    }
-                } catch (error) {
-                    showNotification('Network error');
-                    console.error('Payment initialization error:', error);
-                }
-            }
-
-            // Verify payment status after redirect
-            async function verifyPayment(reference) {
-                try {
-                    const response = await fetch(`${API_URL}/payments/verify/${reference}`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        if (data.status === 'successful') {
-                            // Handle successful payment based on purpose
-                            if (data.purpose === 'verification') {
-                                await completeVerification(data);
-                            } else if (data.purpose === 'deposit') {
-                                await creditUserAccount(data.amount);
-                            }
-                            return true;
-                        } else {
-                            showNotification('Payment not completed');
-                            return false;
-                        }
-                    } else {
-                        showNotification(data.message || 'Error verifying payment');
-                        return false;
-                    }
-                } catch (error) {
-                    showNotification('Network error');
-                    console.error('Payment verification error:', error);
-                    return false;
-                }
-            }
-
-            // Complete user verification after payment
-            async function completeVerification(paymentData) {
-                try {
-                    const response = await fetch(`${API_URL}/users/verify`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        },
-                        body: JSON.stringify({
-                            paymentReference: paymentData.reference,
-                            amount: paymentData.amount
-                        })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        // Update local user data
-                        userData.verified = true;
-                        userData.bankDetails = data.bankDetails;
-                        updateUI();
-                        showNotification('Account verified successfully!');
-                        return true;
-                    } else {
-                        showNotification(data.message || 'Error completing verification');
-                        return false;
-                    }
-                } catch (error) {
-                    showNotification('Network error during verification');
-                    return false;
-                }
-            }
-
-            // Handle withdrawal request
-            async function requestWithdrawal(amount, bankDetails) {
-                try {
-                    // First verify the user's account is properly verified
-                    const verificationCheck = await fetch(`${API_URL}/users/verify-check`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-                    
-                    const verificationData = await verificationCheck.json();
-                    
-                    if (!verificationCheck.ok || !verificationData.verified) {
-                        showNotification('Account verification required before withdrawal');
-                        return null;
-                    }
-
-                    // Verify bank account matches verification
-                    if (verificationData.bankDetails.accountNumber !== bankDetails.accountNumber) {
-                        showNotification('Withdrawal must go to your verified bank account');
-                        return null;
-                    }
-
-                    // Proceed with withdrawal
-                    const response = await fetch(`${API_URL}/payments/withdraw`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        },
-                        body: JSON.stringify({
-                            amount,
-                            bankCode: bankDetails.bankCode,
-                            accountNumber: bankDetails.accountNumber,
-                            accountName: bankDetails.accountName,
-                            reference: `WDR-${Date.now()}-${tg.initDataUnsafe.user?.id}`
-                        })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        showNotification('Withdrawal request submitted successfully');
-                        return data.payment;
-                    } else {
-                        showNotification(data.message || 'Error processing withdrawal');
-                        return null;
-                    }
-                } catch (error) {
-                    showNotification('Network error');
-                    console.error('Withdrawal error:', error);
-                    return null;
-                }
-            }
-
-            // Get list of supported banks
-            async function getBanks() {
-                try {
-                    const response = await fetch(`${API_URL}/payments/banks`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        return data.banks;
-                    } else {
-                        showNotification(data.message || 'Error fetching banks');
-                        return [];
-                    }
-                } catch (error) {
-                    showNotification('Network error');
-                    return [];
-                }
-            }
-
-            // Verify bank account details
-            async function verifyBankAccount(accountNumber, bankCode) {
-                try {
-                    const response = await fetch(`${API_URL}/payments/verify-account`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        },
-                        body: JSON.stringify({ accountNumber, bankCode })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        return data.account;
-                    } else {
-                        showNotification(data.message || 'Error verifying account');
-                        return null;
-                    }
-                } catch (error) {
-                    showNotification('Network error');
-                    return null;
-                }
-            }
-
-            return {
-                initializePayment,
-                verifyPayment,
-                requestWithdrawal,
-                getBanks,
-                verifyBankAccount
-            };
-        })();
-
-        // Admin Service Module
-        const AdminService = (() => {
-            const API_URL = 'https://api.aireftraders.com/v1/admin';
-            
-            // Authenticate admin
-            async function authenticate(password) {
-                try {
-                    const response = await fetch(`${API_URL}/login`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        },
-                        body: JSON.stringify({ password })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        adminData.token = data.token;
-                        return true;
-                    } else {
-                        showNotification(data.message || 'Admin authentication failed');
-                        return false;
-                    }
-                } catch (error) {
-                    showNotification('Network error');
-                    return false;
-                }
-            }
-            
-            // Get all users
-            async function getUsers() {
-                try {
-                    const response = await fetch(`${API_URL}/users`, {
-                        headers: {
-                            'Authorization': `Bearer ${adminData.token}`
-                        }
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        return data.users;
-                    } else {
-                        showNotification(data.message || 'Error fetching users');
-                        return [];
-                    }
-                } catch (error) {
-                    showNotification('Network error');
-                    return [];
-                }
-            }
-            
-            // Get all payments
-            async function getPayments() {
-                try {
-                    const response = await fetch(`${API_URL}/payments`, {
-                        headers: {
-                            'Authorization': `Bearer ${adminData.token}`
-                        }
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        return data.payments;
-                    } else {
-                        showNotification(data.message || 'Error fetching payments');
-                        return [];
-                    }
-                } catch (error) {
-                    showNotification('Network error');
-                    return [];
-                }
-            }
-            
-            // Verify user account (admin override)
-            async function verifyUser(userId) {
-                try {
-                    const response = await fetch(`${API_URL}/users/${userId}/verify`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `Bearer ${adminData.token}`
-                        }
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        return true;
-                    } else {
-                        showNotification(data.message || 'Error verifying user');
-                        return false;
-                    }
-                } catch (error) {
-                    showNotification('Network error');
-                    return false;
-                }
-            }
-            
-            // Update payment status
-            async function updatePaymentStatus(paymentId, status) {
-                try {
-                    const response = await fetch(`${API_URL}/payments/${paymentId}/status`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${adminData.token}`
-                        },
-                        body: JSON.stringify({ status })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        return true;
-                    } else {
-                        showNotification(data.message || 'Error updating payment');
-                        return false;
-                    }
-                } catch (error) {
-                    showNotification('Network error');
-                    return false;
-                }
-            }
-            
-            // Get trading stats
-            async function getTradingStats() {
-                try {
-                    const response = await fetch(`${API_URL}/trading/stats`, {
-                        headers: {
-                            'Authorization': `Bearer ${adminData.token}`
-                        }
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        return data.stats;
-                    } else {
-                        showNotification(data.message || 'Error fetching trading stats');
-                        return null;
-                    }
-                } catch (error) {
-                    showNotification('Network error');
-                    return null;
-                }
-            }
-            
-            // Update system settings
-            async function updateSettings(settings) {
-                try {
-                    const response = await fetch(`${API_URL}/settings`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${adminData.token}`
-                        },
-                        body: JSON.stringify(settings)
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        return true;
-                    } else {
-                        showNotification(data.message || 'Error updating settings');
-                        return false;
-                    }
-                } catch (error) {
-                    showNotification('Network error');
-                    return false;
-                }
-            }
-            
-            return {
-                authenticate,
-                getUsers,
-                getPayments,
-                verifyUser,
-                updatePaymentStatus,
-                getTradingStats,
-                updateSettings
-            };
-        })();
-
+        // ===== TESTIMONIAL FUNCTIONALITY =====
+        let currentTestimonial = 1;
+        const totalTestimonials = 20; // Updated from 6 to 20
+        let testimonialInterval;
+        
+        function showTestimonial(index) {
+            document.querySelectorAll('.testimonial').forEach(t => t.classList.remove('show'));
+            document.getElementById(`testimonial${index}`).classList.add('show');
+            document.querySelectorAll('.testimonial-dot').forEach(dot => dot.classList.remove('active'));
+            document.querySelector(`.testimonial-dot[data-testimonial="${index}"]`).classList.add('active');
+            currentTestimonial = index;
+        }
+        
+        function startTestimonialRotation() {
+            testimonialInterval = setInterval(() => {
+                let nextTestimonial = currentTestimonial + 1;
+                if (nextTestimonial > totalTestimonials) nextTestimonial = 1;
+                showTestimonial(nextTestimonial);
+            }, 8000);
+        }
+        
+        function setupTestimonialDots() {
+            document.querySelectorAll('.testimonial-dot').forEach(dot => {
+                dot.addEventListener('click', () => {
+                    clearInterval(testimonialInterval);
+                    showTestimonial(parseInt(dot.dataset.testimonial));
+                    startTestimonialRotation();
+                });
+            });
+        }
+        
         // Initialize memory game with fruits
         function initMemoryGame() {
             elements.gameBoard.innerHTML = '';
             gameStates.memory.matchedPairs = 0;
             gameStates.memory.flippedCards = [];
             
-            // Create pairs of fruit values
             gameStates.memory.values = [];
             gameStates.memory.fruits.forEach(fruit => {
                 gameStates.memory.values.push(fruit, fruit);
             });
             
-            // Shuffle and create cards
             const shuffled = [...gameStates.memory.values].sort(() => 0.5 - Math.random());
             
             shuffled.forEach((value, index) => {
@@ -1900,7 +1937,6 @@
                 elements.gameBoard.appendChild(card);
             });
             
-            // Show all cards briefly at start (3 seconds)
             const cards = document.querySelectorAll('.card');
             cards.forEach(card => {
                 card.classList.add('flipped');
@@ -1936,17 +1972,14 @@
         function checkMatch() {
             const [card1, card2] = gameStates.memory.flippedCards;
             
-            // Deduct attempt
             gameStates.memory.attempts--;
             updateMemoryAttempts();
             
             if (card1.dataset.value === card2.dataset.value) {
-                // Match found
                 card1.classList.add('matched');
                 card2.classList.add('matched');
                 gameStates.memory.matchedPairs++;
                 
-                // Update UI and add earnings
                 gameStates.memory.wins++;
                 gameStates.memory.earnings += 800;
                 updateGameStats('memory');
@@ -1954,14 +1987,12 @@
                 
                 if (gameStates.memory.matchedPairs === 8) {
                     showNotification('🎉 You won ₦6,400!');
-                    // Reset game
                     setTimeout(() => {
                         gameStates.memory.matchedPairs = 0;
                         initMemoryGame();
                     }, 2000);
                 }
             } else {
-                // No match
                 setTimeout(() => {
                     card1.classList.remove('flipped');
                     card2.classList.remove('flipped');
@@ -1973,16 +2004,14 @@
             gameStates.memory.flippedCards = [];
             gameStates.memory.canPlay = true;
             
-            // Check if attempts exhausted
             if (gameStates.memory.attempts <= 0) {
                 showNotification('Memory game attempts exhausted. Come back later!');
                 elements.memoryGame.classList.add('game-disabled');
-                // Set timeout to reset attempts after 1 hour
                 setTimeout(() => {
                     gameStates.memory.attempts = 10;
                     updateMemoryAttempts();
                     elements.memoryGame.classList.remove('game-disabled');
-                }, 3600000); // 1 hour
+                }, 3600000);
             }
         }
         
@@ -2004,7 +2033,6 @@
                 return;
             }
             
-            // Deduct attempt
             gameStates.dice.attempts--;
             updateDiceAttempts();
             
@@ -2012,7 +2040,6 @@
             gameStates.dice.lastRoll = roll;
             elements.diceResult.textContent = roll;
             
-            // Simulate dice animation
             let rolls = 0;
             const animateRoll = setInterval(() => {
                 elements.diceResult.textContent = Math.floor(Math.random() * 6) + 1;
@@ -2021,7 +2048,6 @@
                     clearInterval(animateRoll);
                     elements.diceResult.textContent = roll;
                     
-                    // Check win (50% chance)
                     if (Math.random() > 0.5) {
                         showNotification('🎲 You won ₦800!');
                         gameStates.dice.wins++;
@@ -2032,16 +2058,14 @@
                         showNotification('Try again!');
                     }
                     
-                    // Check if attempts exhausted
                     if (gameStates.dice.attempts <= 0) {
                         showNotification('Dice game attempts exhausted. Come back later!');
                         elements.diceGame.classList.add('game-disabled');
-                        // Set timeout to reset attempts after 1 hour
                         setTimeout(() => {
                             gameStates.dice.attempts = 10;
                             updateDiceAttempts();
                             elements.diceGame.classList.remove('game-disabled');
-                        }, 3600000); // 1 hour
+                        }, 3600000);
                     }
                 }
             }, 100);
@@ -2087,18 +2111,16 @@
             
             if (gameStates.bottle.flipping) return;
             
-            // Deduct attempt
             gameStates.bottle.attempts--;
             updateBottleAttempts();
             
             gameStates.bottle.flipping = true;
             
             let rotations = 0;
-            const maxRotations = 3 + Math.random() * 2; // 3-5 full rotations
+            const maxRotations = 3 + Math.random() * 2;
             const startTime = Date.now();
-            const duration = 2000 + Math.random() * 1000; // 2-3 seconds
+            const duration = 2000 + Math.random() * 1000;
             
-            // Increased win chance to 40% (from ~20%)
             const willWin = Math.random() < 0.4;
             const targetAngle = willWin ? 0 : Math.random() * 360;
             
@@ -2106,15 +2128,11 @@
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
                 
-                // Ease-out function
                 const easeProgress = 1 - Math.pow(1 - progress, 3);
                 
-                // Calculate current rotation
                 rotations = easeProgress * maxRotations;
                 
-                // If this is a winning flip, adjust the final angle to be near 0
                 if (willWin && progress > 0.9) {
-                    // In the last 10% of animation, adjust to land upright
                     const adjustment = (1 - progress) * 360;
                     gameStates.bottle.angle = (rotations * 360 + adjustment) % 360;
                 } else {
@@ -2128,7 +2146,6 @@
                 } else {
                     gameStates.bottle.flipping = false;
                     
-                    // Check if bottle landed upright (within 20 degrees of 0 or 360)
                     const finalAngle = gameStates.bottle.angle % 360;
                     if (finalAngle < 20 || finalAngle > 340) {
                         showNotification('🥤 Perfect flip! You won ₦800');
@@ -2140,16 +2157,14 @@
                         showNotification('Try again!');
                     }
                     
-                    // Check if attempts exhausted
                     if (gameStates.bottle.attempts <= 0) {
                         showNotification('Bottle flip attempts exhausted. Come back later!');
                         elements.bottleGame.classList.add('game-disabled');
-                        // Set timeout to reset attempts after 1 hour
                         setTimeout(() => {
                             gameStates.bottle.attempts = 10;
                             updateBottleAttempts();
                             elements.bottleGame.classList.remove('game-disabled');
-                        }, 3600000); // 1 hour
+                        }, 3600000);
                     }
                 }
             };
@@ -2169,7 +2184,6 @@
             elements.startSnakeBtn.addEventListener('click', startSnakeGame);
             updateSnakeAttempts();
             
-            // Handle keyboard controls
             document.addEventListener('keydown', (e) => {
                 if (!gameStates.snake.gameActive) return;
                 
@@ -2197,7 +2211,6 @@
                 return;
             }
             
-            // Initialize snake
             gameStates.snake.snake = [
                 {x: 10, y: 10},
                 {x: 9, y: 10},
@@ -2208,14 +2221,12 @@
             elements.snakeScore.textContent = '0';
             gameStates.snake.gameActive = true;
             
-            // Place first food
             placeFood();
             
-            // Start game loop
             if (gameStates.snake.gameInterval) {
                 clearInterval(gameStates.snake.gameInterval);
             }
-            gameStates.snake.gameInterval = setInterval(gameLoop, 200); // Slower speed (200ms)
+            gameStates.snake.gameInterval = setInterval(gameLoop, 200);
         }
         
         // Snake game loop
@@ -2226,11 +2237,9 @@
             const gridSize = gameStates.snake.gridSize;
             const canvasSize = elements.snakeCanvas.width;
             
-            // Clear canvas
             ctx.fillStyle = '#f0f0f0';
             ctx.fillRect(0, 0, canvasSize, canvasSize);
             
-            // Move snake
             const head = {...gameStates.snake.snake[0]};
             
             switch(gameStates.snake.direction) {
@@ -2248,38 +2257,31 @@
                     break;
             }
             
-            // Check collision with walls
             if (head.x < 0 || head.x >= canvasSize/gridSize || head.y < 0 || head.y >= canvasSize/gridSize) {
                 gameOver();
                 return;
             }
             
-            // Check collision with self
             if (gameStates.snake.snake.some(segment => segment.x === head.x && segment.y === head.y)) {
                 gameOver();
                 return;
             }
             
-            // Add new head
             gameStates.snake.snake.unshift(head);
             
-            // Check if snake ate food
             if (head.x === gameStates.snake.food.x && head.y === gameStates.snake.food.y) {
                 gameStates.snake.score++;
                 elements.snakeScore.textContent = gameStates.snake.score;
                 placeFood();
             } else {
-                // Remove tail if no food eaten
                 gameStates.snake.snake.pop();
             }
             
-            // Draw snake
             ctx.fillStyle = '#6C5CE7';
             gameStates.snake.snake.forEach(segment => {
                 ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize-2, gridSize-2);
             });
             
-            // Draw food
             ctx.fillStyle = '#D63031';
             ctx.fillRect(gameStates.snake.food.x * gridSize, gameStates.snake.food.y * gridSize, gridSize-2, gridSize-2);
         }
@@ -2304,7 +2306,6 @@
             clearInterval(gameStates.snake.gameInterval);
             gameStates.snake.gameActive = false;
             
-            // Calculate earnings (₦150 per point)
             const earnings = gameStates.snake.score * 150;
             if (earnings > 0) {
                 showNotification(`Game Over! You earned ₦${earnings}`);
@@ -2315,20 +2316,17 @@
                 showNotification('Game Over! Try again');
             }
             
-            // Deduct attempt
             gameStates.snake.attempts--;
             updateSnakeAttempts();
             
-            // Check if attempts exhausted
             if (gameStates.snake.attempts <= 0) {
                 showNotification('Snake game attempts exhausted. Come back later!');
                 elements.snakeGame.classList.add('game-disabled');
-                // Set timeout to reset attempts after 1 hour
                 setTimeout(() => {
                     gameStates.snake.attempts = 10;
                     updateSnakeAttempts();
                     elements.snakeGame.classList.remove('game-disabled');
-                }, 3600000); // 1 hour
+                }, 3600000);
             }
         }
         
@@ -2340,30 +2338,29 @@
         
         // Load quiz question
         function loadQuestion() {
-            // Reset questions if all have been used
+            // Reset questions if we've used them all
             if (gameStates.quiz.questions.length === 0 && gameStates.quiz.usedQuestions.length > 0) {
                 gameStates.quiz.questions = [...gameStates.quiz.usedQuestions];
                 gameStates.quiz.usedQuestions = [];
             }
-            
+
             if (gameStates.quiz.questions.length === 0) {
                 elements.quizQuestion.textContent = "No more questions available";
                 elements.quizOptions.innerHTML = '';
                 return;
             }
-            
-            // Get random question
+
+            // Get random question from remaining pool
             const randomIndex = Math.floor(Math.random() * gameStates.quiz.questions.length);
             gameStates.quiz.currentQuestion = gameStates.quiz.questions[randomIndex];
-            
+
             // Move question to used pool
             gameStates.quiz.usedQuestions.push(gameStates.quiz.questions[randomIndex]);
             gameStates.quiz.questions.splice(randomIndex, 1);
-            
-            // Display question
+
+            // Display question and options
             elements.quizQuestion.textContent = gameStates.quiz.currentQuestion.question;
             
-            // Display options
             elements.quizOptions.innerHTML = '';
             gameStates.quiz.currentQuestion.options.forEach((option, index) => {
                 const optionElement = document.createElement('div');
@@ -2381,23 +2378,19 @@
                 return;
             }
             
-            // Deduct attempt
             gameStates.quiz.attempts--;
             updateQuizAttempts();
             
             if (selectedIndex === gameStates.quiz.currentQuestion.answer) {
-                // Correct answer
                 showNotification('✅ Correct! You earned ₦800');
                 gameStates.quiz.wins++;
                 gameStates.quiz.earnings += 800;
                 updateGameStats('quiz');
                 addGameEarnings(800);
             } else {
-                // Wrong answer
                 showNotification('❌ Wrong answer! Try again');
             }
             
-            // Load next question or end game
             if (gameStates.quiz.questions.length > 0 || gameStates.quiz.usedQuestions.length > 0) {
                 setTimeout(loadQuestion, 1500);
             } else {
@@ -2405,27 +2398,23 @@
                 elements.quizOptions.innerHTML = '';
             }
             
-            // Check if attempts exhausted
             if (gameStates.quiz.attempts <= 0) {
                 showNotification('Quiz attempts exhausted. Come back later!');
                 elements.quizGame.classList.add('game-disabled');
-                // Set timeout to reset attempts after 1 hour
                 setTimeout(() => {
                     gameStates.quiz.attempts = 10;
                     updateQuizAttempts();
                     elements.quizGame.classList.remove('game-disabled');
-                }, 3600000); // 1 hour
+                }, 3600000);
             }
         }
         
         // Add game earnings to balance or capital
         function addGameEarnings(amount) {
             if (userData.tradingActive) {
-                // After qualification, earnings go to trading capital
                 userData.tradingCapital += amount;
                 updateTradingInfo();
             } else {
-                // Before qualification, earnings go to balance
                 userData.balance += amount;
             }
             updateBalance();
@@ -2500,14 +2489,12 @@
             elements.referralEarnings.textContent = (userData.referrals * 5000).toLocaleString();
             elements.totalReferralEarnings.textContent = userData.referralEarnings.toLocaleString();
             
-            // Update referral list
             if (userData.referralList.length > 0) {
                 elements.referralList.innerHTML = userData.referralList.map(ref => 
                     `<p>${ref.name} - ${new Date(ref.date).toLocaleDateString()} - ₦5,000</p>`
                 ).join('');
             }
             
-            // Update trading status
             if (userData.referrals >= 6 && userData.adsWatched >= 10) {
                 userData.tradingActive = true;
                 userData.tradingCapital = 30000 + (userData.referrals * 5000);
@@ -2528,10 +2515,20 @@
             elements.totalProfitDisplay.textContent = 'Total Profit: ₦' + userData.totalProfit.toLocaleString();
             elements.withdrawableProfit.textContent = 'Withdrawable: ₦' + userData.withdrawableProfit.toLocaleString();
             
-            // Update profit chart
-            document.querySelectorAll('.chart-bar.user').forEach(el => el.style.height = '70%');
-            document.querySelectorAll('.chart-bar.company').forEach(el => el.style.height = '25%');
-            document.querySelectorAll('.chart-bar.system').forEach(el => el.style.height = '5%');
+            animateProfitChart();
+        }
+        
+        // Animate profit chart
+        function animateProfitChart() {
+            const bars = document.querySelectorAll('.chart-bar');
+            bars.forEach(bar => {
+                const targetHeight = bar.style.height;
+                bar.style.height = '0%';
+                
+                setTimeout(() => {
+                    bar.style.height = targetHeight;
+                }, 200);
+            });
         }
         
         // Update payment circle info
@@ -2539,10 +2536,8 @@
             elements.paidUsers.textContent = userData.paymentCircle.current.toLocaleString();
             elements.paymentCircleProgress.value = userData.paymentCircle.current;
             
-            // Check if payment circle is complete
             if (userData.paymentCircle.current >= userData.paymentCircle.total) {
                 showNotification('Payment circle complete! Admin has been notified to process payments.');
-                // Reset for next circle
                 userData.paymentCircle.current = 0;
             }
         }
@@ -2550,52 +2545,64 @@
         // Update login streak
         function updateStreak() {
             const today = new Date().toDateString();
-            
-            // Check if already logged in today
-            if (userData.streak.lastLogin === today) return;
-            
-            // Check if consecutive day
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
             
-            if (userData.streak.lastLogin === yesterday.toDateString()) {
-                // Consecutive day
-                userData.streak.days++;
-            } else if (userData.streak.lastLogin !== today) {
-                // Broken streak
-                userData.streak.days = 1;
+            // Reset all streak days first
+            for (let i = 1; i <= 7; i++) {
+                const dayElement = elements[`day${i}`];
+                dayElement.className = 'streak-day';
+                dayElement.setAttribute('data-day', `Day ${i}`);
+                dayElement.classList.remove('today');
             }
             
-            // Update last login
-            userData.streak.lastLogin = today;
+            // Check if we need to reset streak (missed yesterday)
+            if (userData.streak.lastLogin && 
+                userData.streak.lastLogin !== today && 
+                userData.streak.lastLogin !== yesterday.toDateString()) {
+                
+                // Mark all previous days as missed
+                for (let i = 1; i <= userData.streak.days; i++) {
+                    elements[`day${i}`].classList.add('missed');
+                }
+                
+                // Reset streak
+                userData.streak.days = 0;
+                showNotification('🔥 Streak broken! Start a new one today.');
+            }
+            
+            // Update current streak days
+            if (userData.streak.lastLogin !== today) {
+                // New login today
+                if (userData.streak.lastLogin === yesterday.toDateString()) {
+                    // Consecutive day
+                    userData.streak.days++;
+                } else if (!userData.streak.lastLogin) {
+                    // First time
+                    userData.streak.days = 1;
+                }
+                
+                // Update last login
+                userData.streak.lastLogin = today;
+                
+                // Award streak bonus (₦500 per day)
+                const bonus = userData.streak.days * 500;
+                userData.balance += bonus;
+                updateBalance();
+                showNotification(`🔥 ${userData.streak.days}-day streak! +₦${bonus}`);
+            }
             
             // Update UI
             for (let i = 1; i <= 7; i++) {
                 const dayElement = elements[`day${i}`];
-                dayElement.classList.remove('active', 'today');
                 
                 if (i <= userData.streak.days) {
                     dayElement.classList.add('active');
                 }
                 
-                if (i === userData.streak.days + 1 && userData.streak.days < 7) {
+                if (i === userData.streak.days + 1) {
                     dayElement.classList.add('today');
                 }
-            }
-            
-            // Award streak bonus (₦500 per day)
-            const bonus = userData.streak.days * 500;
-            userData.balance += bonus;
-            updateBalance();
-            showNotification(`🔥 ${userData.streak.days}-day streak! +₦${bonus}`);
-        }
-        
-        // Handle streak day clicks
-        function setupStreakClicks() {
-            for (let i = 1; i <= 7; i++) {
-                elements[`day${i}`].addEventListener('click', () => {
-                    showNotification(`Day ${i} of login streak`);
-                });
             }
         }
         
@@ -2627,7 +2634,6 @@
             userData.tickets.push(ticket);
             updateTicketList();
             
-            // Simulate admin reply after 12 hours
             setTimeout(() => {
                 const ticketIndex = userData.tickets.findIndex(t => t.id === ticket.id);
                 if (ticketIndex !== -1) {
@@ -2636,7 +2642,7 @@
                     updateTicketList();
                     showNotification('Admin has replied to your support ticket!');
                 }
-            }, 43200000); // 12 hours
+            }, 43200000);
             
             elements.ticketSubject.value = '';
             elements.ticketMessage.value = '';
@@ -2683,7 +2689,6 @@
                 userData.dailyProfit = userData.tradingCapital * dailyReturn;
                 userData.totalProfit += userData.dailyProfit;
                 
-                // Distribute profits
                 const userShare = userData.dailyProfit * 0.7;
                 userData.withdrawableProfit += userShare;
                 
@@ -2691,12 +2696,10 @@
                 updateTradingInfo();
                 updateReferralInfo();
                 
-                // Show notification occasionally
                 if (Math.random() > 0.7) {
                     showNotification('💸 Profit earned: ₦' + Math.floor(userShare).toLocaleString());
                 }
                 
-                // Simulate payment circle progress
                 if (Math.random() > 0.8) {
                     userData.paymentCircle.current += Math.floor(Math.random() * 50) + 10;
                     updatePaymentCircle();
@@ -2708,7 +2711,6 @@
         function switchGame(game) {
             userData.currentGame = game;
             
-            // Update UI
             elements.gameOptions.forEach(option => {
                 if (option.dataset.game === game) {
                     option.classList.add('active');
@@ -2717,14 +2719,12 @@
                 }
             });
             
-            // Hide all games
             elements.memoryGame.style.display = 'none';
             elements.diceGame.style.display = 'none';
             elements.bottleGame.style.display = 'none';
             elements.snakeGame.style.display = 'none';
             elements.quizGame.style.display = 'none';
             
-            // Show selected game
             switch(game) {
                 case 'memory':
                     elements.memoryGame.style.display = 'block';
@@ -2753,8 +2753,6 @@
         
         // Admin functions
         function checkAdminStatus() {
-            // In a real app, this would check the user's role from the server
-            // For demo purposes, we'll use a query parameter or localStorage flag
             const urlParams = new URLSearchParams(window.location.search);
             const isAdmin = urlParams.has('admin') || localStorage.getItem('isAdmin') === 'true';
             
@@ -2765,8 +2763,6 @@
         }
         
         async function authenticateAdmin(password) {
-            // In a real app, this would verify with the server
-            // For demo, we'll use a simple password
             if (password === 'admin123') {
                 adminData.token = 'demo-admin-token';
                 localStorage.setItem('isAdmin', 'true');
@@ -2784,7 +2780,6 @@
         }
         
         async function loadAdminData() {
-            // Simulate loading admin data
             const demoUsers = [
                 { _id: 'user1', username: 'john_doe', balance: 15000, verified: true },
                 { _id: 'user2', username: 'jane_smith', balance: 7500, verified: false },
@@ -2800,7 +2795,6 @@
             renderUsersTable(demoUsers);
             renderPaymentsTable(demoPayments);
             
-            // Update trading stats
             elements.adminActiveUsers.textContent = '125';
             elements.adminTotalCapital.textContent = '3,750,000';
             elements.adminProfitPool.textContent = '850,000';
@@ -2852,7 +2846,6 @@
         async function handleUserAction(action, userId) {
             if (action === 'verify') {
                 showNotification(`User ${userId} verified successfully`);
-                // Refresh user list
                 const rows = elements.usersTableBody.querySelectorAll('tr');
                 rows.forEach(row => {
                     if (row.cells[0].textContent === userId) {
@@ -2866,7 +2859,6 @@
         
         async function handlePaymentAction(action, paymentId) {
             showNotification(`Payment ${paymentId} ${action}d successfully`);
-            // Refresh payment list
             const rows = elements.paymentsTableBody.querySelectorAll('tr');
             rows.forEach(row => {
                 if (row.cells[0].textContent === paymentId) {
@@ -2884,7 +2876,6 @@
             };
             
             showNotification('Settings saved successfully');
-            // In a real app, this would send to server
             console.log('Settings saved:', settings);
         }
         
@@ -2897,16 +2888,13 @@
         });
         
         elements.watchAdBtn.addEventListener('click', function() {
-            // Disable button during ad
             this.disabled = true;
             this.textContent = "⏳ Playing ad...";
             
-            // Simulate 30-second ad
             setTimeout(() => {
                 userData.adsWatched++;
                 elements.adsWatchedDisplay.textContent = userData.adsWatched;
                 
-                // Enable games after 2 ads per game (total 10 ads)
                 if (userData.adsWatched >= 10) {
                     gameStates.memory.canPlay = true;
                     showNotification("✅ You can now play games!");
@@ -2916,7 +2904,7 @@
                 this.disabled = false;
                 this.textContent = "▶️ Watch Ad (+1)";
                 showNotification(`Ad watched! (${userData.adsWatched}/10)`);
-            }, 3000); // Simulated 3-second ad instead of 30 for demo
+            }, 3000);
         });
         
         elements.toggleTradingBtn.addEventListener('click', () => {
@@ -2959,7 +2947,6 @@
                 return;
             }
             
-            // Initialize verification payment
             await PaymentService.initializePayment(550, 'verification');
         });
         
@@ -3049,11 +3036,9 @@
         // Admin tab switching
         document.querySelectorAll('.tab-button').forEach(button => {
             button.addEventListener('click', function() {
-                // Remove active class from all buttons and tabs
                 document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
                 document.querySelectorAll('.admin-tab-content').forEach(tab => tab.classList.remove('active'));
                 
-                // Add active class to clicked button and corresponding tab
                 this.classList.add('active');
                 const tabId = 'admin' + this.dataset.tab.charAt(0).toUpperCase() + this.dataset.tab.slice(1) + 'Tab';
                 document.getElementById(tabId).classList.add('active');
@@ -3083,7 +3068,6 @@
             if (pendingPayment) {
                 const payment = JSON.parse(pendingPayment);
                 
-                // Check if payment was recent (within 10 minutes)
                 if (Date.now() - payment.timestamp < 600000) {
                     const verified = await PaymentService.verifyPayment(payment.reference);
                     if (verified) {
@@ -3095,7 +3079,7 @@
             }
             
             // Load demo data
-            userData.balance = 5000; // Signup bonus
+            userData.balance = 5000;
             userData.verified = false;
             userData.paymentCircle.current = 742;
             
@@ -3111,8 +3095,12 @@
             updatePaymentCircle();
             updateStreak();
             updateTicketList();
-            setupStreakClicks();
             checkAdminStatus();
+            
+            // Initialize testimonial rotation
+            showTestimonial(1);
+            startTestimonialRotation();
+            setupTestimonialDots();
             
             // Simulate trading every 15 seconds for demo
             setInterval(simulateTrading, 15000);
@@ -3122,5 +3110,4 @@
         });
     </script>
 </body>
-</html>   
- 
+</html>
