@@ -824,6 +824,98 @@
             flex: 1;
         }
         
+        /* Announcement Styles */
+        .announcement-item {
+            padding: 10px;
+            margin: 10px 0;
+            background: var(--nigerian-green-light);
+            border-left: 3px solid var(--nigerian-green);
+            border-radius: 4px;
+        }
+        
+        .announcement-time {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .badge {
+            background: var(--danger);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        
+        /* Admin Panel Button */
+        #adminPanelBtn {
+            width: auto;
+            padding: 10px 15px;
+            border-radius: 50px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        /* Announcement Notification */
+        .announcement-notification {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--nigerian-green);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 90%;
+            width: 350px;
+            display: none;
+            cursor: pointer;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        .announcement-notification.show {
+            display: block;
+        }
+        
+        .announcement-notification h4 {
+            margin: 0 0 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .announcement-notification p {
+            margin: 0;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .announcement-notification .close-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+        
         /* Responsive Design */
         @media (max-width: 600px) {
             .card-grid {
@@ -967,6 +1059,13 @@
                 <p>Batch: <span id="paidUsers">0</span>/1,000 users</p>
                 <progress id="paymentCircleProgress" value="0" max="1000"></progress>
                 <small>Next payment batch at 1,000 users</small>
+            </div>
+            
+            <!-- Announcement Section -->
+            <div class="status-card" id="announcementSection" style="display: none;">
+                <h3>📢 Latest Announcements <span class="badge" id="newAnnouncementBadge" style="display: none;">NEW</span></h3>
+                <div id="announcementList"></div>
+                <button id="viewAllAnnouncementsBtn" class="secondary">View All</button>
             </div>
         </div>
         
@@ -1724,10 +1823,32 @@
         </div>
     </div>
     
+    <!-- Admin Announcement Modal -->
+    <div class="modal" id="adminAnnouncementModal">
+        <div class="modal-content">
+            <h3>📢 Make Announcement</h3>
+            <textarea id="announcementText" placeholder="Enter your announcement..." rows="5"></textarea>
+            <div class="modal-actions">
+                <button id="sendAnnouncementBtn" class="primary">Send to All Users</button>
+                <button id="cancelAnnouncementBtn" class="secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Notification -->
     <div class="notification" id="notification">
         <span id="notificationText">Notification message</span>
     </div>
+    
+    <!-- Announcement Notification -->
+    <div class="announcement-notification" id="announcementNotification">
+        <button class="close-btn" id="closeAnnouncementBtn">×</button>
+        <h4>📢 New Announcement</h4>
+        <p id="announcementPreview">Loading announcement...</p>
+    </div>
+    
+    <!-- Admin Panel Button -->
+    <button id="adminPanelBtn" style="display: none; position: fixed; bottom: 20px; right: 20px; z-index: 100;" class="primary">Admin Panel</button>
     
     <!-- Audio elements for game sounds -->
     <audio id="flipSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3" preload="auto"></audio>
@@ -2579,6 +2700,11 @@
             lastLogin: null
         };
         
+        // Announcements data
+        let announcements = [];
+        let unreadAnnouncements = 0;
+        let announcementTimeout;
+        
         // DOM Elements
         const elements = {
             balance: document.getElementById('balance'),
@@ -2650,7 +2776,19 @@
             backToGames3: document.getElementById('backToGames3'),
             backToGames4: document.getElementById('backToGames4'),
             backToGames5: document.getElementById('backToGames5'),
-            learnMoreBtn: document.getElementById('learnMoreBtn')
+            learnMoreBtn: document.getElementById('learnMoreBtn'),
+            adminPanelBtn: document.getElementById('adminPanelBtn'),
+            adminAnnouncementModal: document.getElementById('adminAnnouncementModal'),
+            announcementText: document.getElementById('announcementText'),
+            sendAnnouncementBtn: document.getElementById('sendAnnouncementBtn'),
+            cancelAnnouncementBtn: document.getElementById('cancelAnnouncementBtn'),
+            announcementSection: document.getElementById('announcementSection'),
+            announcementList: document.getElementById('announcementList'),
+            newAnnouncementBadge: document.getElementById('newAnnouncementBadge'),
+            viewAllAnnouncementsBtn: document.getElementById('viewAllAnnouncementsBtn'),
+            announcementNotification: document.getElementById('announcementNotification'),
+            announcementPreview: document.getElementById('announcementPreview'),
+            closeAnnouncementBtn: document.getElementById('closeAnnouncementBtn')
         };
         
         // Initialize games
@@ -2813,6 +2951,68 @@
             });
         }
         
+        // Show announcement notification
+        function showAnnouncementNotification(announcementText) {
+            const notification = document.getElementById('announcementNotification');
+            const preview = document.getElementById('announcementPreview');
+            
+            // Truncate announcement text for preview
+            const truncatedText = announcementText.length > 50 
+                ? announcementText.substring(0, 50) + '...' 
+                : announcementText;
+            
+            preview.textContent = truncatedText;
+            notification.classList.add('show');
+            
+            // Auto-hide after 10 seconds
+            announcementTimeout = setTimeout(() => {
+                notification.classList.remove('show');
+            }, 10000);
+        }
+        
+        function handleAnnouncementClick() {
+            // Clear the auto-hide timeout
+            clearTimeout(announcementTimeout);
+            
+            // Hide the notification
+            document.getElementById('announcementNotification').classList.remove('show');
+            
+            // Switch to info tab and show announcements
+            document.querySelector('.tab[data-tab="info"]').click();
+            setTimeout(() => {
+                document.getElementById('announcementSection').scrollIntoView({ behavior: 'smooth' });
+            }, 300);
+            
+            // Mark as read
+            unreadAnnouncements = 0;
+            document.getElementById('newAnnouncementBadge').style.display = 'none';
+        }
+        
+        function updateAnnouncementList() {
+            elements.announcementList.innerHTML = '';
+            
+            announcements.forEach(announcement => {
+                const announcementItem = document.createElement('div');
+                announcementItem.className = 'announcement-item';
+                announcementItem.innerHTML = `
+                    <p>${announcement.text}</p>
+                    <div class="announcement-time">${announcement.time}</div>
+                `;
+                elements.announcementList.appendChild(announcementItem);
+            });
+            
+            // Show announcement section if hidden
+            elements.announcementSection.style.display = 'block';
+            
+            // Update badge
+            if (unreadAnnouncements > 0) {
+                elements.newAnnouncementBadge.style.display = 'inline-block';
+                elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
+            } else {
+                elements.newAnnouncementBadge.style.display = 'none';
+            }
+        }
+        
         // Show notification
         function showNotification(message) {
             elements.notificationText.textContent = message;
@@ -2941,6 +3141,16 @@
             userData.lastLogin = new Date().toDateString();
             userData.streak = 3;
             userData.streakBonus = 700; // 500 + (3-1)*100
+            
+            // Initialize announcements
+            announcements = [
+                {
+                    text: "Welcome to AI REF-TRADERS! Complete your 6 referrals to activate AI trading.",
+                    time: new Date().toLocaleString(),
+                    timestamp: new Date().getTime()
+                }
+            ];
+            updateAnnouncementList();
             
             updateUI();
             
@@ -3164,6 +3374,63 @@
                     elements.accountName.value = "";
                 }
             });
+            
+            // Admin panel functionality
+            elements.adminPanelBtn.addEventListener('click', () => {
+                elements.adminAnnouncementModal.classList.add('active');
+            });
+            
+            elements.cancelAnnouncementBtn.addEventListener('click', () => {
+                elements.adminAnnouncementModal.classList.remove('active');
+            });
+            
+            elements.sendAnnouncementBtn.addEventListener('click', () => {
+                const announcementText = elements.announcementText.value;
+                if (!announcementText) {
+                    showNotification('Please enter announcement text');
+                    return;
+                }
+                
+                // Add announcement to the list
+                const now = new Date();
+                const announcement = {
+                    text: announcementText,
+                    time: now.toLocaleString(),
+                    timestamp: now.getTime()
+                };
+                
+                announcements.unshift(announcement);
+                unreadAnnouncements++;
+                
+                // Update announcement list
+                updateAnnouncementList();
+                
+                // Show notification
+                showAnnouncementNotification(announcementText);
+                
+                // Clear input and close modal
+                elements.announcementText.value = '';
+                elements.adminAnnouncementModal.classList.remove('active');
+            });
+            
+            elements.viewAllAnnouncementsBtn.addEventListener('click', () => {
+                elements.newAnnouncementBadge.style.display = 'none';
+            });
+            
+            // Announcement notification click handler
+            elements.announcementNotification.addEventListener('click', handleAnnouncementClick);
+            
+            // Close announcement button
+            elements.closeAnnouncementBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                clearTimeout(announcementTimeout);
+                elements.announcementNotification.classList.remove('show');
+            });
+            
+            // Check if user is admin (for demo purposes, we'll simulate it)
+            if (tg.initDataUnsafe.user?.username === 'admin') {
+                elements.adminPanelBtn.style.display = 'block';
+            }
             
             // Simulate trading every 15 seconds for demo
             setInterval(simulateTrading, 15000);
