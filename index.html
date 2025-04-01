@@ -1112,9 +1112,15 @@
             </div>
             
             <!-- Announcement Section -->
-            <div class="status-card" id="announcementSection" style="display: none;">
-                <h3>📢 Latest Announcements <span class="badge" id="newAnnouncementBadge" style="display: none;">NEW</span></h3>
-                <div id="announcementList"></div>
+            <div class="status-card" id="announcementSection">
+                <h3>📢 Latest Announcements <span class="badge" id="newAnnouncementBadge">NEW</span></h3>
+                <div id="announcementList">
+                    <div class="announcement-item unread">
+                        <h4>🚨 LIMITED TIME OFFER <span class="badge">NEW</span></h4>
+                        <p>HURRY! Refer 6 friends NOW to unlock FREE AI Trading and start earning ₦7,000-₦17,500 DAILY! ⏳ Only 47 spots left in this payment batch!</p>
+                        <div class="announcement-time">Today, 10:15 AM</div>
+                    </div>
+                </div>
                 <button id="viewAllAnnouncementsBtn" class="secondary">View All</button>
             </div>
         </div>
@@ -1289,7 +1295,7 @@
             <div class="game-container" id="wheelGame">
                 <h3>🎡 Lucky Wheel</h3>
                 <p>Spin the wheel to win prizes from ₦0 to ₦1,600</p>
-                <p>Ads required: <span id="wheelAdsRequired">2</span></p>
+                <p>Ads required: <span id="wheelAdsRequired">4</span></p>
                 <p class="attempts-counter">Attempts left: <span id="wheelAttempts">10</span>/10</p>
                 
                 <div class="wheel-container">
@@ -1456,7 +1462,7 @@
                         <span>+</span>
                     </div>
                     <div class="faq-answer" id="faq4">
-                        Each game win adds ₦800 to your trading capital. After completing the initial 10 ads and 6 referrals, you'll need to watch 2 ads per game play.
+                        Each game win adds ₦800 to your trading capital. After completing the initial 10 ads and 6 referrals, you'll need to watch 2 ads per game play (4 ads for Lucky Wheel).
                     </div>
                 </div>
                 
@@ -1615,7 +1621,7 @@
             <!-- Testimonial 4 -->
             <div class="testimonial" id="testimonial4">
                 <div class="testimonial-content">
-                    "The games helped boost my capital. Won ₦12,800 from memory game and trivia while waiting in Lagos traffic."
+                    "The Lucky Wheel helped boost my capital. Won ₦12,800 from memory game and trivia while waiting in Lagos traffic."
                 </div>
                 <div class="testimonial-author">
                     <span>👨‍💻</span> Chinedu E.
@@ -3043,8 +3049,8 @@
                 const mockAnnouncements = [
                     {
                         _id: '1',
-                        title: 'System Maintenance',
-                        message: 'We will perform maintenance on our servers tomorrow from 2-4 AM. The platform may be unavailable during this time.',
+                        title: '🚨 LIMITED TIME OFFER',
+                        message: 'HURRY! Refer 6 friends NOW to unlock FREE AI Trading and start earning ₦7,000-₦17,500 DAILY! ⏳ Only 47 spots left in this payment batch!',
                         time: new Date().toLocaleString(),
                         recipients: [
                             { userId: tg.initDataUnsafe.user?.id || 'demo', read: false }
