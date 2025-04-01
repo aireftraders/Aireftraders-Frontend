@@ -999,7 +999,7 @@
         <div class="app-bar">
             <h1>AI REF-TRADERS <span class="nigeria-badge">100% NIGERIAN</span></h1>
             <div class="user-chip">
-                <span>📊 ₦<span id="balance">0</span></span>
+                <span>📊 ₦<span id="balance">5000</span></span>
                 <span id="verifiedBadge">❌</span>
             </div>
         </div>
@@ -1089,7 +1089,7 @@
                     <div class="streak-day inactive">T</div>
                     <div class="streak-day inactive">W</div>
                     <div class="streak-day inactive">T</div>
-                    <div class="streak-day active">F</div>
+                    <div class="streak-day inactive">F</div>
                     <div class="streak-day today">S</div>
                 </div>
             </div>
@@ -1915,6 +1915,90 @@
     <audio id="coinLandSound" src="https://assets.mixkit.co/sfx/preview/mixkit-metal-hit-impact-2065.mp3" preload="auto"></audio>
     
     <script>
+        // ===== DAILY STREAK FUNCTIONALITY =====
+        function initializeStreak() {
+            // Get the current date in YYYY-MM-DD format for comparison
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Check if we have streak data in localStorage
+            const streakData = JSON.parse(localStorage.getItem('streakData')) || {
+                lastLogin: null,
+                streak: 0,
+                totalEarned: 0
+            };
+            
+            // Check if user logged in today
+            if (streakData.lastLogin === today) {
+                // User already logged in today
+                updateStreakUI(streakData.streak, false);
+                return;
+            }
+            
+            // Check if this is a consecutive day
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+            
+            if (streakData.lastLogin === yesterdayStr) {
+                // Consecutive day - increment streak
+                streakData.streak++;
+            } else if (streakData.lastLogin && streakData.lastLogin !== today) {
+                // Broken streak - reset to day 1
+                streakData.streak = 1;
+            } else {
+                // First time or no previous login - start at day 1
+                streakData.streak = 1;
+            }
+            
+            // Calculate today's bonus (500 for day 1, increasing by 100 each day up to day 7)
+            const todayBonus = 500 + (Math.min(streakData.streak, 7) - 1) * 100;
+            
+            // Update the user's balance immediately
+            userData.balance += todayBonus;
+            streakData.totalEarned += todayBonus;
+            
+            // Update last login date
+            streakData.lastLogin = today;
+            
+            // Save to localStorage
+            localStorage.setItem('streakData', JSON.stringify(streakData));
+            
+            // Update UI and show notification
+            updateStreakUI(streakData.streak, true, todayBonus);
+            showNotification(`🔥 Day ${streakData.streak} streak! ₦${todayBonus} added to your balance`);
+            
+            // Update the displayed balance
+            updateBalance();
+        }
+        
+        function updateStreakUI(streakCount, isNewLogin, bonus = 0) {
+            // Update the streak display
+            document.getElementById('streakCount').textContent = streakCount;
+            
+            // Calculate the current day's bonus (even if not new login)
+            const currentBonus = 500 + (Math.min(streakCount, 7) - 1) * 100;
+            document.getElementById('streakBonus').textContent = currentBonus;
+            
+            // Update the calendar display
+            const calendarDays = document.querySelectorAll('.streak-day');
+            const todayIndex = new Date().getDay(); // 0-6 (Sun-Sat)
+            
+            calendarDays.forEach((day, index) => {
+                day.classList.remove('active', 'today');
+                
+                if (index === todayIndex) {
+                    day.classList.add('today');
+                }
+                
+                // Mark previous days in the streak as active
+                if (isNewLogin && index < todayIndex && streakCount > todayIndex - index) {
+                    day.classList.add('active');
+                } else if (!isNewLogin && streakCount >= todayIndex - index && index < todayIndex) {
+                    day.classList.add('active');
+                }
+            });
+        }
+
         // ===== NIGERIA-FOCUSED TESTIMONIAL ROTATION =====
         let currentTestimonial = 1;
         const totalTestimonials = 15;
@@ -2068,6 +2152,7 @@
                 
                 this.attempts--;
                 this.updateAttempts();
+                this.updateServerAttempts(); // This was already implemented
                 
                 if (card1.dataset.value === card2.dataset.value) {
                     card1.classList.add('matched');
@@ -2113,9 +2198,31 @@
             updateStats: function() {
                 document.getElementById('wins').textContent = this.wins;
                 document.getElementById('gameEarnings').textContent = this.earnings;
+            },
+            
+            updateServerAttempts: async function() {
+                try {
+                    const response = await fetch('/api/games/update-attempts', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Telegram-Init-Data': window.Telegram.WebApp.initData || 'test'
+                        },
+                        body: JSON.stringify({ 
+                            gameType: 'memory',
+                            attempts: this.attempts 
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to save progress');
+                    return await response.json();
+                } catch (error) {
+                    console.error('Update attempts error:', error);
+                    showNotification('⚠️ Progress not saved (check connection)');
+                }
             }
         };
-        
+
         // Dice Game
         const diceGame = {
             lastRoll: null,
@@ -2136,6 +2243,7 @@
                 
                 this.attempts--;
                 this.updateAttempts();
+                this.updateServerAttempts(); // Added this line
                 document.getElementById('clickSound').play();
                 
                 const roll = Math.floor(Math.random() * 6) + 1;
@@ -2177,9 +2285,31 @@
             updateStats: function() {
                 document.getElementById('diceWins').textContent = this.wins;
                 document.getElementById('diceEarnings').textContent = this.earnings;
+            },
+            
+            updateServerAttempts: async function() {
+                try {
+                    const response = await fetch('/api/games/update-attempts', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Telegram-Init-Data': window.Telegram.WebApp.initData || 'test'
+                        },
+                        body: JSON.stringify({ 
+                            gameType: 'dice',
+                            attempts: this.attempts 
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to save progress');
+                    return await response.json();
+                } catch (error) {
+                    console.error('Update attempts error:', error);
+                    showNotification('⚠️ Progress not saved (check connection)');
+                }
             }
         };
-        
+
         // Snake Game
         const snakeGame = {
             canvas: null,
@@ -2392,6 +2522,7 @@
                 this.gameStarted = false;
                 this.attempts--;
                 this.updateAttempts();
+                this.updateServerAttempts(); // Added this line
                 document.getElementById('loseSound').play();
                 
                 document.getElementById('startSnakeBtn').style.display = 'block';
@@ -2413,9 +2544,31 @@
             updateStats: function() {
                 document.getElementById('snakeScore').textContent = this.score;
                 document.getElementById('snakeEarnings').textContent = this.earnings;
+            },
+            
+            updateServerAttempts: async function() {
+                try {
+                    const response = await fetch('/api/games/update-attempts', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Telegram-Init-Data': window.Telegram.WebApp.initData || 'test'
+                        },
+                        body: JSON.stringify({ 
+                            gameType: 'snake',
+                            attempts: this.attempts 
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to save progress');
+                    return await response.json();
+                } catch (error) {
+                    console.error('Update attempts error:', error);
+                    showNotification('⚠️ Progress not saved (check connection)');
+                }
             }
         };
-        
+
         // Trivia Game
         const triviaGame = {
             questions: [
@@ -2579,6 +2732,7 @@
                 
                 this.attempts--;
                 this.updateAttempts();
+                this.updateServerAttempts(); // Added this line
                 document.getElementById('clickSound').play();
                 
                 const question = this.questions[this.currentQuestion];
@@ -2620,9 +2774,31 @@
             updateStats: function() {
                 document.getElementById('triviaCorrect').textContent = this.score;
                 document.getElementById('triviaEarnings').textContent = this.earnings;
+            },
+            
+            updateServerAttempts: async function() {
+                try {
+                    const response = await fetch('/api/games/update-attempts', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Telegram-Init-Data': window.Telegram.WebApp.initData || 'test'
+                        },
+                        body: JSON.stringify({ 
+                            gameType: 'trivia',
+                            attempts: this.attempts 
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to save progress');
+                    return await response.json();
+                } catch (error) {
+                    console.error('Update attempts error:', error);
+                    showNotification('⚠️ Progress not saved (check connection)');
+                }
             }
         };
-        
+
         // Wheel Spin Game
         const wheelGame = {
             attempts: 10,
@@ -2674,6 +2850,7 @@
                 
                 this.attempts--;
                 this.updateAttempts();
+                this.updateServerAttempts(); // Added this line
                 document.getElementById('clickSound').play();
                 
                 this.spinning = true;
@@ -2685,7 +2862,6 @@
                 const prize = this.prizes[prizeIndex];
                 
                 // Calculate rotation (5 full rotations + angle to selected prize)
-                const sectionAngle = 360 / this.sections;
                 const targetAngle = 1800 + (360 - (prizeIndex * sectionAngle)) + (Math.random() * sectionAngle);
                 
                 // Animate the spin
@@ -2757,9 +2933,31 @@
             updateStats: function() {
                 document.getElementById('wheelWins').textContent = this.wins;
                 document.getElementById('wheelEarnings').textContent = this.earnings;
+            },
+            
+            updateServerAttempts: async function() {
+                try {
+                    const response = await fetch('/api/games/update-attempts', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Telegram-Init-Data': window.Telegram.WebApp.initData || 'test'
+                        },
+                        body: JSON.stringify({ 
+                            gameType: 'wheel',
+                            attempts: this.attempts 
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to save progress');
+                    return await response.json();
+                } catch (error) {
+                    console.error('Update attempts error:', error);
+                    showNotification('⚠️ Progress not saved (check connection)');
+                }
             }
         };
-        
+
         // ===== CORE FUNCTIONALITY =====
         const tg = window.Telegram.WebApp;
         tg.expand();
@@ -2780,10 +2978,7 @@
             paymentCircle: {
                 current: 0,
                 total: 1000
-            },
-            streak: 0,
-            streakBonus: 0,
-            lastLogin: null
+            }
         };
         
         // Announcements data
@@ -2941,7 +3136,6 @@
             updateReferralInfo();
             updateTradingInfo();
             updatePaymentCircle();
-            updateStreak();
         }
         
         // Update balance display
@@ -2989,52 +3183,114 @@
             }
         }
         
-        // Update login streak
-        function updateStreak() {
-            const today = new Date().toDateString();
-            
-            // Check if user logged in today
-            if (userData.lastLogin !== today) {
-                // Check if consecutive day
-                const yesterday = new Date();
-                yesterday.setDate(yesterday.getDate() - 1);
+        // Show notification
+        function showNotification(message) {
+            elements.notificationText.textContent = message;
+            elements.notification.classList.add('show');
+            setTimeout(() => {
+                elements.notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Show success modal
+        function showSuccess(title, message) {
+            elements.successTitle.textContent = title;
+            elements.successMessage.textContent = message;
+            elements.successModal.classList.add('active');
+        }
+        
+        // Simulate trading
+        function simulateTrading() {
+            if (userData.tradingActive) {
+                const dailyReturn = Math.random() * (0.5 - 0.2) + 0.2;
+                userData.dailyProfit = userData.tradingCapital * dailyReturn;
+                userData.totalProfit += userData.dailyProfit;
                 
-                if (userData.lastLogin === yesterday.toDateString()) {
-                    userData.streak++;
-                } else {
-                    userData.streak = 1;
+                const userShare = userData.dailyProfit * 0.7;
+                userData.withdrawableProfit += userShare;
+                
+                updateBalance();
+                updateTradingInfo();
+                updateReferralInfo();
+                
+                if (Math.random() > 0.7) {
+                    showNotification('💸 Profit earned: ₦' + Math.floor(userShare).toLocaleString());
                 }
                 
-                // Calculate streak bonus (500 + 100 per day up to day 7)
-                userData.streakBonus = 500 + (Math.min(userData.streak, 7) - 1) * 100;
-                
-                userData.lastLogin = today;
-                
-                // Add streak bonus if trading is active
-                if (userData.tradingActive) {
-                    userData.tradingCapital += userData.streakBonus;
-                    showNotification(`🔥 ${userData.streak}-day streak! ₦${userData.streakBonus} added to your capital`);
+                if (Math.random() > 0.8) {
+                    userData.paymentCircle.current += Math.floor(Math.random() * 50) + 10;
+                    updatePaymentCircle();
                 }
             }
+        }
+        
+        // Toggle FAQ answer visibility
+        function toggleFaq(index) {
+            const answer = document.getElementById(`faq${index}`);
+            answer.classList.toggle('show');
+        }
+        
+        // Submit support ticket
+        function submitTicket() {
+            const subject = document.getElementById('ticketSubject').value;
+            const message = document.getElementById('ticketMessage').value;
             
-            elements.streakCount.textContent = userData.streak;
-            elements.streakBonus.textContent = userData.streakBonus;
+            if (!subject || !message) {
+                showNotification('Please fill all fields');
+                return;
+            }
             
-            // Update calendar display
-            const calendarDays = document.querySelectorAll('.streak-day');
-            const todayIndex = new Date().getDay(); // 0-6 (Sun-Sat)
+            const ticketList = document.getElementById('ticketList');
+            ticketList.innerHTML = `<div class="status-card" style="margin-bottom: 10px;">
+                <h4>${subject}</h4>
+                <p><small>${new Date().toLocaleString()}</small></p>
+                <p>Status: Pending</p>
+            </div>` + ticketList.innerHTML;
             
-            calendarDays.forEach((day, index) => {
-                day.classList.remove('active', 'today');
+            document.getElementById('ticketSubject').value = '';
+            document.getElementById('ticketMessage').value = '';
+            showNotification('Ticket submitted successfully!');
+        }
+        
+        // Watch ad for game attempts
+        function watchAd(game) {
+            const adBtn = document.getElementById(`watch${game.charAt(0).toUpperCase() + game.slice(1)}AdBtn`);
+            
+            adBtn.disabled = true;
+            adBtn.textContent = "⏳ Playing ad...";
+            
+            setTimeout(() => {
+                userData.adsWatched++;
+                elements.adsWatched.textContent = userData.adsWatched;
                 
-                if (index === todayIndex) {
-                    day.classList.add('today');
+                switch(game) {
+                    case 'memory':
+                        memoryGame.attempts += 1;
+                        memoryGame.updateAttempts();
+                        break;
+                    case 'dice':
+                        diceGame.attempts += 1;
+                        diceGame.updateAttempts();
+                        break;
+                    case 'snake':
+                        snakeGame.attempts += 1;
+                        snakeGame.updateAttempts();
+                        break;
+                    case 'trivia':
+                        triviaGame.attempts += 1;
+                        triviaGame.updateAttempts();
+                        break;
+                    case 'wheel':
+                        wheelGame.attempts += 1;
+                        wheelGame.updateAttempts();
+                        break;
                 }
                 
-                if (index < todayIndex && userData.streak > todayIndex - index) {
-                    day.classList.add('active');
-                }
-            });
+                showNotification(`Ad watched! +1 attempt for ${game} game`);
+                
+                adBtn.disabled = false;
+                adBtn.textContent = "▶️ Watch Ad (+1 Attempt)";
+            }, 3000);
         }
         
         // ===== ANNOUNCEMENT SYSTEM =====
@@ -3188,118 +3444,11 @@
             document.getElementById('newAnnouncementBadge').style.display = 'none';
         }
         
-        // Show notification
-        function showNotification(message) {
-            elements.notificationText.textContent = message;
-            elements.notification.classList.add('show');
-            setTimeout(() => {
-                elements.notification.classList.remove('show');
-            }, 3000);
-        }
-        
-        // Show success modal
-        function showSuccess(title, message) {
-            elements.successTitle.textContent = title;
-            elements.successMessage.textContent = message;
-            elements.successModal.classList.add('active');
-        }
-        
-        // Simulate trading
-        function simulateTrading() {
-            if (userData.tradingActive) {
-                const dailyReturn = Math.random() * (0.5 - 0.2) + 0.2;
-                userData.dailyProfit = userData.tradingCapital * dailyReturn;
-                userData.totalProfit += userData.dailyProfit;
-                
-                const userShare = userData.dailyProfit * 0.7;
-                userData.withdrawableProfit += userShare;
-                
-                updateBalance();
-                updateTradingInfo();
-                updateReferralInfo();
-                
-                if (Math.random() > 0.7) {
-                    showNotification('💸 Profit earned: ₦' + Math.floor(userShare).toLocaleString());
-                }
-                
-                if (Math.random() > 0.8) {
-                    userData.paymentCircle.current += Math.floor(Math.random() * 50) + 10;
-                    updatePaymentCircle();
-                }
-            }
-        }
-        
-        // Toggle FAQ answer visibility
-        function toggleFaq(index) {
-            const answer = document.getElementById(`faq${index}`);
-            answer.classList.toggle('show');
-        }
-        
-        // Submit support ticket
-        function submitTicket() {
-            const subject = document.getElementById('ticketSubject').value;
-            const message = document.getElementById('ticketMessage').value;
-            
-            if (!subject || !message) {
-                showNotification('Please fill all fields');
-                return;
-            }
-            
-            const ticketList = document.getElementById('ticketList');
-            ticketList.innerHTML = `<div class="status-card" style="margin-bottom: 10px;">
-                <h4>${subject}</h4>
-                <p><small>${new Date().toLocaleString()}</small></p>
-                <p>Status: Pending</p>
-            </div>` + ticketList.innerHTML;
-            
-            document.getElementById('ticketSubject').value = '';
-            document.getElementById('ticketMessage').value = '';
-            showNotification('Ticket submitted successfully!');
-        }
-        
-        // Watch ad for game attempts
-        function watchAd(game) {
-            const adBtn = document.getElementById(`watch${game.charAt(0).toUpperCase() + game.slice(1)}AdBtn`);
-            
-            adBtn.disabled = true;
-            adBtn.textContent = "⏳ Playing ad...";
-            
-            setTimeout(() => {
-                userData.adsWatched++;
-                elements.adsWatched.textContent = userData.adsWatched;
-                
-                switch(game) {
-                    case 'memory':
-                        memoryGame.attempts += 1;
-                        memoryGame.updateAttempts();
-                        break;
-                    case 'dice':
-                        diceGame.attempts += 1;
-                        diceGame.updateAttempts();
-                        break;
-                    case 'snake':
-                        snakeGame.attempts += 1;
-                        snakeGame.updateAttempts();
-                        break;
-                    case 'trivia':
-                        triviaGame.attempts += 1;
-                        triviaGame.updateAttempts();
-                        break;
-                    case 'wheel':
-                        wheelGame.attempts += 1;
-                        wheelGame.updateAttempts();
-                        break;
-                }
-                
-                showNotification(`Ad watched! +1 attempt for ${game} game`);
-                
-                adBtn.disabled = false;
-                adBtn.textContent = "▶️ Watch Ad (+1 Attempt)";
-            }, 3000);
-        }
-        
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
+            // Initialize streak first
+            initializeStreak();
+            
             // Initialize testimonial rotation
             showTestimonial(1);
             startTestimonialRotation();
@@ -3310,12 +3459,14 @@
             
             // Demo data initialization
             userData.verified = false;
-            userData.paymentCircle.current = 742;
-            userData.referrals = 3;
-            userData.adsWatched = 5;
-            userData.lastLogin = new Date().toDateString();
-            userData.streak = 3;
-            userData.streakBonus = 700; // 500 + (3-1)*100
+            userData.paymentCircle.current = 0;
+            userData.referrals = 0;
+            userData.adsWatched = 0;
+            
+            // Remove the lastLogin from userData since we're using localStorage now
+            delete userData.lastLogin;
+            delete userData.streak;
+            delete userData.streakBonus;
             
             // Load announcements
             getAnnouncements();
