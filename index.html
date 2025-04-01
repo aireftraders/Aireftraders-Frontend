@@ -587,66 +587,105 @@
             color: white;
         }
         
-        /* Coin Flip Game */
-        .coin-container {
-            width: 100%;
-            height: 300px;
+        /* Wheel Spin Game */
+        .wheel-container {
             position: relative;
-            margin: 20px 0;
-            perspective: 800px;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
         }
         
-        .coin {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(to right, #FFD700, #FFEC8B);
+        .wheel {
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            transform-style: preserve-3d;
-            transition: transform 1s ease-out;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+            border: 8px solid #333;
+            box-shadow: 0 0 0 8px #6C5CE7, 0 0 20px rgba(0,0,0,0.5);
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            transform: rotate(0deg);
         }
         
-        .coin::before {
+        .wheel-section {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: bottom right;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .wheel-pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            z-index: 10;
+        }
+        
+        .wheel-pointer:before {
             content: '';
             position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: linear-gradient(to right, #FFD700, #FFEC8B);
-            transform: translateZ(-1px);
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 30px solid #D63031;
         }
         
-        .coin-heads {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
+        .spin-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 12px 30px;
+            background: var(--nigerian-green);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
             font-weight: bold;
-            backface-visibility: hidden;
-            background: linear-gradient(to right, #FFD700, #FFEC8B);
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s;
         }
         
-        .coin-tails {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .spin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
+        .spin-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .spin-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        .wheel-result {
+            text-align: center;
             font-size: 24px;
             font-weight: bold;
-            backface-visibility: hidden;
-            background: linear-gradient(to right, #FFD700, #FFEC8B);
-            transform: rotateY(180deg);
+            margin: 20px 0;
+            min-height: 36px;
+        }
+        
+        .wheel-prize {
+            color: var(--nigerian-green);
+            font-size: 28px;
         }
         
         /* FAQ Styles */
@@ -947,6 +986,11 @@
             .cost-table th, .cost-table td {
                 padding: 8px 10px;
             }
+            
+            .wheel-container {
+                width: 250px;
+                height: 250px;
+            }
         }
     </style>
 </head>
@@ -1136,10 +1180,10 @@
                     <button class="primary" style="margin-top: 10px;">Play Now</button>
                 </div>
                 
-                <div class="game-card" data-game="coin">
-                    <div class="game-card-icon">🪙</div>
-                    <div class="game-card-title">Coin Flip</div>
-                    <div class="game-card-desc">Flip coin to land correctly for ₦800</div>
+                <div class="game-card" data-game="wheel">
+                    <div class="game-card-icon">🎡</div>
+                    <div class="game-card-title">Lucky Wheel</div>
+                    <div class="game-card-desc">Spin to win ₦200-₦1,600 prizes</div>
                     <button class="primary" style="margin-top: 10px;">Play Now</button>
                 </div>
             </div>
@@ -1242,31 +1286,31 @@
                 <button class="secondary" id="backToGames4" style="width: 100%; margin-top: 15px;">← Back to Games</button>
             </div>
             
-            <div class="game-container" id="coinGame">
-                <h3>🪙 Coin Flip</h3>
-                <p>Flip the coin to land correctly</p>
-                <p>Ads required: <span id="coinAdsRequired">2</span></p>
-                <p class="attempts-counter">Attempts left: <span id="coinAttempts">10</span>/10</p>
+            <div class="game-container" id="wheelGame">
+                <h3>🎡 Lucky Wheel</h3>
+                <p>Spin the wheel to win prizes from ₦0 to ₦1,600</p>
+                <p>Ads required: <span id="wheelAdsRequired">2</span></p>
+                <p class="attempts-counter">Attempts left: <span id="wheelAttempts">10</span>/10</p>
                 
-                <div class="coin-container">
-                    <div class="coin" id="coin">
-                        <div class="coin-heads">HEADS</div>
-                        <div class="coin-tails">TAILS</div>
-                    </div>
+                <div class="wheel-container">
+                    <div class="wheel" id="wheel"></div>
+                    <div class="wheel-pointer"></div>
                 </div>
                 
-                <div class="coin-controls">
-                    <button id="flipCoinBtn" class="primary" style="width: 100%;">Flip Coin</button>
-                    <button id="resetCoinBtn" class="secondary" style="width: 100%; margin-top: 10px;">Reset Coin</button>
+                <div class="wheel-result">
+                    <div id="wheelMessage">Tap SPIN to play</div>
+                    <div id="wheelPrize" class="wheel-prize"></div>
                 </div>
+                
+                <button id="spinWheelBtn" class="spin-btn">SPIN (₦0-₦1,600)</button>
                 
                 <div class="ad-container">
-                    <button id="watchCoinAdBtn">▶️ Watch Ad (+1 Attempt)</button>
+                    <button id="watchWheelAdBtn">▶️ Watch Ad (+1 Attempt)</button>
                 </div>
                 
                 <div class="game-stats">
-                    <p>🎯 Correct Flips: <span id="coinWins">0</span></p>
-                    <p>💰 Earned: ₦<span id="coinEarnings">0</span></p>
+                    <p>🎯 Wins: <span id="wheelWins">0</span></p>
+                    <p>💰 Earned: ₦<span id="wheelEarnings">0</span></p>
                 </div>
                 
                 <button class="secondary" id="backToGames5" style="width: 100%; margin-top: 15px;">← Back to Games</button>
@@ -2573,110 +2617,140 @@
             }
         };
         
-        // Coin Flip Game
-        const coinGame = {
+        // Wheel Spin Game
+        const wheelGame = {
             attempts: 10,
             wins: 0,
             earnings: 0,
-            flipping: false,
-            coin: null,
+            spinning: false,
+            wheel: null,
+            sections: 16, // More sections for better distribution
+            prizes: [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600], // ₦ prizes
+            colors: ['#FF5252', '#FF4081', '#E040FB', '#7C4DFF', '#536DFE', '#448AFF', '#40C4FF', '#18FFFF', '#64FFDA', '#69F0AE', '#B2FF59', '#EEFF41', '#FFFF00', '#FFD740', '#FFAB40', '#FF6E40'],
             
             init: function() {
-                this.coin = document.getElementById('coin');
-                document.getElementById('flipCoinBtn').addEventListener('click', () => this.flipCoin());
-                document.getElementById('resetCoinBtn').addEventListener('click', () => this.resetCoin());
+                this.wheel = document.getElementById('wheel');
+                this.createWheel();
+                
+                document.getElementById('spinWheelBtn').addEventListener('click', () => this.spin());
                 this.updateAttempts();
-                this.resetCoin();
             },
             
-            flipCoin: function() {
+            createWheel: function() {
+                this.wheel.innerHTML = '';
+                const sectionAngle = 360 / this.sections;
+                
+                for (let i = 0; i < this.sections; i++) {
+                    const section = document.createElement('div');
+                    section.className = 'wheel-section';
+                    section.style.transform = `rotate(${i * sectionAngle}deg)`;
+                    section.style.backgroundColor = this.colors[i % this.colors.length];
+                    section.style.clipPath = 'polygon(0 0, 100% 0, 100% 100%)';
+                    
+                    // Add prize text
+                    const prizeText = document.createElement('div');
+                    prizeText.style.transform = 'rotate(45deg) translate(-10px, 10px)';
+                    prizeText.style.fontSize = '14px'; // Smaller font for more sections
+                    prizeText.textContent = `₦${this.prizes[i]}`;
+                    section.appendChild(prizeText);
+                    
+                    this.wheel.appendChild(section);
+                }
+            },
+            
+            spin: function() {
                 if (this.attempts <= 0) {
-                    showNotification('Watch ads to get more coin flip attempts!');
+                    showNotification('Watch ads to get more wheel spin attempts!');
                     return;
                 }
                 
-                if (this.flipping) return;
+                if (this.spinning) return;
                 
                 this.attempts--;
                 this.updateAttempts();
-                document.getElementById('coinFlipSound').play();
+                document.getElementById('clickSound').play();
                 
-                this.flipping = true;
+                this.spinning = true;
+                const spinBtn = document.getElementById('spinWheelBtn');
+                spinBtn.disabled = true;
                 
-                // Calculate a realistic flip with physics
-                const rotations = 1 + Math.random() * 2; // 1-3 rotations
-                const duration = 1000 + Math.random() * 1000; // 1-2 seconds
-                const startTime = Date.now();
+                // Randomly select a prize (weighted towards higher amounts)
+                const prizeIndex = this.getWeightedPrizeIndex();
+                const prize = this.prizes[prizeIndex];
                 
-                // Higher chance to win (40% chance)
-                const willWin = Math.random() < 0.4;
-                const targetAngle = willWin ? 0 : 180;
+                // Calculate rotation (5 full rotations + angle to selected prize)
+                const sectionAngle = 360 / this.sections;
+                const targetAngle = 1800 + (360 - (prizeIndex * sectionAngle)) + (Math.random() * sectionAngle);
                 
-                // Physics-based animation
-                const animateFlip = () => {
-                    const elapsed = Date.now() - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
+                // Animate the spin
+                this.wheel.style.transform = `rotate(${targetAngle}deg)`;
+                this.wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+                
+                // Show spinning message
+                document.getElementById('wheelMessage').textContent = 'Spinning...';
+                document.getElementById('wheelPrize').textContent = '';
+                
+                // After spin completes
+                setTimeout(() => {
+                    this.spinning = false;
+                    spinBtn.disabled = false;
                     
-                    // Ease-out effect for more realistic deceleration
-                    const easeProgress = 1 - Math.pow(1 - progress, 3);
+                    // Show result
+                    document.getElementById('wheelMessage').textContent = 'You won:';
+                    document.getElementById('wheelPrize').textContent = `₦${prize}`;
                     
-                    // Calculate current angle with easing
-                    let currentAngle;
-                    if (willWin && progress > 0.8) {
-                        // For winning flips, adjust to land correctly at the end
-                        const adjustment = (1 - progress) * 180;
-                        currentAngle = (easeProgress * rotations * 360 + adjustment) % 360;
+                    // Add winnings
+                    this.wins++;
+                    this.earnings += prize;
+                    this.updateStats();
+                    addGameEarnings(prize);
+                    
+                    if (prize > 0) {
+                        document.getElementById('winSound').play();
+                        showNotification(`🎡 You won ₦${prize}!`);
                     } else {
-                        currentAngle = (easeProgress * rotations * 360) % 360;
+                        document.getElementById('loseSound').play();
+                        showNotification('Better luck next time!');
                     }
                     
-                    // Apply rotation with perspective for 3D effect
-                    this.coin.style.transform = `translate(-50%, -50%) rotateY(${currentAngle}deg)`;
-                    
-                    if (progress < 1) {
-                        requestAnimationFrame(animateFlip);
-                    } else {
-                        this.flipping = false;
-                        
-                        // Play landing sound
-                        document.getElementById('coinLandSound').play();
-                        
-                        // Check if coin landed correctly (within 20 degrees of 0 or 180)
-                        const finalAngle = currentAngle % 360;
-                        if ((finalAngle < 20 || finalAngle > 340) && willWin) {
-                            showNotification('🪙 Perfect flip! You won ₦800');
-                            this.wins++;
-                            this.earnings += 800;
-                            this.updateStats();
-                            addGameEarnings(800);
-                            document.getElementById('winSound').play();
-                        } else {
-                            showNotification('Try again!');
-                            document.getElementById('loseSound').play();
-                        }
-                        
-                        if (this.attempts <= 0) {
-                            showNotification('Coin flip attempts exhausted. Watch ads to get more attempts!');
-                            document.getElementById('coinGame').classList.add('game-disabled');
-                        }
+                    if (this.attempts <= 0) {
+                        showNotification('Wheel spin attempts exhausted. Watch ads to get more attempts!');
+                        document.getElementById('wheelGame').classList.add('game-disabled');
                     }
-                };
-                
-                animateFlip();
+                }, 4000);
             },
             
-            resetCoin: function() {
-                this.coin.style.transform = 'translate(-50%, -50%) rotateY(0deg)';
-                document.getElementById('clickSound').play();
+            // Weighted probability - higher chance for higher prizes
+            getWeightedPrizeIndex: function() {
+                // Create weights where higher prizes have higher weights
+                const weights = [];
+                for (let i = 0; i < this.prizes.length; i++) {
+                    // Base weight is the prize amount divided by 100 (so ₦1600 has weight 16)
+                    weights.push(Math.max(1, Math.floor(this.prizes[i] / 100)));
+                }
+                
+                // Make the 0 prize very unlikely (weight 1)
+                weights[0] = 1;
+                
+                const total = weights.reduce((a, b) => a + b, 0);
+                const random = Math.random() * total;
+                
+                let sum = 0;
+                for (let i = 0; i < weights.length; i++) {
+                    sum += weights[i];
+                    if (random <= sum) return i;
+                }
+                
+                return this.prizes.length - 1; // Default to last prize
             },
             
             updateAttempts: function() {
-                document.getElementById('coinAttempts').textContent = this.attempts;
+                document.getElementById('wheelAttempts').textContent = this.attempts;
             },
             
             updateStats: function() {
-                document.getElementById('coinWins').textContent = this.wins;
-                document.getElementById('coinEarnings').textContent = this.earnings;
+                document.getElementById('wheelWins').textContent = this.wins;
+                document.getElementById('wheelEarnings').textContent = this.earnings;
             }
         };
         
@@ -2728,7 +2802,7 @@
             watchDiceAdBtn: document.getElementById('watchDiceAdBtn'),
             watchSnakeAdBtn: document.getElementById('watchSnakeAdBtn'),
             watchTriviaAdBtn: document.getElementById('watchTriviaAdBtn'),
-            watchCoinAdBtn: document.getElementById('watchCoinAdBtn'),
+            watchWheelAdBtn: document.getElementById('watchWheelAdBtn'),
             adsWatched: document.getElementById('adsWatched'),
             toggleTrading: document.getElementById('toggleTrading'),
             tradingCapital: document.getElementById('tradingCapital'),
@@ -2774,7 +2848,7 @@
             diceGame: document.getElementById('diceGame'),
             snakeGame: document.getElementById('snakeGame'),
             triviaGame: document.getElementById('triviaGame'),
-            coinGame: document.getElementById('coinGame'),
+            wheelGame: document.getElementById('wheelGame'),
             streakCount: document.getElementById('streakCount'),
             streakBonus: document.getElementById('streakBonus'),
             backToGames1: document.getElementById('backToGames1'),
@@ -2803,7 +2877,7 @@
             diceGame.init();
             snakeGame.init();
             triviaGame.init();
-            coinGame.init();
+            wheelGame.init();
         }
         
         // Show game
@@ -2813,7 +2887,7 @@
             elements.diceGame.classList.remove('active');
             elements.snakeGame.classList.remove('active');
             elements.triviaGame.classList.remove('active');
-            elements.coinGame.classList.remove('active');
+            elements.wheelGame.classList.remove('active');
             
             // Show selected game
             switch(game) {
@@ -2833,9 +2907,9 @@
                     elements.triviaGame.classList.add('active');
                     elements.triviaGame.scrollIntoView({ behavior: 'smooth' });
                     break;
-                case 'coin':
-                    elements.coinGame.classList.add('active');
-                    elements.coinGame.scrollIntoView({ behavior: 'smooth' });
+                case 'wheel':
+                    elements.wheelGame.classList.add('active');
+                    elements.wheelGame.scrollIntoView({ behavior: 'smooth' });
                     break;
                 default:
                     // Scroll to top of games tab when showing game cards
@@ -2979,7 +3053,7 @@
                     {
                         _id: '2',
                         title: 'New Game Added',
-                        message: 'Check out our new "Lucky Dice" game in the Games tab! Earn ₦800 per correct guess.',
+                        message: 'Check out our new "Lucky Wheel" game in the Games tab! Earn ₦200-₦1,600 per spin.',
                         time: new Date(Date.now() - 86400000).toLocaleString(), // Yesterday
                         recipients: [
                             { userId: tg.initDataUnsafe.user?.id || 'demo', read: true }
@@ -3205,9 +3279,9 @@
                         triviaGame.attempts += 1;
                         triviaGame.updateAttempts();
                         break;
-                    case 'coin':
-                        coinGame.attempts += 1;
-                        coinGame.updateAttempts();
+                    case 'wheel':
+                        wheelGame.attempts += 1;
+                        wheelGame.updateAttempts();
                         break;
                 }
                 
@@ -3255,7 +3329,7 @@
             elements.watchDiceAdBtn.addEventListener('click', () => watchAd('dice'));
             elements.watchSnakeAdBtn.addEventListener('click', () => watchAd('snake'));
             elements.watchTriviaAdBtn.addEventListener('click', () => watchAd('trivia'));
-            elements.watchCoinAdBtn.addEventListener('click', () => watchAd('coin'));
+            elements.watchWheelAdBtn.addEventListener('click', () => watchAd('wheel'));
             
             // Game card click handlers
             elements.gameCards.forEach(card => {
