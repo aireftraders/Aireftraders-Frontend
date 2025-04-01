@@ -831,6 +831,12 @@
             background: var(--nigerian-green-light);
             border-left: 3px solid var(--nigerian-green);
             border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .announcement-item.unread {
+            background: #fff8e1;
+            border-left: 3px solid var(--warning);
         }
         
         .announcement-time {
@@ -2951,6 +2957,120 @@
             });
         }
         
+        // ===== ANNOUNCEMENT SYSTEM =====
+        // Fetch announcements with read status
+        async function getAnnouncements() {
+            try {
+                // In a real implementation, this would fetch from your API
+                // const response = await fetch('/api/announcements');
+                // const announcements = await response.json();
+                
+                // For demo purposes, we'll use mock data
+                const mockAnnouncements = [
+                    {
+                        _id: '1',
+                        title: 'System Maintenance',
+                        message: 'We will perform maintenance on our servers tomorrow from 2-4 AM. The platform may be unavailable during this time.',
+                        time: new Date().toLocaleString(),
+                        recipients: [
+                            { userId: tg.initDataUnsafe.user?.id || 'demo', read: false }
+                        ]
+                    },
+                    {
+                        _id: '2',
+                        title: 'New Game Added',
+                        message: 'Check out our new "Lucky Dice" game in the Games tab! Earn ₦800 per correct guess.',
+                        time: new Date(Date.now() - 86400000).toLocaleString(), // Yesterday
+                        recipients: [
+                            { userId: tg.initDataUnsafe.user?.id || 'demo', read: true }
+                        ]
+                    }
+                ];
+                
+                // Clear existing announcements
+                elements.announcementList.innerHTML = '';
+                unreadAnnouncements = 0;
+                
+                // Process each announcement
+                mockAnnouncements.forEach(ann => {
+                    const isRead = ann.recipients.some(
+                        r => r.userId === (tg.initDataUnsafe.user?.id || 'demo') && r.read
+                    );
+                    
+                    renderAnnouncement(ann, isRead);
+                    
+                    if (!isRead) {
+                        unreadAnnouncements++;
+                    }
+                });
+                
+                // Show/hide announcement section
+                if (mockAnnouncements.length > 0) {
+                    elements.announcementSection.style.display = 'block';
+                    
+                    // Update badge
+                    if (unreadAnnouncements > 0) {
+                        elements.newAnnouncementBadge.style.display = 'inline-block';
+                        elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
+                    } else {
+                        elements.newAnnouncementBadge.style.display = 'none';
+                    }
+                } else {
+                    elements.announcementSection.style.display = 'none';
+                }
+                
+            } catch (error) {
+                console.error('Error fetching announcements:', error);
+                showNotification('Failed to load announcements');
+            }
+        }
+        
+        // Render announcement
+        function renderAnnouncement(announcement, isRead) {
+            const announcementItem = document.createElement('div');
+            announcementItem.className = `announcement-item ${isRead ? '' : 'unread'}`;
+            announcementItem.innerHTML = `
+                <h4>${announcement.title} 
+                    ${!isRead ? '<span class="badge">NEW</span>' : ''}
+                </h4>
+                <p>${announcement.message}</p>
+                <div class="announcement-time">${announcement.time}</div>
+            `;
+            
+            // Add click handler to mark as read
+            announcementItem.addEventListener('click', () => {
+                markAsRead(announcement._id);
+                if (!isRead) {
+                    announcementItem.classList.remove('unread');
+                    announcementItem.querySelector('.badge').style.display = 'none';
+                    unreadAnnouncements--;
+                    
+                    if (unreadAnnouncements <= 0) {
+                        elements.newAnnouncementBadge.style.display = 'none';
+                    } else {
+                        elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
+                    }
+                }
+            });
+            
+            elements.announcementList.appendChild(announcementItem);
+        }
+        
+        // Mark announcement as read
+        async function markAsRead(announcementId) {
+            try {
+                // In a real implementation, this would POST to your API
+                // await fetch(`/api/announcements/${announcementId}/read`, {
+                //     method: 'POST'
+                // });
+                
+                // For demo, we'll just log it
+                console.log(`Marked announcement ${announcementId} as read`);
+            } catch (error) {
+                console.error('Error marking announcement as read:', error);
+            }
+        }
+        
         // Show announcement notification
         function showAnnouncementNotification(announcementText) {
             const notification = document.getElementById('announcementNotification');
@@ -2986,31 +3106,6 @@
             // Mark as read
             unreadAnnouncements = 0;
             document.getElementById('newAnnouncementBadge').style.display = 'none';
-        }
-        
-        function updateAnnouncementList() {
-            elements.announcementList.innerHTML = '';
-            
-            announcements.forEach(announcement => {
-                const announcementItem = document.createElement('div');
-                announcementItem.className = 'announcement-item';
-                announcementItem.innerHTML = `
-                    <p>${announcement.text}</p>
-                    <div class="announcement-time">${announcement.time}</div>
-                `;
-                elements.announcementList.appendChild(announcementItem);
-            });
-            
-            // Show announcement section if hidden
-            elements.announcementSection.style.display = 'block';
-            
-            // Update badge
-            if (unreadAnnouncements > 0) {
-                elements.newAnnouncementBadge.style.display = 'inline-block';
-                elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
-            } else {
-                elements.newAnnouncementBadge.style.display = 'none';
-            }
         }
         
         // Show notification
@@ -3142,15 +3237,8 @@
             userData.streak = 3;
             userData.streakBonus = 700; // 500 + (3-1)*100
             
-            // Initialize announcements
-            announcements = [
-                {
-                    text: "Welcome to AI REF-TRADERS! Complete your 6 referrals to activate AI trading.",
-                    time: new Date().toLocaleString(),
-                    timestamp: new Date().getTime()
-                }
-            ];
-            updateAnnouncementList();
+            // Load announcements
+            getAnnouncements();
             
             updateUI();
             
@@ -3394,19 +3482,28 @@
                 // Add announcement to the list
                 const now = new Date();
                 const announcement = {
-                    text: announcementText,
+                    _id: Date.now().toString(),
+                    title: 'Admin Announcement',
+                    message: announcementText,
                     time: now.toLocaleString(),
-                    timestamp: now.getTime()
+                    recipients: [
+                        { userId: tg.initDataUnsafe.user?.id || 'demo', read: false }
+                    ]
                 };
                 
-                announcements.unshift(announcement);
+                // Render the new announcement
+                renderAnnouncement(announcement, false);
                 unreadAnnouncements++;
-                
-                // Update announcement list
-                updateAnnouncementList();
                 
                 // Show notification
                 showAnnouncementNotification(announcementText);
+                
+                // Show announcement section if hidden
+                elements.announcementSection.style.display = 'block';
+                
+                // Update badge
+                elements.newAnnouncementBadge.style.display = 'inline-block';
+                elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
                 
                 // Clear input and close modal
                 elements.announcementText.value = '';
