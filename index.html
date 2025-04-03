@@ -180,8 +180,8 @@
         
         .payment-method {
             background: white;
-            padding: 10px;
             border-radius: 8px;
+            padding: 10px;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -961,6 +961,69 @@
             }
         }
         
+        /* Ad Modal Styles */
+        .ad-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .ad-content {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 400px;
+            width: 100%;
+            position: relative;
+        }
+        
+        .ad-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+        
+        .ad-body {
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        
+        .ad-timer {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .ad-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .ad-network-badge {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+        
         /* Responsive Design */
         @media (max-width: 600px) {
             .card-grid {
@@ -1200,10 +1263,6 @@
                 <p>Ads required: <span id="memoryAdsRequired">2</span></p>
                 <p class="attempts-counter">Attempts left: <span id="memoryAttempts">10</span>/10</p>
                 
-                <div class="ad-container">
-                    <button id="watchMemoryAdBtn">▶️ Watch Ad (+1 Attempt)</button>
-                </div>
-                
                 <div class="cards-grid" id="gameBoard"></div>
                 
                 <div class="game-stats">
@@ -1223,10 +1282,6 @@
                 <div style="text-align: center; margin: 20px 0;">
                     <div id="diceResult" style="font-size: 48px; margin: 20px 0;">?</div>
                     <button id="rollDiceBtn" class="primary" style="width: 100%;">Roll Dice (₦800)</button>
-                </div>
-                
-                <div class="ad-container">
-                    <button id="watchDiceAdBtn">▶️ Watch Ad (+1 Attempt)</button>
                 </div>
                 
                 <div class="game-stats">
@@ -1254,10 +1309,6 @@
                     <button class="snake-btn down">↓</button>
                 </div>
                 
-                <div class="ad-container">
-                    <button id="watchSnakeAdBtn">▶️ Watch Ad (+1 Attempt)</button>
-                </div>
-                
                 <div class="game-stats">
                     <p>🎯 Score: <span id="snakeScore">0</span></p>
                     <p>💰 Earned: ₦<span id="snakeEarnings">0</span></p>
@@ -1278,10 +1329,6 @@
                     <div class="trivia-option" data-option="2">Option 2</div>
                     <div class="trivia-option" data-option="3">Option 3</div>
                     <div class="trivia-option" data-option="4">Option 4</div>
-                </div>
-                
-                <div class="ad-container">
-                    <button id="watchTriviaAdBtn">▶️ Watch Ad (+1 Attempt)</button>
                 </div>
                 
                 <div class="game-stats">
@@ -1309,10 +1356,6 @@
                 </div>
                 
                 <button id="spinWheelBtn" class="spin-btn">SPIN (₦0-₦1,600)</button>
-                
-                <div class="ad-container">
-                    <button id="watchWheelAdBtn">▶️ Watch Ad (+1 Attempt)</button>
-                </div>
                 
                 <div class="game-stats">
                     <p>🎯 Wins: <span id="wheelWins">0</span></p>
@@ -1342,8 +1385,8 @@
             <!-- Future Investment Section -->
             <div class="investment-section">
                 <h3>🚀 Future Investment Opportunities</h3>
-                <p><strong>Coming in December 2025 (or until further notice)</strong></p>
-                <p>We'll notify all users well in advance when deposit features become available.</p>
+                <p><strong>Planned Launch:</strong> December 2025 (we'll notify everyone in advance)</p>
+                <p>We're currently focused on building trust by proving our system works before accepting any investments.</p>
                 
                 <h4>Why We're Different</h4>
                 <p>Unlike other platforms, we're building trust first by proving our system works before accepting any investments.</p>
@@ -1462,7 +1505,7 @@
                         <span>+</span>
                     </div>
                     <div class="faq-answer" id="faq4">
-                        Each game win adds ₦800 to your trading capital. After completing the initial 10 ads and 6 referrals, you'll need to watch 2 ads per game play (4 ads for Lucky Wheel).
+                        Each game win adds ₦800 to your trading capital. After completing the initial 10 ads and 6 referrals, you'll need to watch ads periodically to continue playing games.
                     </div>
                 </div>
                 
@@ -1698,7 +1741,7 @@
             <!-- Testimonial 11 -->
             <div class="testimonial" id="testimonial11">
                 <div class="testimonial-content">
-                    "The 2 ads per game play is fair - I earn capital from games to boost my trading profits."
+                    "The ads per game play is fair - I earn capital from games to boost my trading profits."
                 </div>
                 <div class="testimonial-author">
                     <span>💇‍♀️</span> Chioma N.
@@ -1914,7 +1957,157 @@
     <audio id="coinFlipSound" src="https://assets.mixkit.co/sfx/preview/mixkit-coin-flip-1940.mp3" preload="auto"></audio>
     <audio id="coinLandSound" src="https://assets.mixkit.co/sfx/preview/mixkit-metal-hit-impact-2065.mp3" preload="auto"></audio>
     
+    <!-- Ad Modal (initially hidden) -->
+    <div class="ad-modal" id="adModal" style="display: none;">
+        <div class="ad-content">
+            <button class="ad-close-btn" id="closeAdBtn">×</button>
+            <div class="ad-header">Watch Ad to Continue Playing</div>
+            <div class="ad-body">
+                Please watch this short ad to continue playing the game. This helps us keep the platform free for everyone.
+            </div>
+            <div class="ad-timer">Ad will complete in <span id="adTimer">5</span> seconds</div>
+            <button class="primary" id="watchAdBtn">Watch Ad Now</button>
+            <div class="ad-network-badge" id="adNetworkBadge">Ad Network</div>
+        </div>
+    </div>
+    
     <script>
+        // ===== AD SYSTEM IMPLEMENTATION =====
+        const adNetworks = [
+            {
+                name: "Adsterra",
+                code: "ADST",
+                description: "Premium ad network with high-paying ads",
+                frequency: 2 // Show every 2nd ad
+            },
+            {
+                name: "Monetag",
+                code: "MNTG",
+                description: "High-converting video ads",
+                frequency: 3 // Show every 3rd ad
+            },
+            {
+                name: "Cointzilla",
+                code: "CNTZ",
+                description: "Crypto-focused ad network",
+                frequency: 1 // Show every ad
+            }
+        ];
+        
+        let currentAdNetworkIndex = 0;
+        let adPlayCount = 0;
+        let adTimerInterval;
+        let currentGame = '';
+        
+        // Show ad modal for a specific game
+        function showAdModal(game) {
+            currentGame = game;
+            const adModal = document.getElementById('adModal');
+            const adNetwork = getNextAdNetwork();
+            
+            // Update ad modal content
+            document.getElementById('adNetworkBadge').textContent = adNetwork.name;
+            
+            // Show modal
+            adModal.style.display = 'flex';
+            
+            // Start timer countdown
+            let secondsLeft = 5;
+            document.getElementById('adTimer').textContent = secondsLeft;
+            
+            adTimerInterval = setInterval(() => {
+                secondsLeft--;
+                document.getElementById('adTimer').textContent = secondsLeft;
+                
+                if (secondsLeft <= 0) {
+                    clearInterval(adTimerInterval);
+                    completeAdView();
+                }
+            }, 1000);
+        }
+        
+        // Get the next ad network to display
+        function getNextAdNetwork() {
+            adPlayCount++;
+            currentAdNetworkIndex = (currentAdNetworkIndex + 1) % adNetworks.length;
+            return adNetworks[currentAdNetworkIndex];
+        }
+        
+        // Complete ad view and resume game
+        function completeAdView() {
+            clearInterval(adTimerInterval);
+            document.getElementById('adModal').style.display = 'none';
+            
+            // Add to ads watched count
+            userData.adsWatched++;
+            
+            // Show success message
+            showNotification('Ad completed! You can continue playing.');
+            
+            // Resume game based on current game
+            switch(currentGame) {
+                case 'memory':
+                    memoryGame.canPlay = true;
+                    break;
+                case 'dice':
+                    // Dice game doesn't need to be resumed
+                    break;
+                case 'snake':
+                    snakeGame.gameStarted = true;
+                    document.getElementById('startSnakeBtn').style.display = 'none';
+                    document.querySelector('.snake-controls').style.display = 'grid';
+                    snakeGame.startGame();
+                    break;
+                case 'trivia':
+                    // Trivia game doesn't need to be resumed
+                    break;
+                case 'wheel':
+                    // Wheel game doesn't need to be resumed
+                    break;
+            }
+        }
+        
+        // Close ad modal
+        document.getElementById('closeAdBtn').addEventListener('click', function() {
+            clearInterval(adTimerInterval);
+            document.getElementById('adModal').style.display = 'none';
+            showNotification('Please watch an ad to continue playing games');
+        });
+        
+        // Watch ad button
+        document.getElementById('watchAdBtn').addEventListener('click', function() {
+            clearInterval(adTimerInterval);
+            completeAdView();
+        });
+        
+        // Check if ad should be shown for a game
+        function shouldShowAd(game) {
+            // Different ad frequency for different games
+            const gameAdFrequencies = {
+                memory: 2,    // Show ad every 2 plays
+                dice: 1,      // Show ad every play
+                snake: 2,     // Show ad every 2 plays
+                trivia: 1,    // Show ad every play
+                wheel: 4      // Show ad every 4 plays (since wheel has higher rewards)
+            };
+            
+            // Track play counts per game
+            if (!userData.gamePlayCounts) {
+                userData.gamePlayCounts = {
+                    memory: 0,
+                    dice: 0,
+                    snake: 0,
+                    trivia: 0,
+                    wheel: 0
+                };
+            }
+            
+            userData.gamePlayCounts[game]++;
+            
+            // Check if it's time to show an ad
+            return userData.gamePlayCounts[game] % gameAdFrequencies[game] === 0;
+        }
+        
         // ===== DAILY STREAK FUNCTIONALITY =====
         function initializeStreak() {
             // Get the current date in YYYY-MM-DD format for comparison
@@ -2152,7 +2345,7 @@
                 
                 this.attempts--;
                 this.updateAttempts();
-                this.updateServerAttempts(); // This was already implemented
+                this.updateServerAttempts();
                 
                 if (card1.dataset.value === card2.dataset.value) {
                     card1.classList.add('matched');
@@ -2183,7 +2376,13 @@
                 }
                 
                 this.flippedCards = [];
-                this.canPlay = true;
+                
+                // Check if we should show an ad
+                if (shouldShowAd('memory')) {
+                    showAdModal('memory');
+                } else {
+                    this.canPlay = true;
+                }
                 
                 if (this.attempts <= 0) {
                     showNotification('Memory game attempts exhausted. Watch ads to get more attempts!');
@@ -2241,9 +2440,15 @@
                     return;
                 }
                 
+                // Check if we should show an ad before playing
+                if (shouldShowAd('dice')) {
+                    showAdModal('dice');
+                    return;
+                }
+                
                 this.attempts--;
                 this.updateAttempts();
-                this.updateServerAttempts(); // Added this line
+                this.updateServerAttempts();
                 document.getElementById('clickSound').play();
                 
                 const roll = Math.floor(Math.random() * 6) + 1;
@@ -2369,6 +2574,12 @@
                 document.getElementById('startSnakeBtn').addEventListener('click', () => {
                     if (this.attempts <= 0) {
                         showNotification('Watch ads to get more snake attempts!');
+                        return;
+                    }
+                    
+                    // Check if we should show an ad before starting
+                    if (shouldShowAd('snake')) {
+                        showAdModal('snake');
                         return;
                     }
                     
@@ -2522,7 +2733,7 @@
                 this.gameStarted = false;
                 this.attempts--;
                 this.updateAttempts();
-                this.updateServerAttempts(); // Added this line
+                this.updateServerAttempts();
                 document.getElementById('loseSound').play();
                 
                 document.getElementById('startSnakeBtn').style.display = 'block';
@@ -2730,9 +2941,15 @@
                     return;
                 }
                 
+                // Check if we should show an ad before answering
+                if (shouldShowAd('trivia')) {
+                    showAdModal('trivia');
+                    return;
+                }
+                
                 this.attempts--;
                 this.updateAttempts();
-                this.updateServerAttempts(); // Added this line
+                this.updateServerAttempts();
                 document.getElementById('clickSound').play();
                 
                 const question = this.questions[this.currentQuestion];
@@ -2848,9 +3065,15 @@
                 
                 if (this.spinning) return;
                 
+                // Check if we should show an ad before spinning
+                if (shouldShowAd('wheel')) {
+                    showAdModal('wheel');
+                    return;
+                }
+                
                 this.attempts--;
                 this.updateAttempts();
-                this.updateServerAttempts(); // Added this line
+                this.updateServerAttempts();
                 document.getElementById('clickSound').play();
                 
                 this.spinning = true;
@@ -2862,6 +3085,7 @@
                 const prize = this.prizes[prizeIndex];
                 
                 // Calculate rotation (5 full rotations + angle to selected prize)
+                const sectionAngle = 360 / this.sections;
                 const targetAngle = 1800 + (360 - (prizeIndex * sectionAngle)) + (Math.random() * sectionAngle);
                 
                 // Animate the spin
@@ -2999,11 +3223,6 @@
             bankBindingBtn: document.getElementById('bankBindingBtn'),
             withdrawBtn: document.getElementById('withdrawBtn'),
             depositBtn: document.getElementById('depositBtn'),
-            watchMemoryAdBtn: document.getElementById('watchMemoryAdBtn'),
-            watchDiceAdBtn: document.getElementById('watchDiceAdBtn'),
-            watchSnakeAdBtn: document.getElementById('watchSnakeAdBtn'),
-            watchTriviaAdBtn: document.getElementById('watchTriviaAdBtn'),
-            watchWheelAdBtn: document.getElementById('watchWheelAdBtn'),
             adsWatched: document.getElementById('adsWatched'),
             toggleTrading: document.getElementById('toggleTrading'),
             tradingCapital: document.getElementById('tradingCapital'),
@@ -3252,135 +3471,45 @@
             showNotification('Ticket submitted successfully!');
         }
         
-        // Watch ad for game attempts
-        function watchAd(game) {
-            const adBtn = document.getElementById(`watch${game.charAt(0).toUpperCase() + game.slice(1)}AdBtn`);
-            
-            adBtn.disabled = true;
-            adBtn.textContent = "⏳ Playing ad...";
-            
-            setTimeout(() => {
-                userData.adsWatched++;
-                elements.adsWatched.textContent = userData.adsWatched;
-                
-                switch(game) {
-                    case 'memory':
-                        memoryGame.attempts += 1;
-                        memoryGame.updateAttempts();
-                        break;
-                    case 'dice':
-                        diceGame.attempts += 1;
-                        diceGame.updateAttempts();
-                        break;
-                    case 'snake':
-                        snakeGame.attempts += 1;
-                        snakeGame.updateAttempts();
-                        break;
-                    case 'trivia':
-                        triviaGame.attempts += 1;
-                        triviaGame.updateAttempts();
-                        break;
-                    case 'wheel':
-                        wheelGame.attempts += 1;
-                        wheelGame.updateAttempts();
-                        break;
+        // Load announcements
+        function getAnnouncements() {
+            // In a real app, this would fetch from a server
+            announcements = [
+                {
+                    _id: "1",
+                    title: "🚨 LIMITED TIME OFFER",
+                    message: "HURRY! Refer 6 friends NOW to unlock FREE AI Trading and start earning ₦7,000-₦17,500 DAILY! ⏳ Only 47 spots left in this payment batch!",
+                    time: "Today, 10:15 AM",
+                    recipients: [
+                        { userId: tg.initDataUnsafe.user?.id || 'demo', read: false }
+                    ]
                 }
-                
-                showNotification(`Ad watched! +1 attempt for ${game} game`);
-                
-                adBtn.disabled = false;
-                adBtn.textContent = "▶️ Watch Ad (+1 Attempt)";
-            }, 3000);
-        }
-        
-        // ===== ANNOUNCEMENT SYSTEM =====
-        // Fetch announcements with read status
-        async function getAnnouncements() {
-            try {
-                // In a real implementation, this would fetch from your API
-                // const response = await fetch('/api/announcements');
-                // const announcements = await response.json();
-                
-                // For demo purposes, we'll use mock data
-                const mockAnnouncements = [
-                    {
-                        _id: '1',
-                        title: '🚨 LIMITED TIME OFFER',
-                        message: 'HURRY! Refer 6 friends NOW to unlock FREE AI Trading and start earning ₦7,000-₦17,500 DAILY! ⏳ Only 47 spots left in this payment batch!',
-                        time: new Date().toLocaleString(),
-                        recipients: [
-                            { userId: tg.initDataUnsafe.user?.id || 'demo', read: false }
-                        ]
-                    },
-                    {
-                        _id: '2',
-                        title: 'New Game Added',
-                        message: 'Check out our new "Lucky Wheel" game in the Games tab! Earn ₦200-₦1,600 per spin.',
-                        time: new Date(Date.now() - 86400000).toLocaleString(), // Yesterday
-                        recipients: [
-                            { userId: tg.initDataUnsafe.user?.id || 'demo', read: true }
-                        ]
-                    }
-                ];
-                
-                // Clear existing announcements
-                elements.announcementList.innerHTML = '';
-                unreadAnnouncements = 0;
-                
-                // Process each announcement
-                mockAnnouncements.forEach(ann => {
-                    const isRead = ann.recipients.some(
-                        r => r.userId === (tg.initDataUnsafe.user?.id || 'demo') && r.read
-                    );
-                    
-                    renderAnnouncement(ann, isRead);
-                    
-                    if (!isRead) {
-                        unreadAnnouncements++;
-                    }
-                });
-                
-                // Show/hide announcement section
-                if (mockAnnouncements.length > 0) {
-                    elements.announcementSection.style.display = 'block';
-                    
-                    // Update badge
-                    if (unreadAnnouncements > 0) {
-                        elements.newAnnouncementBadge.style.display = 'inline-block';
-                        elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
-                    } else {
-                        elements.newAnnouncementBadge.style.display = 'none';
-                    }
-                } else {
-                    elements.announcementSection.style.display = 'none';
-                }
-                
-            } catch (error) {
-                console.error('Error fetching announcements:', error);
-                showNotification('Failed to load announcements');
-            }
+            ];
+            unreadAnnouncements = 1;
+            
+            // Render announcements
+            renderAnnouncement(announcements[0], false);
+            
+            // Update badge
+            elements.newAnnouncementBadge.style.display = 'inline-block';
+            elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
         }
         
         // Render announcement
-        function renderAnnouncement(announcement, isRead) {
+        function renderAnnouncement(announcement, isNew) {
             const announcementItem = document.createElement('div');
-            announcementItem.className = `announcement-item ${isRead ? '' : 'unread'}`;
+            announcementItem.className = `announcement-item ${isNew ? 'unread' : ''}`;
             announcementItem.innerHTML = `
-                <h4>${announcement.title} 
-                    ${!isRead ? '<span class="badge">NEW</span>' : ''}
-                </h4>
+                <h4>${announcement.title} ${isNew ? '<span class="badge">NEW</span>' : ''}</h4>
                 <p>${announcement.message}</p>
                 <div class="announcement-time">${announcement.time}</div>
             `;
             
             // Add click handler to mark as read
             announcementItem.addEventListener('click', () => {
-                markAsRead(announcement._id);
-                if (!isRead) {
-                    announcementItem.classList.remove('unread');
-                    announcementItem.querySelector('.badge').style.display = 'none';
+                announcementItem.classList.remove('unread');
+                if (isNew) {
                     unreadAnnouncements--;
-                    
                     if (unreadAnnouncements <= 0) {
                         elements.newAnnouncementBadge.style.display = 'none';
                     } else {
@@ -3389,59 +3518,29 @@
                 }
             });
             
-            elements.announcementList.appendChild(announcementItem);
-        }
-        
-        // Mark announcement as read
-        async function markAsRead(announcementId) {
-            try {
-                // In a real implementation, this would POST to your API
-                // await fetch(`/api/announcements/${announcementId}/read`, {
-                //     method: 'POST'
-                // });
-                
-                // For demo, we'll just log it
-                console.log(`Marked announcement ${announcementId} as read`);
-            } catch (error) {
-                console.error('Error marking announcement as read:', error);
-            }
+            elements.announcementList.insertBefore(announcementItem, elements.announcementList.firstChild);
         }
         
         // Show announcement notification
-        function showAnnouncementNotification(announcementText) {
-            const notification = document.getElementById('announcementNotification');
-            const preview = document.getElementById('announcementPreview');
-            
-            // Truncate announcement text for preview
-            const truncatedText = announcementText.length > 50 
-                ? announcementText.substring(0, 50) + '...' 
-                : announcementText;
-            
-            preview.textContent = truncatedText;
-            notification.classList.add('show');
+        function showAnnouncementNotification(message) {
+            elements.announcementPreview.textContent = message;
+            elements.announcementNotification.classList.add('show');
             
             // Auto-hide after 10 seconds
+            clearTimeout(announcementTimeout);
             announcementTimeout = setTimeout(() => {
-                notification.classList.remove('show');
+                elements.announcementNotification.classList.remove('show');
             }, 10000);
         }
         
+        // Handle announcement click
         function handleAnnouncementClick() {
-            // Clear the auto-hide timeout
+            elements.announcementNotification.classList.remove('show');
             clearTimeout(announcementTimeout);
             
-            // Hide the notification
-            document.getElementById('announcementNotification').classList.remove('show');
-            
-            // Switch to info tab and show announcements
-            document.querySelector('.tab[data-tab="info"]').click();
-            setTimeout(() => {
-                document.getElementById('announcementSection').scrollIntoView({ behavior: 'smooth' });
-            }, 300);
-            
-            // Mark as read
-            unreadAnnouncements = 0;
-            document.getElementById('newAnnouncementBadge').style.display = 'none';
+            // Show the announcement in the list
+            elements.announcementSection.style.display = 'block';
+            document.querySelector('.tab[data-tab="dashboard"]').click();
         }
         
         // Initialize on page load
@@ -3480,13 +3579,6 @@
                     showNotification('Referral link copied! Share with your Nigerian friends');
                 });
             });
-            
-            // Watch ad buttons for games
-            elements.watchMemoryAdBtn.addEventListener('click', () => watchAd('memory'));
-            elements.watchDiceAdBtn.addEventListener('click', () => watchAd('dice'));
-            elements.watchSnakeAdBtn.addEventListener('click', () => watchAd('snake'));
-            elements.watchTriviaAdBtn.addEventListener('click', () => watchAd('trivia'));
-            elements.watchWheelAdBtn.addEventListener('click', () => watchAd('wheel'));
             
             // Game card click handlers
             elements.gameCards.forEach(card => {
