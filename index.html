@@ -454,7 +454,6 @@
             border-radius: 12px;
             padding: 15px;
             margin: 20px 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             text-align: center;
         }
         
@@ -1054,6 +1053,43 @@
                 width: 250px;
                 height: 250px;
             }
+        }
+        
+        /* Colorful Tab Buttons */
+        .tab-bar .tab[data-tab="dashboard"] {
+            background-color: #6C5CE7;
+            color: white;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .tab-bar .tab[data-tab="trading"] {
+            background-color: #00B894;
+            color: white;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .tab-bar .tab[data-tab="games"] {
+            background-color: #FDCB6E;
+            color: #2D3436;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .tab-bar .tab[data-tab="info"] {
+            background-color: #00CEFF;
+            color: white;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .tab-bar .tab[data-tab="support"] {
+            background-color: #D63031;
+            color: white;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .tab-bar .tab.active {
+            border-bottom: none;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
     </style>
 </head>
@@ -1960,7 +1996,6 @@
     <!-- Ad Modal (initially hidden) -->
     <div class="ad-modal" id="adModal" style="display: none;">
         <div class="ad-content">
-            <button class="ad-close-btn" id="closeAdBtn">×</button>
             <div class="ad-header">Watch Ad to Continue Playing</div>
             <div class="ad-body">
                 Please watch this short ad to continue playing the game. This helps us keep the platform free for everyone.
@@ -2067,13 +2102,6 @@
             }
         }
         
-        // Close ad modal
-        document.getElementById('closeAdBtn').addEventListener('click', function() {
-            clearInterval(adTimerInterval);
-            document.getElementById('adModal').style.display = 'none';
-            showNotification('Please watch an ad to continue playing games');
-        });
-        
         // Watch ad button
         document.getElementById('watchAdBtn').addEventListener('click', function() {
             clearInterval(adTimerInterval);
@@ -2084,11 +2112,11 @@
         function shouldShowAd(game) {
             // Different ad frequency for different games
             const gameAdFrequencies = {
-                memory: 2,    // Show ad every 2 plays
-                dice: 1,      // Show ad every play
-                snake: 2,     // Show ad every 2 plays
-                trivia: 1,    // Show ad every play
-                wheel: 4      // Show ad every 4 plays (since wheel has higher rewards)
+                memory: 5,    // Show ad every 5 plays (2 ads per 10 trials)
+                dice: 5,      // Show ad every 5 plays (2 ads per 10 trials)
+                snake: 5,     // Show ad every 5 plays (2 ads per 10 trials)
+                trivia: 5,    // Show ad every 5 plays (2 ads per 10 trials)
+                wheel: 2.5    // Show ad every 2.5 plays (4 ads per 10 trials)
             };
             
             // Track play counts per game
@@ -2104,8 +2132,13 @@
             
             userData.gamePlayCounts[game]++;
             
-            // Check if it's time to show an ad
-            return userData.gamePlayCounts[game] % gameAdFrequencies[game] === 0;
+            // Special handling for wheel to get 4 ads in 10 trials
+            if (game === 'wheel') {
+                return userData.gamePlayCounts[game] % 2.5 < 1;
+            }
+            
+            // For other games - 2 ads per 10 trials
+            return userData.gamePlayCounts[game] % 5 === 0;
         }
         
         // ===== DAILY STREAK FUNCTIONALITY =====
@@ -2515,7 +2548,7 @@
             }
         };
 
-        // Snake Game
+        // Snake Game - COMPLETELY OVERHAULED
         const snakeGame = {
             canvas: null,
             ctx: null,
@@ -2529,6 +2562,7 @@
             gameInterval: null,
             gameStarted: false,
             speed: 200, // Initial speed (higher = slower)
+            gameActive: false,
             
             init: function() {
                 this.canvas = document.getElementById('snakeCanvas');
@@ -2583,6 +2617,7 @@
                         return;
                     }
                     
+                    this.resetGame();
                     this.gameStarted = true;
                     document.getElementById('startSnakeBtn').style.display = 'none';
                     document.querySelector('.snake-controls').style.display = 'grid';
@@ -2592,6 +2627,21 @@
                 
                 this.updateAttempts();
                 this.draw();
+            },
+            
+            resetGame: function() {
+                clearInterval(this.gameInterval);
+                this.snake = [
+                    {x: 5, y: 10},
+                    {x: 4, y: 10},
+                    {x: 3, y: 10}
+                ];
+                this.direction = 'right';
+                this.score = 0;
+                this.speed = 200;
+                this.gameActive = true;
+                this.updateStats();
+                this.placeFood();
             },
             
             startGame: function() {
@@ -2604,7 +2654,7 @@
             },
             
             update: function() {
-                if (!this.gameStarted) return;
+                if (!this.gameStarted || !this.gameActive) return;
                 
                 // Move snake
                 const head = {x: this.snake[0].x, y: this.snake[0].y};
@@ -2647,6 +2697,8 @@
                     this.earnings += 800;
                     document.getElementById('winSound').play();
                     this.placeFood();
+                    
+                    // Don't remove tail if food eaten - snake grows
                     
                     // Increase speed slightly as score increases (but not too much)
                     this.speed = Math.max(150, this.speed - 2);
@@ -2729,6 +2781,7 @@
             },
             
             gameOver: function() {
+                this.gameActive = false;
                 clearInterval(this.gameInterval);
                 this.gameStarted = false;
                 this.attempts--;
@@ -2744,7 +2797,6 @@
                     document.getElementById('snakeGame').classList.add('game-disabled');
                 } else {
                     showNotification('Game Over! Tap to play again');
-                    this.init();
                 }
             },
             
