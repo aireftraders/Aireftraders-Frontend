@@ -1,6 +1,0 @@
-// config.js
-const config = {
-  API_URL: "https://aireftraders-backend.onrender.com", // Replace with your actual Render URL
-  ENABLE_DEBUG: false,
-  // Add other configuration as needed
-};
