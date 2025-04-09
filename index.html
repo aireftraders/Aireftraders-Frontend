@@ -3910,3 +3910,384 @@
     </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- [Previous meta tags and styles remain exactly the same] -->
+    <!-- ... -->
+</head>
+<body>
+    <!-- [All previous HTML content remains exactly the same until the script section] -->
+    <!-- ... -->
+
+    <script>
+        // ===== BACKEND API CONFIGURATION =====
+        const API_BASE_URL = 'https://aireftraders-backend.onrender.com';
+        
+        // Helper function for API calls
+        async function makeApiCall(endpoint, method = 'GET', body = null) {
+            try {
+                const options = {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${window.Telegram.WebApp.initData || 'demo'}`
+                    }
+                };
+                
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+                
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+                
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                showNotification('⚠️ Network error. Please try again.');
+                return null;
+            }
+        }
+
+        // ===== USER DATA MANAGEMENT =====
+        async function loadUserData() {
+            try {
+                const data = await makeApiCall('/api/user');
+                if (data) {
+                    userData = {
+                        ...userData,
+                        ...data,
+                        verified: data.bankDetails ? true : false
+                    };
+                    updateUI();
+                    
+                    // Initialize streak with server data if available
+                    if (data.streakData) {
+                        initializeStreak(data.streakData);
+                    } else {
+                        initializeStreak();
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load user data:', error);
+                // Fallback to local data
+                initializeStreak();
+            }
+        }
+
+        async function saveUserData() {
+            try {
+                await makeApiCall('/api/user', 'POST', userData);
+            } catch (error) {
+                console.error('Failed to save user data:', error);
+            }
+        }
+
+        // ===== REFERRAL SYSTEM =====
+        async function checkReferral() {
+            // Check if there's a referral parameter in the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const refCode = urlParams.get('ref');
+            
+            if (refCode && refCode !== (window.Telegram.WebApp.initDataUnsafe.user?.id || 'demo')) {
+                try {
+                    await makeApiCall('/api/referrals', 'POST', { referrerId: refCode });
+                    showNotification('🎉 Referral applied successfully!');
+                    
+                    // Reload user data to get updated referral count
+                    await loadUserData();
+                } catch (error) {
+                    console.error('Referral error:', error);
+                }
+            }
+        }
+
+        // ===== BANK VERIFICATION =====
+        async function verifyBankAccount(bankDetails) {
+            try {
+                const response = await makeApiCall('/api/verify-bank', 'POST', {
+                    bankName: bankDetails.bankName,
+                    accountNumber: bankDetails.accountNumber
+                });
+                
+                if (response && response.success) {
+                    userData.verified = true;
+                    userData.bankDetails = response.bankDetails;
+                    userData.balance -= 550; // Deduct verification fee
+                    
+                    await saveUserData();
+                    updateUI();
+                    
+                    return true;
+                }
+            } catch (error) {
+                console.error('Bank verification failed:', error);
+                showNotification('⚠️ Bank verification failed. Please try again.');
+            }
+            return false;
+        }
+
+        // ===== WITHDRAWAL SYSTEM =====
+        async function requestWithdrawal(amount) {
+            try {
+                const response = await makeApiCall('/api/withdraw', 'POST', {
+                    amount,
+                    bankDetails: userData.bankDetails
+                });
+                
+                if (response && response.success) {
+                    userData.withdrawableProfit -= amount;
+                    userData.paymentCircle.current++;
+                    
+                    await saveUserData();
+                    updateUI();
+                    
+                    return true;
+                }
+            } catch (error) {
+                console.error('Withdrawal failed:', error);
+                showNotification('⚠️ Withdrawal request failed. Please try again.');
+            }
+            return false;
+        }
+
+        // ===== GAME DATA MANAGEMENT =====
+        async function loadGameData() {
+            try {
+                const data = await makeApiCall('/api/games');
+                if (data) {
+                    // Update game attempts from server
+                    memoryGame.attempts = data.memory?.attempts || memoryGame.attempts;
+                    diceGame.attempts = data.dice?.attempts || diceGame.attempts;
+                    snakeGame.attempts = data.snake?.attempts || snakeGame.attempts;
+                    triviaGame.attempts = data.trivia?.attempts || triviaGame.attempts;
+                    wheelGame.attempts = data.wheel?.attempts || wheelGame.attempts;
+                    
+                    // Update game stats from server
+                    memoryGame.wins = data.memory?.wins || memoryGame.wins;
+                    memoryGame.earnings = data.memory?.earnings || memoryGame.earnings;
+                    diceGame.wins = data.dice?.wins || diceGame.wins;
+                    diceGame.earnings = data.dice?.earnings || diceGame.earnings;
+                    snakeGame.score = data.snake?.score || snakeGame.score;
+                    snakeGame.earnings = data.snake?.earnings || snakeGame.earnings;
+                    triviaGame.score = data.trivia?.score || triviaGame.score;
+                    triviaGame.earnings = data.trivia?.earnings || triviaGame.earnings;
+                    wheelGame.wins = data.wheel?.wins || wheelGame.wins;
+                    wheelGame.earnings = data.wheel?.earnings || wheelGame.earnings;
+                    
+                    // Update UI
+                    memoryGame.updateAttempts();
+                    memoryGame.updateStats();
+                    diceGame.updateAttempts();
+                    diceGame.updateStats();
+                    snakeGame.updateAttempts();
+                    snakeGame.updateStats();
+                    triviaGame.updateAttempts();
+                    triviaGame.updateStats();
+                    wheelGame.updateAttempts();
+                    wheelGame.updateStats();
+                }
+            } catch (error) {
+                console.error('Failed to load game data:', error);
+            }
+        }
+
+        async function saveGameData(gameType, data) {
+            try {
+                await makeApiCall('/api/games', 'POST', {
+                    gameType,
+                    ...data
+                });
+            } catch (error) {
+                console.error('Failed to save game data:', error);
+            }
+        }
+
+        // ===== ANNOUNCEMENTS =====
+        async function loadAnnouncements() {
+            try {
+                const data = await makeApiCall('/api/announcements');
+                if (data && data.announcements) {
+                    announcements = data.announcements;
+                    unreadAnnouncements = data.unreadCount || 0;
+                    
+                    // Render announcements
+                    renderAnnouncements();
+                    
+                    // Update badge
+                    updateAnnouncementBadge();
+                    
+                    // Show latest unread announcement if any
+                    if (unreadAnnouncements > 0) {
+                        const latestUnread = announcements.find(a => 
+                            a.recipients.some(r => r.userId === (window.Telegram.WebApp.initDataUnsafe.user?.id || 'demo') && !r.read)
+                        );
+                        
+                        if (latestUnread) {
+                            showAnnouncementNotification(latestUnread.message);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load announcements:', error);
+                // Fallback to local announcements
+                getAnnouncements();
+            }
+        }
+
+        async function markAnnouncementAsRead(announcementId) {
+            try {
+                await makeApiCall(`/api/announcements/${announcementId}/read`, 'POST');
+            } catch (error) {
+                console.error('Failed to mark announcement as read:', error);
+            }
+        }
+
+        // ===== MODIFIED INITIALIZATION =====
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load data from backend
+            await loadUserData();
+            await loadGameData();
+            await loadAnnouncements();
+            
+            // Check for referral parameter
+            await checkReferral();
+            
+            // Initialize streak (now uses server data if available)
+            // Initialize testimonial rotation
+            showTestimonial(1);
+            startTestimonialRotation();
+            setupTestimonialDots();
+            
+            // Initialize games
+            initGames();
+            
+            // Update UI
+            updateUI();
+            
+            // [Rest of your existing event listeners remain the same]
+            // ...
+            
+            // Modified bank verification handler
+            elements.confirmBankBinding.addEventListener('click', async () => {
+                let bankName = elements.bankName.value;
+                
+                if (bankName === 'other') {
+                    bankName = elements.otherBankName.value;
+                }
+                
+                const accountNumber = elements.accountNumber.value;
+                
+                if (!bankName || !accountNumber) {
+                    showNotification('Please fill all bank details');
+                    return;
+                }
+                
+                const success = await verifyBankAccount({
+                    bankName,
+                    accountNumber
+                });
+                
+                if (success) {
+                    elements.bankModal.classList.remove('active');
+                    showSuccess('Bank Verified', 'Your Nigerian bank account has been successfully verified!');
+                }
+            });
+            
+            // Modified withdrawal handler
+            elements.confirmWithdrawal.addEventListener('click', async () => {
+                const amount = parseInt(elements.withdrawalAmount.value);
+                
+                if (amount < 5000) {
+                    showNotification('Minimum withdrawal is ₦5,000');
+                    return;
+                }
+                
+                if (amount > userData.withdrawableProfit) {
+                    showNotification('Insufficient withdrawable balance');
+                    return;
+                }
+                
+                if (!userData.bankDetails) {
+                    showNotification('Bank details not found');
+                    return;
+                }
+                
+                const success = await requestWithdrawal(amount);
+                
+                if (success) {
+                    elements.withdrawalModal.classList.remove('active');
+                    showSuccess('Withdrawal Requested', `Your withdrawal of ₦${amount.toLocaleString()} has been submitted to your ${userData.bankDetails.bankName} account.`);
+                }
+            });
+            
+            // [Rest of your existing code remains the same]
+            // ...
+        });
+
+        // ===== MODIFIED GAME FUNCTIONS =====
+        // Update all game server attempt functions to use the new API
+        // Example for memory game (update others similarly):
+        memoryGame.updateServerAttempts = async function() {
+            try {
+                await saveGameData('memory', {
+                    attempts: this.attempts,
+                    wins: this.wins,
+                    earnings: this.earnings
+                });
+            } catch (error) {
+                console.error('Update attempts error:', error);
+                showNotification('⚠️ Progress not saved (check connection)');
+            }
+        };
+
+        // [Update all other game server communication functions similarly]
+        
+        // ===== MODIFIED ANNOUNCEMENT FUNCTIONS =====
+        function renderAnnouncements() {
+            elements.announcementList.innerHTML = '';
+            
+            announcements.forEach(announcement => {
+                const isUnread = announcement.recipients.some(r => 
+                    r.userId === (window.Telegram.WebApp.initDataUnsafe.user?.id || 'demo') && !r.read
+                );
+                
+                const announcementItem = document.createElement('div');
+                announcementItem.className = `announcement-item ${isUnread ? 'unread' : ''}`;
+                announcementItem.innerHTML = `
+                    <h4>${announcement.title} ${isUnread ? '<span class="badge">NEW</span>' : ''}</h4>
+                    <p>${announcement.message}</p>
+                    <div class="announcement-time">${new Date(announcement.createdAt).toLocaleString()}</div>
+                `;
+                
+                announcementItem.addEventListener('click', () => {
+                    if (isUnread) {
+                        markAnnouncementAsRead(announcement._id);
+                        announcementItem.classList.remove('unread');
+                        unreadAnnouncements--;
+                        updateAnnouncementBadge();
+                    }
+                });
+                
+                elements.announcementList.appendChild(announcementItem);
+            });
+        }
+
+        function updateAnnouncementBadge() {
+            if (unreadAnnouncements > 0) {
+                elements.newAnnouncementBadge.style.display = 'inline-block';
+                elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
+            } else {
+                elements.newAnnouncementBadge.style.display = 'none';
+            }
+        }
+
+        // [Rest of your existing JavaScript code remains the same]
+        // ...
+    </script>
+</body>
+</html>
