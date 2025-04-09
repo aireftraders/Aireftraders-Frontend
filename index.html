@@ -3716,7 +3716,7 @@
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Telegram-Init-Data': window.Telegram.WebApp.initData || 'test'
+                        'Telegram-Init-Data': window.Telegram?.WebApp?.initData || 'test'
                     }
                 });
 
@@ -3739,19 +3739,24 @@
 
         async function saveUserData() {
             try {
+                console.log('Attempting to save user data...', userData);
                 const response = await fetch(`${BACKEND_URL}/api/user`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Telegram-Init-Data': window.Telegram.WebApp.initData || 'test'
+                        'Telegram-Init-Data': window.Telegram?.WebApp?.initData || 'test'
                     },
                     body: JSON.stringify(userData)
                 });
+
+                console.log('Response status:', response.status);
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error('Failed to save user data:', response.status, errorText);
                     throw new Error(`Failed to save user data: ${response.statusText}`);
                 }
+
+                console.log('User data saved successfully.');
             } catch (error) {
                 console.error('Error saving user data:', error);
                 showNotification('⚠️ Failed to save progress. Please check your connection or try again later.');
