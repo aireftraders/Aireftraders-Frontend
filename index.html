@@ -3393,7 +3393,7 @@
         }
         
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             // Initialize streak first
             initializeStreak();
             
@@ -3703,7 +3703,62 @@
             
             // Simulate trading every 15 seconds for demo
             setInterval(simulateTrading, 15000);
+
+            await fetchUserData(); // Load user data from backend
+            initializeAds(); // Initialize ads
         });
+
+        // ===== USER DATA PERSISTENCE =====
+        async function fetchUserData() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/user`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Telegram-Init-Data': window.Telegram.WebApp.initData || 'test'
+                    }
+                });
+                if (!response.ok) throw new Error('Failed to fetch user data');
+                const data = await response.json();
+                Object.assign(userData, data);
+                updateUI();
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                showNotification('⚠️ Failed to load user data. Check your connection.');
+            }
+        }
+
+        async function saveUserData() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/user`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Telegram-Init-Data': window.Telegram.WebApp.initData || 'test'
+                    },
+                    body: JSON.stringify(userData)
+                });
+                if (!response.ok) throw new Error('Failed to save user data');
+            } catch (error) {
+                console.error('Error saving user data:', error);
+                showNotification('⚠️ Failed to save progress. Check your connection.');
+            }
+        }
+
+        // Save user data periodically
+        setInterval(saveUserData, 10000);
+
+        // ===== AD SYSTEM FIX =====
+        function initializeAds() {
+            // Ensure Adsterra script is loaded
+            const adScript = document.createElement('script');
+            adScript.src = "//innumerablemakeupreligious.com/8a1d6d42d6addf614a0b20c144270316/invoke.js";
+            adScript.type = "text/javascript";
+            document.body.appendChild(adScript);
+
+            // Ensure Google AdSense is initialized
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        }
     </script>
 </body>
 </html>
