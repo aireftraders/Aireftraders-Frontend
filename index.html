@@ -1802,7 +1802,7 @@
     </div>
     
     <script>
-        const BACKEND_URL = "https://aireftraders-backend.onrender.com";
+        const BACKEND_URL = process.env.BACKEND_URL || "https://aireftraders-backend.onrender.com";
 
         // ===== AD SYSTEM IMPLEMENTATION =====
         const adNetworks = [
