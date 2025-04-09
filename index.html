@@ -3759,6 +3759,46 @@
             // Ensure Google AdSense is initialized
             (adsbygoogle = window.adsbygoogle || []).push({});
         }
+
+        // Debugging AdSense and Adsterra
+        console.log('Checking AdSense and Adsterra integration...');
+        const adSenseScript = document.querySelector('script[src*="googlesyndication"]');
+        const adsterraScript = document.querySelector('script[src*="innumerablemakeupreligious"]');
+
+        if (adSenseScript) {
+            console.log('AdSense script loaded successfully:', adSenseScript.src);
+        } else {
+            console.error('AdSense script not found.');
+        }
+
+        if (adsterraScript) {
+            console.log('Adsterra script loaded successfully:', adsterraScript.src);
+        } else {
+            console.error('Adsterra script not found.');
+        }
+
+        // Debugging backend API calls
+        async function debugBackendAPI() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/user`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Telegram-Init-Data': window.Telegram.WebApp.initData || 'test'
+                    }
+                });
+
+                if (response.ok) {
+                    console.log('Backend API /api/user response:', await response.json());
+                } else {
+                    console.error('Backend API /api/user failed with status:', response.status);
+                }
+            } catch (error) {
+                console.error('Error connecting to backend API:', error);
+            }
+        }
+
+        debugBackendAPI();
     </script>
 </body>
 </html>
