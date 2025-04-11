@@ -1962,6 +1962,37 @@
             return userData.gamePlayCounts[game] % 5 === 0;
         }
         
+        // Function to show ad popup
+        function showAdPopup() {
+            const adModal = document.getElementById('adModal');
+            adModal.style.display = 'flex';
+
+            // Start timer countdown for ad
+            let secondsLeft = 5;
+            const adTimer = document.getElementById('adTimer');
+            adTimer.textContent = secondsLeft;
+
+            const timerInterval = setInterval(() => {
+                secondsLeft--;
+                adTimer.textContent = secondsLeft;
+
+                if (secondsLeft <= 0) {
+                    clearInterval(timerInterval);
+                    adModal.style.display = 'none';
+                }
+            }, 1000);
+        }
+
+        // Attach event listeners to buttons
+        document.addEventListener('DOMContentLoaded', () => {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.addEventListener('click', (event) => {
+                    console.log(`Button clicked: ${event.target.id}`);
+                });
+            });
+        });
+
         // ===== DAILY STREAK FUNCTIONALITY =====
         function initializeStreak() {
             // Get the current date in YYYY-MM-DD format for comparison
