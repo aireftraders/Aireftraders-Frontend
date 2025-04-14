@@ -1004,79 +1004,43 @@
 }
 
 /* Force modal to stay open */
+/* ===== BULLETPROOF AD MODAL ===== */
 .ad-modal {
-    pointer-events: auto !important;
-}
-        .ad-content {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            max-width: 400px;
-            width: 100%;
-            position: relative;
-        }
-        
-        .ad-header {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: var(--primary);
-        }
-        
-        .ad-body {
-            margin-bottom: 20px;
-            font-size: 16px;
-        }
-        
-        .ad-timer {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 15px;
-        }
-        
-        .ad-close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: #666;
-        }
-        
-        .ad-network-badge {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            font-size: 12px;
-            color: #666;
-            /* ===== AD MODAL FIXES ===== */
-/* Remove close button (if exists) */
-.ad-close-btn, .ad-content > button[onclick] {
-    display: none !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    z-index: 2147483647; /* Maximum possible z-index */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    -webkit-overflow-scrolling: touch;
 }
 
-/* Force ad containers to proper size */
-#adsterraAd, #monetagAd {
-    min-height: 250px;
-    width: 300px;
-    margin: 10px auto;
-    background: #f5f5f5;
-    border: 1px solid #ddd;
+.ad-content {
+    background: white;
+    border-radius: 12px;
+    width: 320px;
+    max-width: 95vw;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    position: relative;
+}
+
+/* Force all children to allow pointer events */
+.ad-modal * {
+    pointer-events: auto !important;
+}
+
+/* Disable background scrolling */
+body.ad-active {
     overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
 }
-
-/* Prevent accidental modal closing */
-.ad-modal {
-    pointer-events: auto !important;
-}
-
-/* Ensure modal stays on top */
-.ad-modal {
-    z-index: 9999 !important;
-}
-        }
         
         /* Responsive Design */
         @media (max-width: 600px) {
@@ -1146,105 +1110,6 @@
             transform: scale(1.05);
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
-
-
-    /* ... (existing styles) ... */
-
-    /* ===== AD MODAL FIXES ===== */
-    .ad-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.95);
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .ad-content {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        width: 340px;
-        text-align: center;
-    }
-
-    /* Remove any close buttons */
-    .ad-close-btn {
-        display: none !important;
-    }
-
-    /* Force modal to stay open */
-    .ad-modal {
-        pointer-events: auto !important;
-    }
-
-    /* Ensure ad containers proper size */
-    #adsterraAd, #monetagAd {
-        min-height: 250px;
-        width: 300px;
-        margin: 10px auto;
-        background: #f5f5f5;
-        border: 1px solid #ddd;
-        overflow: hidden;
-       
-.ad-content {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    width: 320px;
-    max-width: 90vw;
-    text-align: center;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-#adsterraAd, #monetagAd {
-    min-height: 250px;
-    width: 300px;
-    max-width: 100%;
-    margin: 10px auto;
-    background: #f5f5f5;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.ad-header {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    color: #6C5CE7; /* Your theme color */
-}
-
-.ad-timer {
-    font-size: 14px;
-    color: #666;
-    margin: 10px 0;
-    font-weight: bold;
-}
-
-.ad-network-badge {
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
-    font-size: 12px;
-    color: white;
-    background: rgba(0,0,0,0.7);
-    padding: 3px 8px;
-    border-radius: 10px;
-}
-
-/* Remove Windows watermark (if possible) */
-body {
-    overflow: hidden; /* Helps prevent watermark visibility during ads */
-}
-    }
-</style>
     </style>
 </head>
 <body>
@@ -2147,136 +2012,89 @@ body {
     <audio id="coinFlipSound" src="https://assets.mixkit.co/sfx/preview/mixkit-coin-flip-1940.mp3" preload="auto"></audio>
     <audio id="coinLandSound" src="https://assets.mixkit.co/sfx/preview/mixkit-metal-hit-impact-2065.mp3" preload="auto"></audio>
     
-  <!-- Ad Modal - Forced Viewing -->
-<div class="ad-modal" id="adModal" style="display: none;">
-    <div class="ad-content">
-        <div class="ad-header">Watch Ad to Continue Playing</div>
-        
-        <!-- Adsterra Container (Fallback to Monetag if fails) -->
-        <div id="adsterraAd" style="display:none;min-height:250px;width:300px;margin:0 auto;background:#f5f5f5">
-            <iframe id="adsterraFrame" src="about:blank" style="width:100%;height:100%;border:none"></iframe>
+    <div class="ad-modal" id="adModal" style="display: none;">
+        <div class="ad-content">
+            <div class="ad-header" style="font-weight: bold; margin-bottom: 15px;">
+                Watch Ad to Continue
+            </div>
+            
+            <!-- Ad Container -->
+            <div id="adContainer" style="min-height: 250px; width: 300px; margin: 0 auto;">
+                <!-- Ad content will be injected here -->
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <div id="adTimer" style="font-size: 14px;">
+                    Ad will complete in <span>15</span> seconds
+                </div>
+                <button id="forceContinueBtn" style="margin-top: 10px; padding: 8px 15px; display: none;">
+                    Continue Anyway
+                </button>
+            </div>
         </div>
-        
-        <!-- Monetag Container -->
-        <div id="monetagAd" style="display:none;min-height:250px;width:300px;margin:0 auto;background:#f5f5f5">
-            <img id="monetagImg" src="" style="width:100%;height:100%;object-fit:contain">
-        </div>
-        
-        <div class="ad-timer">Ad will complete in <span id="adTimer">15</span> seconds</div>
-        <div class="ad-network-badge" id="adNetworkBadge">Ad Network</div>
     </div>
-</div>
     
     <script>
  // ===== FOOLPROOF AD SYSTEM =====
-const adNetworks = [
-    {
-        name: "Adsterra",
-        show: function() {
-            const container = document.getElementById('adsterraAd');
-            const frame = document.getElementById('adsterraFrame');
-            
-            // Hide Monetag
-            document.getElementById('monetagAd').style.display = 'none';
-            
-            // Show Adsterra
-            container.style.display = 'block';
-            frame.src = 'https://innumerablemakeupreligious.com/8a1d6d42d6addf614a0b20c144270316/invoke.html';
-            
-            // Fallback to Monetag if Adsterra fails
-            setTimeout(() => {
-                if (frame.contentDocument?.body?.innerText === "" || 
-                    frame.contentDocument?.body?.innerHTML.includes('blank')) {
-                    adNetworks[1].show(); // Show Monetag instead
-                }
-            }, 2000);
-        }
-    },
-    {
-        name: "Monetag",
-        show: function() {
-            const container = document.getElementById('monetagAd');
-            const img = document.getElementById('monetagImg');
-            
-            // Hide Adsterra
-            document.getElementById('adsterraAd').style.display = 'none';
-            
-            // Show Monetag with cache-busting
-            container.style.display = 'block';
-            img.src = 'https://whoockeg.top/4/9191510?cb=' + Date.now();
-        }
-    }
-];
-
-let currentAdIndex = 0;
 let adTimer;
+let currentSeconds = 15;
 
-function showAdModal(game) {
-    const ad = adNetworks[currentAdIndex % adNetworks.length];
-    currentAdIndex++;
+function showAdModal() {
+    // Block background
+    document.body.classList.add('ad-active');
     
-    // Reset containers
-    document.getElementById('adsterraAd').style.display = 'none';
-    document.getElementById('monetagAd').style.display = 'none';
+    // Reset modal
+    const adModal = document.getElementById('adModal');
+    adModal.style.display = 'flex';
+    currentSeconds = 15;
+    document.querySelector('#adTimer span').textContent = currentSeconds;
+    document.getElementById('forceContinueBtn').style.display = 'none';
     
-    // Show selected ad
-    ad.show();
-    document.getElementById('adNetworkBadge').textContent = ad.name;
-    document.getElementById('adModal').style.display = 'flex';
+    // Load your ad (example using Adsterra)
+    const adContainer = document.getElementById('adContainer');
+    adContainer.innerHTML = `
+        <iframe src="https://example.com/your-ad-path" 
+                style="width:100%; height:100%; border:none;"
+                allowtransparency="true"
+                scrolling="no"
+                frameborder="0"></iframe>
+    `;
     
-    // 15-second forced timer
-    let seconds = 15;
-    document.getElementById('adTimer').textContent = seconds;
-    
+    // Start timer
     adTimer = setInterval(() => {
-        seconds--;
-        document.getElementById('adTimer').textContent = seconds;
+        currentSeconds--;
+        document.querySelector('#adTimer span').textContent = currentSeconds;
         
-        if (seconds <= 0) {
-            clearInterval(adTimer);
-            document.getElementById('adModal').style.display = 'none';
-            // Add your game continuation logic here
-            function showAdModal(game) {
-    // Hide any system watermarks (Windows activation)
-    document.body.style.overflow = 'hidden';
-    
-    const ad = adNetworks[currentAdIndex % adNetworks.length];
-    currentAdIndex++;
-    
-    // Reset containers
-    document.getElementById('adsterraAd').style.display = 'none';
-    document.getElementById('monetagAd').style.display = 'none';
-    
-    // Show selected ad
-    ad.show();
-    document.getElementById('adNetworkBadge').textContent = ad.name;
-    document.getElementById('adModal').style.display = 'flex';
-    
-    // 15-second forced timer
-    let seconds = 15;
-    document.getElementById('adTimer').textContent = seconds;
-    
-    adTimer = setInterval(() => {
-        seconds--;
-        document.getElementById('adTimer').textContent = seconds;
+        if (currentSeconds <= 0) {
+            closeAdModal();
+        }
         
-        if (seconds <= 0) {
-            clearInterval(adTimer);
-            document.getElementById('adModal').style.display = 'none';
-            document.body.style.overflow = ''; // Restore scrolling
-            // Continue game logic...
+        // Show continue button if stuck
+        if (currentSeconds <= 5) {
+            document.getElementById('forceContinueBtn').style.display = 'block';
         }
     }, 1000);
-}
-        }
-    }, 1000);
-}
-function getNextAdNetwork() {
-    adPlayCount++;
-    currentAdNetworkIndex = (currentAdNetworkIndex + 1) % adNetworks.length;
-    return adNetworks[currentAdNetworkIndex];
+    
+    // Force continue button
+    document.getElementById('forceContinueBtn').onclick = closeAdModal;
 }
 
+function closeAdModal() {
+    clearInterval(adTimer);
+    document.body.classList.remove('ad-active');
+    document.getElementById('adModal').style.display = 'none';
+    
+    // Clean up ad container
+    document.getElementById('adContainer').innerHTML = '';
+    
+    // Continue your game logic here
+    console.log("Ad completed - continue game");
+}
+
+// Error fallback
+window.addEventListener('error', () => {
+    closeAdModal();
+});
 function completeAdView() {
     clearInterval(adTimerInterval);
     document.getElementById('adModal').style.display = 'none';
