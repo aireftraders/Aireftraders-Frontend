@@ -976,7 +976,37 @@
             padding: 20px;
             text-align: center;
         }
-        
+        /* ===== AD MODAL FIXES ===== */
+.ad-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ad-content {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    width: 340px;
+    text-align: center;
+}
+
+/* Remove any close buttons */
+.ad-close-btn {
+    display: none !important;
+}
+
+/* Force modal to stay open */
+.ad-modal {
+    pointer-events: auto !important;
+}
         .ad-content {
             background: white;
             border-radius: 12px;
@@ -1021,6 +1051,31 @@
             right: 10px;
             font-size: 12px;
             color: #666;
+            /* ===== AD MODAL FIXES ===== */
+/* Remove close button (if exists) */
+.ad-close-btn, .ad-content > button[onclick] {
+    display: none !important;
+}
+
+/* Force ad containers to proper size */
+#adsterraAd, #monetagAd {
+    min-height: 250px;
+    width: 300px;
+    margin: 10px auto;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    overflow: hidden;
+}
+
+/* Prevent accidental modal closing */
+.ad-modal {
+    pointer-events: auto !important;
+}
+
+/* Ensure modal stays on top */
+.ad-modal {
+    z-index: 9999 !important;
+}
         }
         
         /* Responsive Design */
@@ -1091,6 +1146,105 @@
             transform: scale(1.05);
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
+
+
+    /* ... (existing styles) ... */
+
+    /* ===== AD MODAL FIXES ===== */
+    .ad-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.95);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ad-content {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        width: 340px;
+        text-align: center;
+    }
+
+    /* Remove any close buttons */
+    .ad-close-btn {
+        display: none !important;
+    }
+
+    /* Force modal to stay open */
+    .ad-modal {
+        pointer-events: auto !important;
+    }
+
+    /* Ensure ad containers proper size */
+    #adsterraAd, #monetagAd {
+        min-height: 250px;
+        width: 300px;
+        margin: 10px auto;
+        background: #f5f5f5;
+        border: 1px solid #ddd;
+        overflow: hidden;
+       
+.ad-content {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    width: 320px;
+    max-width: 90vw;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+#adsterraAd, #monetagAd {
+    min-height: 250px;
+    width: 300px;
+    max-width: 100%;
+    margin: 10px auto;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.ad-header {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #6C5CE7; /* Your theme color */
+}
+
+.ad-timer {
+    font-size: 14px;
+    color: #666;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.ad-network-badge {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 12px;
+    color: white;
+    background: rgba(0,0,0,0.7);
+    padding: 3px 8px;
+    border-radius: 10px;
+}
+
+/* Remove Windows watermark (if possible) */
+body {
+    overflow: hidden; /* Helps prevent watermark visibility during ads */
+}
+    }
+</style>
     </style>
 </head>
 <body>
@@ -1993,154 +2147,165 @@
     <audio id="coinFlipSound" src="https://assets.mixkit.co/sfx/preview/mixkit-coin-flip-1940.mp3" preload="auto"></audio>
     <audio id="coinLandSound" src="https://assets.mixkit.co/sfx/preview/mixkit-metal-hit-impact-2065.mp3" preload="auto"></audio>
     
-    <!-- Ad Modal (initially hidden) -->
-    <div class="ad-modal" id="adModal" style="display: none;">
-        <div class="ad-content">
-            <div class="ad-header">Watch Ad to Continue Playing</div>
-            <div class="ad-body">
-                Please watch this short ad to continue playing the game. This helps us keep the platform free for everyone.
-            </div>
-            <div class="ad-timer">Ad will complete in <span id="adTimer">5</span> seconds</div>
-            <button class="primary" id="watchAdBtn">Watch Ad Now</button>
-            <div class="ad-network-badge" id="adNetworkBadge">Ad Network</div>
+  <!-- Ad Modal - Forced Viewing -->
+<div class="ad-modal" id="adModal" style="display: none;">
+    <div class="ad-content">
+        <div class="ad-header">Watch Ad to Continue Playing</div>
+        
+        <!-- Adsterra Container (Fallback to Monetag if fails) -->
+        <div id="adsterraAd" style="display:none;min-height:250px;width:300px;margin:0 auto;background:#f5f5f5">
+            <iframe id="adsterraFrame" src="about:blank" style="width:100%;height:100%;border:none"></iframe>
         </div>
+        
+        <!-- Monetag Container -->
+        <div id="monetagAd" style="display:none;min-height:250px;width:300px;margin:0 auto;background:#f5f5f5">
+            <img id="monetagImg" src="" style="width:100%;height:100%;object-fit:contain">
+        </div>
+        
+        <div class="ad-timer">Ad will complete in <span id="adTimer">15</span> seconds</div>
+        <div class="ad-network-badge" id="adNetworkBadge">Ad Network</div>
     </div>
+</div>
     
     <script>
-        // ===== AD SYSTEM IMPLEMENTATION =====
-        const adNetworks = [
-            {
-                name: "Adsterra",
-                code: "ADST",
-                description: "Premium ad network with high-paying ads",
-                frequency: 2 // Show every 2nd ad
-            },
-            {
-                name: "Monetag",
-                code: "MNTG",
-                description: "High-converting video ads",
-                frequency: 3 // Show every 3rd ad
-            },
-            {
-                name: "Cointzilla",
-                code: "CNTZ",
-                description: "Crypto-focused ad network",
-                frequency: 1 // Show every ad
-            }
-        ];
-        
-        let currentAdNetworkIndex = 0;
-        let adPlayCount = 0;
-        let adTimerInterval;
-        let currentGame = '';
-        
-        // Show ad modal for a specific game
-        function showAdModal(game) {
-            currentGame = game;
-            const adModal = document.getElementById('adModal');
-            const adNetwork = getNextAdNetwork();
+ // ===== FOOLPROOF AD SYSTEM =====
+const adNetworks = [
+    {
+        name: "Adsterra",
+        show: function() {
+            const container = document.getElementById('adsterraAd');
+            const frame = document.getElementById('adsterraFrame');
             
-            // Update ad modal content
-            document.getElementById('adNetworkBadge').textContent = adNetwork.name;
+            // Hide Monetag
+            document.getElementById('monetagAd').style.display = 'none';
             
-            // Show modal
-            adModal.style.display = 'flex';
+            // Show Adsterra
+            container.style.display = 'block';
+            frame.src = 'https://innumerablemakeupreligious.com/8a1d6d42d6addf614a0b20c144270316/invoke.html';
             
-            // Start timer countdown
-            let secondsLeft = 5;
-            document.getElementById('adTimer').textContent = secondsLeft;
-            
-            adTimerInterval = setInterval(() => {
-                secondsLeft--;
-                document.getElementById('adTimer').textContent = secondsLeft;
-                
-                if (secondsLeft <= 0) {
-                    clearInterval(adTimerInterval);
-                    completeAdView();
+            // Fallback to Monetag if Adsterra fails
+            setTimeout(() => {
+                if (frame.contentDocument?.body?.innerText === "" || 
+                    frame.contentDocument?.body?.innerHTML.includes('blank')) {
+                    adNetworks[1].show(); // Show Monetag instead
                 }
-            }, 1000);
+            }, 2000);
         }
-        
-        // Get the next ad network to display
-        function getNextAdNetwork() {
-            adPlayCount++;
-            currentAdNetworkIndex = (currentAdNetworkIndex + 1) % adNetworks.length;
-            return adNetworks[currentAdNetworkIndex];
+    },
+    {
+        name: "Monetag",
+        show: function() {
+            const container = document.getElementById('monetagAd');
+            const img = document.getElementById('monetagImg');
+            
+            // Hide Adsterra
+            document.getElementById('adsterraAd').style.display = 'none';
+            
+            // Show Monetag with cache-busting
+            container.style.display = 'block';
+            img.src = 'https://whoockeg.top/4/9191510?cb=' + Date.now();
         }
+    }
+];
+
+let currentAdIndex = 0;
+let adTimer;
+
+function showAdModal(game) {
+    const ad = adNetworks[currentAdIndex % adNetworks.length];
+    currentAdIndex++;
+    
+    // Reset containers
+    document.getElementById('adsterraAd').style.display = 'none';
+    document.getElementById('monetagAd').style.display = 'none';
+    
+    // Show selected ad
+    ad.show();
+    document.getElementById('adNetworkBadge').textContent = ad.name;
+    document.getElementById('adModal').style.display = 'flex';
+    
+    // 15-second forced timer
+    let seconds = 15;
+    document.getElementById('adTimer').textContent = seconds;
+    
+    adTimer = setInterval(() => {
+        seconds--;
+        document.getElementById('adTimer').textContent = seconds;
         
-        // Complete ad view and resume game
-        function completeAdView() {
-            clearInterval(adTimerInterval);
+        if (seconds <= 0) {
+            clearInterval(adTimer);
             document.getElementById('adModal').style.display = 'none';
-            
-            // Add to ads watched count
-            userData.adsWatched++;
-            
-            // Show success message
-            showNotification('Ad completed! You can continue playing.');
-            
-            // Resume game based on current game
-            switch(currentGame) {
-                case 'memory':
-                    memoryGame.canPlay = true;
-                    break;
-                case 'dice':
-                    // Dice game doesn't need to be resumed
-                    break;
-                case 'snake':
-                    snakeGame.gameStarted = true;
-                    document.getElementById('startSnakeBtn').style.display = 'none';
-                    document.querySelector('.snake-controls').style.display = 'grid';
-                    snakeGame.startGame();
-                    break;
-                case 'trivia':
-                    // Trivia game doesn't need to be resumed
-                    break;
-                case 'wheel':
-                    // Wheel game doesn't need to be resumed
-                    break;
-            }
+            // Add your game continuation logic here
+            function showAdModal(game) {
+    // Hide any system watermarks (Windows activation)
+    document.body.style.overflow = 'hidden';
+    
+    const ad = adNetworks[currentAdIndex % adNetworks.length];
+    currentAdIndex++;
+    
+    // Reset containers
+    document.getElementById('adsterraAd').style.display = 'none';
+    document.getElementById('monetagAd').style.display = 'none';
+    
+    // Show selected ad
+    ad.show();
+    document.getElementById('adNetworkBadge').textContent = ad.name;
+    document.getElementById('adModal').style.display = 'flex';
+    
+    // 15-second forced timer
+    let seconds = 15;
+    document.getElementById('adTimer').textContent = seconds;
+    
+    adTimer = setInterval(() => {
+        seconds--;
+        document.getElementById('adTimer').textContent = seconds;
+        
+        if (seconds <= 0) {
+            clearInterval(adTimer);
+            document.getElementById('adModal').style.display = 'none';
+            document.body.style.overflow = ''; // Restore scrolling
+            // Continue game logic...
         }
-        
-        // Watch ad button
-        document.getElementById('watchAdBtn').addEventListener('click', function() {
-            clearInterval(adTimerInterval);
-            completeAdView();
-        });
-        
-        // Check if ad should be shown for a game
-        function shouldShowAd(game) {
-            // Different ad frequency for different games
-            const gameAdFrequencies = {
-                memory: 5,    // Show ad every 5 plays (2 ads per 10 trials)
-                dice: 5,      // Show ad every 5 plays (2 ads per 10 trials)
-                snake: 5,     // Show ad every 5 plays (2 ads per 10 trials)
-                trivia: 5,    // Show ad every 5 plays (2 ads per 10 trials)
-                wheel: 2.5    // Show ad every 2.5 plays (4 ads per 10 trials)
-            };
-            
-            // Track play counts per game
-            if (!userData.gamePlayCounts) {
-                userData.gamePlayCounts = {
-                    memory: 0,
-                    dice: 0,
-                    snake: 0,
-                    trivia: 0,
-                    wheel: 0
-                };
-            }
-            
-            userData.gamePlayCounts[game]++;
-            
-            // Special handling for wheel to get 4 ads in 10 trials
-            if (game === 'wheel') {
-                return userData.gamePlayCounts[game] % 2.5 < 1;
-            }
-            
-            // For other games - 2 ads per 10 trials
-            return userData.gamePlayCounts[game] % 5 === 0;
+    }, 1000);
+}
         }
-        
+    }, 1000);
+}
+function getNextAdNetwork() {
+    adPlayCount++;
+    currentAdNetworkIndex = (currentAdNetworkIndex + 1) % adNetworks.length;
+    return adNetworks[currentAdNetworkIndex];
+}
+
+function completeAdView() {
+    clearInterval(adTimerInterval);
+    document.getElementById('adModal').style.display = 'none';
+    userData.adsWatched++;
+    showNotification('Ad completed! You can continue playing.');
+    
+    // Resume game
+    switch(currentGame) {
+        case 'memory': memoryGame.canPlay = true; break;
+        case 'snake': 
+            snakeGame.gameStarted = true;
+            document.getElementById('startSnakeBtn').style.display = 'none';
+            document.querySelector('.snake-controls').style.display = 'grid';
+            snakeGame.startGame();
+            break;
+    }
+}
+
+function shouldShowAd(game) {
+    if (!userData.gamePlayCounts) {
+        userData.gamePlayCounts = { memory:0, dice:0, snake:0, trivia:0, wheel:0 };
+    }
+    userData.gamePlayCounts[game]++;
+    
+    const frequencies = { memory:5, dice:5, snake:5, trivia:5, wheel:2.5 };
+    return game === 'wheel' 
+        ? userData.gamePlayCounts[game] % 2.5 < 1
+        : userData.gamePlayCounts[game] % 5 === 0;
+}
         // ===== DAILY STREAK FUNCTIONALITY =====
         function initializeStreak() {
             // Get the current date in YYYY-MM-DD format for comparison
