@@ -1,124 +1,207 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Complete Ads to Continue</title>
     <style>
-        /* Your original CSS - completely unchanged */
+        :root {
+            --primary: #6C5CE7;
+            --primary-dark: #5649c0;
+            --success: #00B894;
+            --danger: #e74c3c;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            --transition: all 0.3s ease;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background: #f5f5f5;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
             margin: 0;
-            padding: 20px;
+            padding: 0;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            color: var(--dark);
+            line-height: 1.6;
         }
+        
         .ad-container {
             background: white;
-            border-radius: 15px;
-            padding: 30px;
-            width: 95%;
-            max-width: 1200px;
-            margin: 0 auto;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-radius: var(--border-radius);
+            padding: 2.5rem;
+            width: 90%;
+            max-width: 900px;
+            margin: 2rem auto;
+            box-shadow: var(--box-shadow);
+            text-align: center;
         }
+        
+        .ad-header {
+            margin-bottom: 1.5rem;
+        }
+        
+        .ad-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem;
+            color: var(--dark);
+            background: linear-gradient(to right, var(--primary), #a55eea);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .ad-header p {
+            font-size: 1.1rem;
+            color: #6c757d;
+            margin: 0;
+        }
+        
         #adFrameContainer {
             width: 100%;
-            min-height: 600px;
-            margin: 30px auto;
-            border: 3px solid #e0e0e0;
-            background: #f9f9f9;
+            min-height: 300px;
+            margin: 2rem auto;
+            border-radius: var(--border-radius);
+            background: var(--light);
             overflow: hidden;
             position: relative;
+            border: 1px solid rgba(0,0,0,0.08);
         }
+        
         #adFrame {
             width: 100%;
             height: 100%;
-            min-height: 600px;
+            min-height: 300px;
             border: none;
         }
+        
         .progress-container {
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
-            margin: 30px 0;
-            gap: 10px;
+            margin: 2rem 0;
+            gap: 0.5rem;
         }
+        
         .progress-step {
-            width: 45px;
-            height: 45px;
+            width: 2.5rem;
+            height: 2.5rem;
             border-radius: 50%;
-            background: #e0e0e0;
+            background: #e9ecef;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            font-weight: bold;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: var(--transition);
+            position: relative;
         }
+        
         .progress-step.active {
-            background: #6C5CE7;
+            background: var(--primary);
             color: white;
             transform: scale(1.1);
-            box-shadow: 0 0 15px rgba(108, 92, 231, 0.6);
+            box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.2);
         }
+        
         .progress-step.completed {
-            background: #00B894;
+            background: var(--success);
             color: white;
         }
+        
+        .progress-step.completed::after {
+            content: '✓';
+            position: absolute;
+        }
+        
         #timerDisplay {
-            margin: 30px 0;
-            font-weight: bold;
-            font-size: 24px;
+            margin: 1.5rem 0;
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #495057;
         }
-        h2 {
-            font-size: 32px;
-            margin-bottom: 20px;
-            color: #333;
+        
+        #timerCount {
+            font-weight: 700;
+            color: var(--primary);
         }
-        #adPurpose {
-            font-size: 20px;
-            color: #666;
-            margin-bottom: 30px;
-        }
+        
         .watch-ad-btn {
-            background: #6C5CE7;
+            background: var(--primary);
             color: white;
             border: none;
-            padding: 15px 30px;
-            border-radius: 8px;
-            font-size: 18px;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            margin-top: 20px;
-            transition: all 0.3s;
+            margin-top: 1rem;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
         }
+        
         .watch-ad-btn:hover {
-            background: #5649c0;
+            background: var(--primary-dark);
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
         }
+        
+        .watch-ad-btn:active {
+            transform: translateY(0);
+        }
+        
+        .ad-status {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
         @media (max-width: 768px) {
             .ad-container {
-                width: 98%;
-                padding: 20px;
+                padding: 1.5rem;
+                width: 95%;
             }
+            
+            .ad-header h2 {
+                font-size: 1.5rem;
+            }
+            
+            .ad-header p {
+                font-size: 1rem;
+            }
+            
             #adFrameContainer, #adFrame {
-                min-height: 400px;
+                min-height: 250px;
             }
+            
             .progress-step {
-                width: 38px;
-                height: 38px;
-                font-size: 16px;
+                width: 2rem;
+                height: 2rem;
+                font-size: 0.8rem;
             }
         }
     </style>
 </head>
 <body>
     <div class="ad-container">
-        <h2>Watch Ads to Unlock Access</h2>
-        <p id="adPurpose">Complete 20 ads to continue.</p>
+        <div class="ad-header">
+            <h2>Complete Ads to Continue</h2>
+            <p id="adPurpose">Watch ads to unlock access</p>
+        </div>
+        
+        <div class="ad-status">
+            <span>Progress: <span id="completedCount">0</span>/20</span>
+            <span>Estimated time: <span id="estimatedTime">5 minutes</span></span>
+        </div>
         
         <div class="progress-container" id="progressSteps"></div>
         
@@ -126,7 +209,7 @@
             <!-- Ad will be loaded here -->
         </div>
         
-        <div id="timerDisplay">Ad will complete in <span id="timerCount">15</span> seconds</div>
+        <div id="timerDisplay">Ad completes in <span id="timerCount">15</span> seconds</div>
         
         <button class="watch-ad-btn" id="watchAdBtn">Watch Ad</button>
     </div>
@@ -135,61 +218,56 @@
         // Configuration
         const totalAds = 20;
         const minAdDuration = 15000; // 15 seconds per ad
+        const resetInterval = 60 * 60 * 1000; // 60 minutes in milliseconds
         let currentAdCount = 0;
         let timer = null;
         let adStartTime = 0;
         let canCountAd = false;
-
-        function checkAccessAndRedirect() {
-            const adData = JSON.parse(localStorage.getItem('adAccessData')) || {
-                adsWatched: 0,
-                accessGranted: false,
-                accessExpiry: 0
-            };
-
-            const currentTime = Date.now();
-
-            if (adData.accessGranted && currentTime < adData.accessExpiry) {
-                // Redirect based on the referring page
-                const urlParams = new URLSearchParams(window.location.search);
-                const referrer = urlParams.get('referrer');
-
-                if (referrer === 'game') {
-                    window.location.href = 'game.html';
-                } else if (referrer === 'trading') {
-                    window.location.href = 'trading.html';
-                } else {
-                    window.location.href = 'game.html'; // Default to game.html
-                }
-                return;
-            }
-
-            // Reset ads watched if access period has expired
-            if (currentTime >= adData.accessExpiry) {
-                localStorage.setItem('adAccessData', JSON.stringify({
-                    adsWatched: 0,
-                    accessGranted: false,
-                    accessExpiry: 0
-                }));
-
-                // Redirect to game.html when access expires
-                if (!window.location.href.includes('ads.html')) {
-                    window.location.href = 'game.html';
-                }
-            }
-        }
+        let redirectTo = 'game.html'; // Default fallback
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            checkAccessAndRedirect();
+            // Get the referring page from URL parameter or localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            const source = urlParams.get('source');
+            
+            if (source === 'game' || source === 'trading') {
+                redirectTo = source + '.html';
+                localStorage.setItem('postAdRedirect', redirectTo);
+            } else {
+                // Fallback to checking localStorage or referrer
+                const storedRedirect = localStorage.getItem('postAdRedirect');
+                if (storedRedirect) {
+                    redirectTo = storedRedirect;
+                } else if (document.referrer.includes('game.html')) {
+                    redirectTo = 'game.html';
+                } else if (document.referrer.includes('trading.html')) {
+                    redirectTo = 'trading.html';
+                }
+                localStorage.setItem('postAdRedirect', redirectTo);
+            }
 
             // Load current progress
             const adData = JSON.parse(localStorage.getItem('adAccessData')) || {
                 adsWatched: 0,
                 accessGranted: false,
-                accessExpiry: 0
+                expiryTime: 0
             };
-            currentAdCount = adData.adsWatched;
+            
+            // Check if the reset period has passed
+            const now = Date.now();
+            if (adData.expiryTime > 0 && now >= adData.expiryTime) {
+                // Reset the ad count
+                currentAdCount = 0;
+                localStorage.setItem('adAccessData', JSON.stringify({
+                    adsWatched: 0,
+                    accessGranted: false,
+                    expiryTime: 0
+                }));
+            } else {
+                currentAdCount = adData.adsWatched;
+            }
+            
             updateProgressDisplay();
             
             // Load first ad
@@ -200,8 +278,14 @@
         });
 
         function updateProgressDisplay() {
+            const remaining = totalAds - currentAdCount;
+            const estimatedMinutes = Math.ceil((remaining * minAdDuration) / 60000);
+            
             document.getElementById('adPurpose').textContent = 
-                `Complete ${20 - currentAdCount} more ads to continue. (${currentAdCount}/20 watched)`;
+                remaining > 0 ? `Watch ${remaining} more ads to continue` : 'All ads completed!';
+            document.getElementById('completedCount').textContent = currentAdCount;
+            document.getElementById('estimatedTime').textContent = 
+                estimatedMinutes > 1 ? `${estimatedMinutes} minutes` : 'less than a minute';
             
             const container = document.getElementById('progressSteps');
             container.innerHTML = '';
@@ -210,7 +294,10 @@
                 const step = document.createElement('div');
                 step.className = 'progress-step';
                 step.textContent = i + 1;
-                if (i < currentAdCount) step.classList.add('completed');
+                if (i < currentAdCount) {
+                    step.classList.add('completed');
+                    step.textContent = '';
+                }
                 if (i === currentAdCount) step.classList.add('active');
                 container.appendChild(step);
             }
@@ -260,58 +347,58 @@
                 if (seconds <= 0) {
                     clearInterval(timer);
                     canCountAd = true;
-                    document.getElementById('watchAdBtn').textContent = "Count Ad & Continue";
+                    document.getElementById('watchAdBtn').textContent = "Continue";
+                    document.getElementById('watchAdBtn').style.backgroundColor = 'var(--success)';
                 }
             }, 1000);
         }
 
         function updateTimerDisplay(seconds) {
             document.getElementById('timerCount').textContent = seconds;
-            document.getElementById('timerCount').style.color = seconds <= 5 ? '#e74c3c' : '';
+            document.getElementById('timerCount').style.color = seconds <= 5 ? 'var(--danger)' : 'var(--primary)';
         }
 
         function handleAdWatch() {
             if (!canCountAd) {
                 const elapsed = Date.now() - adStartTime;
                 const remaining = Math.ceil((minAdDuration - elapsed) / 1000);
-                alert(`Please wait ${remaining} more seconds before counting this ad.`);
+                alert(`Please watch the ad for ${remaining} more seconds before continuing.`);
                 return;
             }
             
             // Count the ad
             currentAdCount++;
-            localStorage.setItem('adAccessData', JSON.stringify({
-                adsWatched: currentAdCount,
-                accessGranted: false,
-                accessExpiry: 0
-            }));
             
             // Check if completed
             if (currentAdCount >= totalAds) {
+                // Set expiry time to 60 minutes from now
+                const expiryTime = Date.now() + resetInterval;
+                localStorage.setItem('adAccessData', JSON.stringify({
+                    adsWatched: currentAdCount,
+                    accessGranted: true,
+                    expiryTime: expiryTime
+                }));
                 grantAccessAndRedirect();
                 return;
             }
             
+            // Update storage with current count
+            localStorage.setItem('adAccessData', JSON.stringify({
+                adsWatched: currentAdCount,
+                accessGranted: false,
+                expiryTime: 0
+            }));
+            
             // Update display and load next ad
             updateProgressDisplay();
             document.getElementById('watchAdBtn').textContent = "Watch Ad";
+            document.getElementById('watchAdBtn').style.backgroundColor = 'var(--primary)';
             loadAd();
         }
 
         function grantAccessAndRedirect() {
-            // Grant 60-minute access
-            const adData = {
-                adsWatched: 20,
-                accessGranted: true,
-                accessExpiry: Date.now() + (60 * 60 * 1000)
-            };
-            localStorage.setItem('adAccessData', JSON.stringify(adData));
-            
-            // Get redirect URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const redirectUrl = urlParams.get('redirectTo') || 
-                              localStorage.getItem('postAdRedirect') || 
-                              'index.html#game';
+            // Get redirect URL from localStorage
+            const redirectUrl = localStorage.getItem('postAdRedirect') || 'game.html';
             
             // Clean up and redirect
             localStorage.removeItem('postAdRedirect');
