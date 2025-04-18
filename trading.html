@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI REF-TRADERS - AI Trading</title>
+    <style>
+        :root {
+            --primary: #6C5CE7;
+            --secondary: #00CEFF;
+            --dark: #2D3436;
+            --light: #F5F6FA;
+            --success: #00B894;
+            --danger: #D63031;
+            --warning: #FDCB6E;
+            --nigerian-green: #008753;
+            --nigerian-white: #FFFFFF;
+            --nigerian-green-light: #E5F5EE;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--light);
+            color: var(--dark);
+            transition: all 0.3s;
+        }
+        
+        .container {
+            max-width: 100%;
+            padding: 15px;
+            padding-bottom: 70px;
+        }
+        
+        .app-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+        
+        .user-chip {
+            background: var(--nigerian-green);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: bold;
+        }
+        
+        .nigeria-badge {
+            background: linear-gradient(to right, var(--nigerian-green) 33%, var(--nigerian-white) 33%, var(--nigerian-white) 66%, var(--nigerian-green) 66%);
+            color: var(--dark);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-left: 5px;
+        }
+        
+        .status-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        
+        .status-card.accent {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        progress {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+            appearance: none;
+        }
+        
+        progress::-webkit-progress-bar {
+            background-color: rgba(255,255,255,0.3);
+            border-radius: 4px;
+        }
+        
+        progress::-webkit-progress-value {
+            background-color: white;
+            border-radius: 4px;
+        }
+        
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        button {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.2s;
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        .primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .secondary {
+            background: white;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .profit-chart {
+            display: flex;
+            height: 40px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            position: relative;
+        }
+        
+        .chart-bar.user {
+            background-color: var(--success);
+        }
+        
+        .chart-bar.company {
+            background-color: var(--primary);
+        }
+        
+        .chart-bar.system {
+            background-color: var(--dark);
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            transform: translateY(20px);
+            transition: transform 0.3s;
+        }
+        
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--success);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .notification.show {
+            opacity: 1;
+        }
+        
+        .bank-select-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .bank-select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 1em;
+        }
+        
+        .bank-search {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: none;
+        }
+        
+        .bank-search.active {
+            display: block;
+        }
+        
+        .other-bank-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .other-bank-input.active {
+            display: block;
+        }
+        
+        /* Enhanced Trading Guide Styles */
+        .trading-guide {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .guide-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .guide-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .guide-title {
+            color: var(--primary);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .guide-icon {
+            font-size: 24px;
+        }
+        
+        .guide-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+        
+        .guide-bullet {
+            font-size: 20px;
+            min-width: 24px;
+            text-align: center;
+        }
+        
+        .profit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .profit-table th, .profit-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .profit-table th {
+            background: #f5f5f5;
+            font-weight: bold;
+            color: var(--dark);
+        }
+        
+        .profit-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .time-emoji {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        
+        .profit-emoji {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        
+        @media (max-width: 600px) {
+            .action-bar {
+                flex-direction: column;
+            }
+            
+            .profit-table {
+                font-size: 14px;
+            }
+            
+            .profit-table th, .profit-table td {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="app-bar">
+            <h1>AI REF-TRADERS <span class="nigeria-badge">AI TRADING</span></h1>
+            <div class="user-chip">
+                <span>📊 ₦<span id="balance">0</span></span>
+                <span id="verifiedBadge">❌</span>
+            </div>
+        </div>
+        
+        <div class="status-card accent">
+            <h3>🚀 Trading Status</h3>
+            <p id="tradingStatus">AI Bot: <b>Inactive</b></p>
+            <progress id="referralProgress" value="0" max="6"></progress>
+            <small><span id="completedReferrals">0</span>/6 Referrals • <span id="adsWatched">0</span>/20 Ads</small>
+        </div>
+        
+        <div class="status-card">
+            <h3>📊 Trading Dashboard</h3>
+            <p id="tradingCapital">Trading Capital: ₦0</p>
+            <p id="dailyProfit">Daily Profit: ₦0</p>
+            <p id="totalProfit">Total Profit: ₦0</p>
+            <p id="withdrawableProfit">Withdrawable: ₦0</p>
+            <button id="toggleTrading" class="primary" style="background-color: var(--danger); color: white;" disabled>Activate Trading</button>
+        </div>
+        
+        <div class="status-card">
+            <h3>📈 Trading Performance</h3>
+            <p>Daily ROI: 20-50%</p>
+            <p>Risk Level: Medium</p>
+            <p>Strategy: AI-Powered Algorithm</p>
+            <p>Markets: Crypto, Forex, Commodities</p>
+        </div>
+        
+        <div class="status-card">
+            <h3>📊 Profit Distribution</h3>
+            <div class="profit-chart">
+                <div class="chart-bar user" style="width: 70%;">You (70%)</div>
+                <div class="chart-bar company" style="width: 25%;">Company (25%)</div>
+                <div class="chart-bar system" style="width: 5%;">System (5%)</div>
+            </div>
+            <p>70% of all profits go directly to you</p>
+        </div>
+        
+        <div class="status-card">
+            <h3>💰 Payment Circle</h3>
+            <p>Batch: <span id="paidUsers">0</span>/1,000 users</p>
+            <progress id="paymentCircleProgress" value="0" max="1000"></progress>
+            <small>Next payment batch at 1,000 users</small>
+        </div>
+        
+        <!-- Enhanced Trading Guide -->
+        <div class="trading-guide">
+            <div class="guide-section">
+                <h3 class="guide-title"><span class="guide-icon">📚</span> AI Trading Guide</h3>
+                <p>Learn how to maximize your earnings with our AI trading system:</p>
+            </div>
+            
+            <div class="guide-section">
+                <h3 class="guide-title"><span class="guide-icon">🔘</span> Trading Button Behavior</h3>
+                <div class="guide-item">
+                    <div class="guide-bullet">🔴</div>
+                    <div><b>Red Button</b> - "Activate Trading" means trading is currently OFF</div>
+                </div>
+                <div class="guide-item">
+                    <div class="guide-bullet">🟢</div>
+                    <div><b>Green Button</b> - "Trading Activated" means trading is currently ON</div>
+                </div>
+            </div>
+            
+            <div class="guide-section">
+                <h3 class="guide-title"><span class="guide-icon">⏳</span> Daily Reset</h3>
+                <div class="guide-item">
+                    <div class="guide-bullet">🔄</div>
+                    <div>Trading automatically turns OFF at 12:00 AM (Nigerian Time)</div>
+                </div>
+                <div class="guide-item">
+                    <div class="guide-bullet">👀</div>
+                    <div>To turn it back ON, you must watch 20 ads daily</div>
+                </div>
+            </div>
+            
+            <div class="guide-section">
+                <h3 class="guide-title"><span class="guide-icon">💵</span> Profit Timing Strategy</h3>
+                <p>Your profit percentage depends on when you complete your 20 daily ads:</p>
+                
+                <table class="profit-table">
+                    <thead>
+                        <tr>
+                            <th>Time Range</th>
+                            <th>Profit %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="time-emoji">🌅</span> 12:01 AM – 7:00 AM</td>
+                            <td><span class="profit-emoji">🔥</span> 35% – 50%</td>
+                        </tr>
+                        <tr>
+                            <td><span class="time-emoji">🌞</span> 8:00 AM – 4:00 PM</td>
+                            <td><span class="profit-emoji">⚡</span> 21% – 34%</td>
+                        </tr>
+                        <tr>
+                            <td><span class="time-emoji">🌆</span> 5:00 PM – 11:30 PM</td>
+                            <td><span class="profit-emoji">💸</span> 20% Flat</td>
+                        </tr>
+                        <tr>
+                            <td><span class="time-emoji">🚫</span> No Ads Watched</td>
+                            <td><span class="profit-emoji">❌</span> 0% Profit</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="action-bar">
+            <button class="primary" id="bankBindingBtn">🏦 Bank Binding</button>
+            <button class="secondary" id="withdrawBtn">📤 Withdraw</button>
+        </div>
+    </div>
+    
+    <!-- Bank Binding Modal -->
+    <div class="modal" id="bankModal">
+        <div class="modal-content">
+            <h3>Bank Account Binding</h3>
+            <div class="bank-form">
+                <p>To withdraw earnings, verify and bind your Nigerian bank account with a one-time fee of ₦1,050.</p>
+                <p>Note: ₦550 covers the total operational cost, while ₦500 is instantly credited to your withdrawable account balance.</p>
+                <div class="bank-select-container">
+                    <select id="bankName" class="bank-select">
+                        <option value="">Select Your Bank</option>
+                        <option value="Access Bank">Access Bank</option>
+                        <option value="GTBank">GTBank</option>
+                        <option value="Zenith Bank">Zenith Bank</option>
+                        <option value="First Bank">First Bank</option>
+                        <option value="UBA">UBA</option>
+                        <option value="Opay">Opay</option>
+                        <option value="Palmpay">Palmpay</option>
+                        <option value="other">Other Bank</option>
+                    </select>
+                </div>
+                
+                <input type="text" id="otherBankName" class="other-bank-input" placeholder="Enter your bank name">
+                
+                <input type="text" id="accountNumber" placeholder="Account Number">
+                <input type="text" id="accountName" placeholder="Account Name" readonly>
+                <div class="modal-actions">
+                    <button id="confirmBankBinding" class="primary">Pay ₦1,050 & Verify</button>
+                    <button id="cancelBankBinding" class="secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Withdrawal Modal -->
+    <div class="modal" id="withdrawalModal">
+        <div class="modal-content">
+            <h3>Withdrawal Request</h3>
+            <p>Minimum withdrawal: ₦5,000</p>
+            <p>Available: ₦<span id="availableBalance">0</span></p>
+            <div id="verificationNotice" style="display: none;">
+                <p>⚠️ Account verification required (₦1,050 fee)</p>
+                <button id="verifyAccountBtn" class="danger">Pay ₦1,050 Verification Fee</button>
+            </div>
+            <div id="withdrawalForm" style="display: none;">
+                <p>Enter amount to withdraw:</p>
+                <input type="number" id="withdrawalAmount" min="5000" step="1000" placeholder="₦5000 minimum">
+                <div class="modal-actions">
+                    <button id="confirmWithdrawal" class="primary">Confirm</button>
+                    <button id="cancelWithdrawal" class="secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Success Modal -->
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <h3 id="successTitle">Success!</h3>
+            <p id="successMessage">Operation completed successfully</p>
+            <div class="modal-actions">
+                <button id="closeSuccessModal" class="primary">OK</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <span id="notificationText">Notification message</span>
+    </div>
+    
+    <script>
+        // User data structure with default values
+        const defaultUserData = {
+            balance: 5000,        // Default sign-up bonus of ₦5000
+            referrals: 0,         // Default referrals
+            adsWatched: 0,        // Default ads watched
+            referralEarnings: 0,  // Earnings from referrals (₦5000 per referral)
+            tradingActive: false,
+            verified: false,
+            tradingCapital: 5000,  // Initial trading capital from sign-up bonus
+            dailyProfit: 0,
+            totalProfit: 0,
+            withdrawableProfit: 0,
+            bankDetails: null,
+            paymentCircle: {
+                current: 0,
+                total: 1000
+            },
+            lastTradingUpdate: null,
+            lastAdWatchTime: null
+        };
+
+        // Load user data from localStorage or initialize with defaults
+        let userData = JSON.parse(localStorage.getItem('aiTradingData'));
+        if (!userData) {
+            userData = defaultUserData;
+            localStorage.setItem('aiTradingData', JSON.stringify(userData));
+        } else {
+            // Migration for existing users
+            if (userData.tradingCapital === undefined) {
+                userData.tradingCapital = 5000;
+            }
+            if (userData.referralEarnings === undefined) {
+                userData.referralEarnings = 0;
+            }
+            if (userData.lastAdWatchTime === undefined) {
+                userData.lastAdWatchTime = null;
+            }
+        }
+        
+        // DOM Elements
+        const elements = {
+            balance: document.getElementById('balance'),
+            verifiedBadge: document.getElementById('verifiedBadge'),
+            tradingStatus: document.getElementById('tradingStatus'),
+            referralProgress: document.getElementById('referralProgress'),
+            completedReferrals: document.getElementById('completedReferrals'),
+            adsWatched: document.getElementById('adsWatched'),
+            toggleTrading: document.getElementById('toggleTrading'),
+            tradingCapital: document.getElementById('tradingCapital'),
+            dailyProfit: document.getElementById('dailyProfit'),
+            totalProfit: document.getElementById('totalProfit'),
+            withdrawableProfit: document.getElementById('withdrawableProfit'),
+            bankBindingBtn: document.getElementById('bankBindingBtn'),
+            withdrawBtn: document.getElementById('withdrawBtn'),
+            availableBalance: document.getElementById('availableBalance'),
+            verificationNotice: document.getElementById('verificationNotice'),
+            withdrawalForm: document.getElementById('withdrawalForm'),
+            verifyAccountBtn: document.getElementById('verifyAccountBtn'),
+            withdrawalAmount: document.getElementById('withdrawalAmount'),
+            confirmWithdrawal: document.getElementById('confirmWithdrawal'),
+            cancelWithdrawal: document.getElementById('cancelWithdrawal'),
+            withdrawalModal: document.getElementById('withdrawalModal'),
+            successModal: document.getElementById('successModal'),
+            successTitle: document.getElementById('successTitle'),
+            successMessage: document.getElementById('successMessage'),
+            closeSuccessModal: document.getElementById('closeSuccessModal'),
+            notification: document.getElementById('notification'),
+            notificationText: document.getElementById('notificationText'),
+            paidUsers: document.getElementById('paidUsers'),
+            paymentCircleProgress: document.getElementById('paymentCircleProgress'),
+            bankModal: document.getElementById('bankModal'),
+            bankName: document.getElementById('bankName'),
+            bankSearch: document.getElementById('bankSearch'),
+            otherBankName: document.getElementById('otherBankName'),
+            accountNumber: document.getElementById('accountNumber'),
+            accountName: document.getElementById('accountName'),
+            confirmBankBinding: document.getElementById('confirmBankBinding'),
+            cancelBankBinding: document.getElementById('cancelBankBinding')
+        };
+
+        // Save data to localStorage and sync with backend
+        function saveData() {
+            // Calculate total balance (sign-up + referral earnings + trading profits)
+            userData.balance = 5000 + userData.referralEarnings + (userData.totalProfit * 0.7);
+            localStorage.setItem('aiTradingData', JSON.stringify(userData));
+            syncWithBackend();
+        }
+
+        // Simulate syncing with backend
+        function syncWithBackend() {
+            // In a real app, this would be an API call to your backend
+            console.log('Syncing data with backend...', userData);
+        }
+
+        // Update UI with current data
+        function updateUI() {
+            // Update all balance displays
+            elements.balance.textContent = userData.balance.toLocaleString();
+            elements.tradingCapital.textContent = 'Trading Capital: ₦' + userData.tradingCapital.toLocaleString();
+            elements.dailyProfit.textContent = 'Daily Profit: ₦' + userData.dailyProfit.toLocaleString();
+            elements.totalProfit.textContent = 'Total Profit: ₦' + userData.totalProfit.toLocaleString();
+            elements.withdrawableProfit.textContent = 'Withdrawable: ₦' + userData.withdrawableProfit.toLocaleString();
+            
+            // Update referral and ads status
+            elements.completedReferrals.textContent = userData.referrals;
+            elements.adsWatched.textContent = userData.adsWatched;
+            elements.referralProgress.value = userData.referrals;
+            
+            // Update verification status
+            elements.verifiedBadge.textContent = userData.verified ? '✅' : '❌';
+            elements.availableBalance.textContent = Math.max(0, userData.withdrawableProfit).toLocaleString();
+            elements.paidUsers.textContent = userData.paymentCircle.current.toLocaleString();
+            elements.paymentCircleProgress.value = userData.paymentCircle.current;
+            
+            // Trading status
+            if (userData.referrals >= 6 && userData.adsWatched >= 20) {
+                userData.tradingActive = true;
+                elements.tradingStatus.innerHTML = 'AI Bot: <b>Active</b> (24h Profit: ₦' + userData.dailyProfit.toLocaleString() + ')';
+                elements.toggleTrading.textContent = 'Deactivate Trading';
+                elements.toggleTrading.disabled = false;
+                elements.toggleTrading.style.backgroundColor = 'var(--success)';
+            } else {
+                userData.tradingActive = false;
+                elements.tradingStatus.innerHTML = 'AI Bot: <b>Inactive</b> (Complete 6 referrals and 20 ads)';
+                elements.toggleTrading.textContent = 'Activate Trading';
+                elements.toggleTrading.disabled = userData.referrals < 6 || userData.adsWatched < 20;
+                elements.toggleTrading.style.backgroundColor = 'var(--danger)';
+            }
+            
+            // Check for daily reset
+            checkDailyReset();
+        }
+
+        // Calculate referral earnings (₦5000 per referral)
+        function calculateReferralEarnings() {
+            userData.referralEarnings = userData.referrals * 5000;
+            userData.tradingCapital = 5000 + userData.referralEarnings; // Add referral earnings to trading capital
+            saveData();
+        }
+
+        // Watch an ad (max 20 per day)
+        function watchAd() {
+            const today = new Date().toLocaleDateString();
+            
+            // Check if we've already watched 20 ads today
+            if (userData.adsWatched >= 20) {
+                showNotification('You have already watched 20 ads today');
+                return;
+            }
+            
+            // Record ad watch time for profit calculation
+            userData.lastAdWatchTime = new Date();
+            userData.adsWatched++;
+            saveData();
+            updateUI();
+            showNotification('Ad watched! Total today: ' + userData.adsWatched);
+        }
+
+        // Check if we need to reset trading for a new day
+        function checkDailyReset() {
+            const today = new Date().toLocaleDateString();
+            if (userData.lastTradingUpdate !== today) {
+                // New day - reset trading and ads
+                userData.tradingActive = false;
+                userData.adsWatched = 0;
+                userData.dailyProfit = 0;
+                userData.lastTradingUpdate = today;
+                saveData();
+                updateUI();
+                showNotification('New day! Watch 20 ads to activate trading.');
+            }
+        }
+
+        // Get current profit percentage based on last ad watch time
+        function getCurrentProfitPercentage() {
+            if (!userData.lastAdWatchTime || userData.adsWatched < 20) {
+                return 0; // No ads watched or not enough ads
+            }
+            
+            const watchTime = new Date(userData.lastAdWatchTime);
+            const hours = watchTime.getHours();
+            
+            if (hours >= 0 && hours < 7) {
+                // Early morning bonus (35-50%)
+                return Math.random() * 0.15 + 0.35;
+            } else if (hours >= 7 && hours < 16) {
+                // Daytime rate (21-34%)
+                return Math.random() * 0.13 + 0.21;
+            } else {
+                // Evening rate (20% flat)
+                return 0.20;
+            }
+        }
+
+        // Simulate trading profits
+        function simulateTrading() {
+            if (userData.tradingActive && userData.tradingCapital > 0) {
+                // Get current profit percentage based on ad watch time
+                const dailyReturn = getCurrentProfitPercentage();
+                
+                // Calculate profits based on trading capital
+                userData.dailyProfit = userData.tradingCapital * dailyReturn;
+                userData.totalProfit += userData.dailyProfit;
+                
+                // Distribute profits (70% to user)
+                const userShare = userData.dailyProfit * 0.7;
+                userData.withdrawableProfit += userShare;
+                
+                // Update total balance (automatically handled in saveData)
+                saveData();
+                updateUI();
+                
+                // Show notification occasionally
+                if (Math.random() > 0.5) {
+                    showNotification('💸 Profit earned: ₦' + Math.floor(userShare).toLocaleString());
+                }
+            }
+        }
+
+        // Show notification
+        function showNotification(message) {
+            elements.notificationText.textContent = message;
+            elements.notification.classList.add('show');
+            setTimeout(() => {
+                elements.notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Show success modal
+        function showSuccess(title, message) {
+            elements.successTitle.textContent = title;
+            elements.successMessage.textContent = message;
+            elements.successModal.classList.add('active');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial UI update
+            updateUI();
+            
+            // Set up trading simulation (every 15 seconds)
+            setInterval(simulateTrading, 15000);
+            
+            // For demo purposes - add a way to simulate referrals and ads
+            document.addEventListener('keypress', (e) => {
+                if (e.key === 'r' && userData.referrals < 6) {
+                    userData.referrals++;
+                    calculateReferralEarnings();
+                    showNotification('Referral added! Earned ₦5000. Total: ' + userData.referrals);
+                    updateUI();
+                }
+                if (e.key === 'a') {
+                    watchAd();
+                }
+            });
+
+            // Toggle trading
+            elements.toggleTrading.addEventListener('click', () => {
+                userData.tradingActive = !userData.tradingActive;
+                if (userData.tradingActive) {
+                    showSuccess('Trading Activated', 'AI trading is now active and generating profits!');
+                    elements.toggleTrading.textContent = 'Deactivate Trading';
+                    elements.toggleTrading.style.backgroundColor = 'var(--success)';
+                } else {
+                    showSuccess('Trading Deactivated', 'AI trading has been paused.');
+                    elements.toggleTrading.textContent = 'Activate Trading';
+                    elements.toggleTrading.style.backgroundColor = 'var(--danger)';
+                }
+                saveData();
+                updateUI();
+            });
+            
+            // Bank binding
+            elements.bankBindingBtn.addEventListener('click', () => {
+                elements.bankModal.classList.add('active');
+            });
+            
+            // Withdraw button
+            elements.withdrawBtn.addEventListener('click', () => {
+                elements.withdrawalModal.classList.add('active');
+                if (!userData.verified) {
+                    elements.verificationNotice.style.display = 'block';
+                    elements.withdrawalForm.style.display = 'none';
+                } else {
+                    elements.verificationNotice.style.display = 'none';
+                    elements.withdrawalForm.style.display = 'block';
+                }
+            });
+            
+            // Verify account from withdrawal modal
+            elements.verifyAccountBtn.addEventListener('click', () => {
+                elements.withdrawalModal.classList.remove('active');
+                elements.bankModal.classList.add('active');
+            });
+            
+            // Bank selection functionality
+            elements.bankName.addEventListener('change', function() {
+                if (this.value === 'other') {
+                    elements.otherBankName.classList.add('active');
+                } else {
+                    elements.otherBankName.classList.remove('active');
+                }
+            });
+            
+            // Account number validation
+            elements.accountNumber.addEventListener('input', function() {
+                if (this.value.length === 10) {
+                    // Simulate account name resolution
+                    elements.accountName.value = "Demo User";
+                } else {
+                    elements.accountName.value = "";
+                }
+            });
+            
+            // Confirm bank binding
+            elements.confirmBankBinding.addEventListener('click', () => {
+                const bankName = elements.bankName.value === 'other' 
+                    ? elements.otherBankName.value 
+                    : elements.bankName.value;
+                const accountNumber = elements.accountNumber.value;
+
+                if (!bankName || !accountNumber || accountNumber.length !== 10) {
+                    showNotification('Please provide valid bank details (10-digit account number)');
+                    return;
+                }
+
+                // Simulate verification
+                setTimeout(() => {
+                    userData.verified = true;
+                    userData.bankDetails = { bankName, accountNumber };
+                    userData.withdrawableProfit += 500; // Add ₦500 to withdrawable profit
+                    saveData();
+                    updateUI();
+
+                    elements.bankModal.classList.remove('active');
+                    showSuccess(
+                        'Bank Account Verified',
+                        'Your account is now verified and ready for withdrawals. ₦500 has been credited to your withdrawable balance.'
+                    );
+                }, 2000);
+            });
+            
+            // Cancel bank binding
+            elements.cancelBankBinding.addEventListener('click', () => {
+                elements.bankModal.classList.remove('active');
+            });
+            
+            // Confirm withdrawal
+            elements.confirmWithdrawal.addEventListener('click', () => {
+                const amount = parseInt(elements.withdrawalAmount.value);
+
+                if (amount < 5000) {
+                    showNotification('Minimum withdrawal amount is ₦5,000');
+                    return;
+                }
+
+                if (amount > userData.withdrawableProfit) {
+                    showNotification('Insufficient withdrawable balance');
+                    return;
+                }
+
+                // Process withdrawal
+                userData.withdrawableProfit -= amount;
+                saveData();
+                updateUI();
+
+                elements.withdrawalModal.classList.remove('active');
+                showSuccess(
+                    'Withdrawal Submitted',
+                    `Your withdrawal request of ₦${amount.toLocaleString()} has been submitted. Disbursement will occur in the next payment circle.`
+                );
+            });
+            
+            // Cancel withdrawal
+            elements.cancelWithdrawal.addEventListener('click', () => {
+                elements.withdrawalModal.classList.remove('active');
+            });
+            
+            // Close success modal
+            elements.closeSuccessModal.addEventListener('click', () => {
+                elements.successModal.classList.remove('active');
+            });
+            
+            // Show welcome notification
+            setTimeout(() => {
+                showNotification('Welcome! You have ₦5000 sign-up bonus in your account.');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
