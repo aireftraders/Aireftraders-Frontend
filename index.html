@@ -1544,7 +1544,8 @@
                                     withdrawableProfit: 0,
                                     bankDetails: null,
                                     paymentCircle: { current: 0, total: 1000 },
-                                    supportTickets: []
+                                    supportTickets: [],
+                                    gameEarnings: 0
                                  });
                     return typeof data === 'string' ? JSON.parse(data) : data;
                 }
@@ -2676,6 +2677,49 @@
             // Initialize support tickets display
             updateSupportTickets();
         });
+
+        // ===== GAME EARNINGS HANDLER =====
+        // This function will be called from game.html to update earnings
+        function updateGameEarnings(amount) {
+            if (!userData.gameEarnings) {
+                userData.gameEarnings = 0;
+            }
+            
+            userData.gameEarnings += amount;
+            userData.tradingCapital += amount;
+            userData.balance += amount;
+            
+            // Update UI and save data
+            updateBalance();
+            updateTradingInfo();
+            saveUserData();
+            
+            showNotification(`🎉 You earned ₦${amount} from the game!`);
+        }
+
+        // ===== TRADING EARNINGS HANDLER =====
+        // This function will be called from trading.html to update earnings
+        function updateTradingEarnings(amount) {
+            if (!userData.totalProfit) {
+                userData.totalProfit = 0;
+            }
+            
+            // Calculate user's share (70%)
+            const userShare = amount * 0.7;
+            userData.totalProfit += amount;
+            userData.withdrawableProfit = (userData.withdrawableProfit || 0) + userShare;
+            
+            // Update UI and save data
+            updateBalance();
+            updateTradingInfo();
+            saveUserData();
+            
+            showNotification(`💰 Trading profit: ₦${userShare.toLocaleString()} added to your balance`);
+        }
+
+        // Make these functions available globally so they can be called from other pages
+        window.updateGameEarnings = updateGameEarnings;
+        window.updateTradingEarnings = updateTradingEarnings;
     </script>
 </body>
 </html>
