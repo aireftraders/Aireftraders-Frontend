@@ -423,9 +423,19 @@
                 height: 250px;
             }
         }
+
+        .nav-bar a {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
+    <nav>
+        <div class="nav-bar">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="game.html">Games</a>
+        </div>
+    </nav>
     <div class="container">
         <div class="app-bar">
             <h1>AI REF-TRADERS Games</h1>
@@ -1611,6 +1621,70 @@
             elements.backToGames4.addEventListener('click', () => showGame(''));
             elements.backToGames5.addEventListener('click', () => showGame(''));
         });
+
+        // Timer for 60 minutes access
+        const ACCESS_DURATION = 60 * 60 * 1000; // 60 minutes in milliseconds
+        const ACCESS_START_TIME_KEY = 'gameAccessStartTime';
+
+        // Check access duration
+        function checkAccessDuration() {
+            const accessStartTime = localStorage.getItem(ACCESS_START_TIME_KEY);
+            const currentTime = Date.now();
+
+            if (accessStartTime && currentTime - accessStartTime >= ACCESS_DURATION) {
+                // Reset game attempts
+                userData.games.memory.attempts = 10;
+                userData.games.dice.attempts = 10;
+                userData.games.snake.attempts = 10;
+                userData.games.trivia.attempts = 10;
+                userData.games.wheel.attempts = 10;
+                saveUserData();
+
+                // Redirect to ads.html
+                window.location.href = 'ads.html';
+            }
+        }
+
+        // Start access timer if not already started
+        if (!localStorage.getItem(ACCESS_START_TIME_KEY)) {
+            localStorage.setItem(ACCESS_START_TIME_KEY, Date.now());
+        }
+
+        // Periodically check access duration
+        setInterval(checkAccessDuration, 1000);
+
+        // Function to sync balance with dashboard
+        function syncBalanceWithDashboard() {
+            const balanceElement = document.getElementById('balance');
+            const dashboardBalanceElement = document.getElementById('dashboardBalance'); // Assuming dashboard.html has an element with this ID
+
+            if (balanceElement && dashboardBalanceElement) {
+                const currentBalance = parseFloat(balanceElement.textContent.replace(/[^0-9.-]+/g, ''));
+                const dashboardBalance = parseFloat(dashboardBalanceElement.textContent.replace(/[^0-9.-]+/g, ''));
+
+                if (currentBalance !== dashboardBalance) {
+                    dashboardBalanceElement.textContent = currentBalance.toLocaleString();
+                }
+            }
+        }
+
+        // Function to add earnings to balance in real-time
+        function addEarningsToBalance(amount) {
+            const balanceElement = document.getElementById('balance');
+
+            if (balanceElement) {
+                let currentBalance = parseFloat(balanceElement.textContent.replace(/[^0-9.-]+/g, ''));
+                currentBalance += amount;
+                balanceElement.textContent = currentBalance.toLocaleString();
+
+                // Sync with dashboard
+                syncBalanceWithDashboard();
+            }
+        }
+
+        // Example usage: Call addEarningsToBalance(800) whenever a user earns money in the game
+        // Periodically sync balance with dashboard
+        setInterval(syncBalanceWithDashboard, 1000);
     </script>
 </body>
 </html>
