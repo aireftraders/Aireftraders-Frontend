@@ -173,7 +173,9 @@
                 }));
 
                 // Redirect to game.html when access expires
-                window.location.href = 'game.html';
+                if (!window.location.href.includes('ads.html')) {
+                    window.location.href = 'game.html';
+                }
             }
         }
 
@@ -318,4 +320,3 @@
     </script>
 </body>
 </html>
-``` 
