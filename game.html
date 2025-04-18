@@ -751,13 +751,18 @@
             elements.balance.textContent = userData.balance.toLocaleString();
         }
         
-        // Add game earnings to balance
+        // Add game earnings to balance - UPDATED to ensure consistency
         function addGameEarnings(amount) {
+            // First update the userData object
             userData.balance += amount;
-            updateBalance();
+            
+            // Then save to localStorage
             saveUserData();
             
-            // Try to sync with backend
+            // Then update the UI
+            updateBalance();
+            
+            // Finally, try to sync with backend if online
             if (isOnline) {
                 syncWithBackend();
             }
@@ -800,8 +805,9 @@
             }
         }
         
-        // Update UI with loaded data
+        // Update UI with loaded data - UPDATED to ensure all elements are refreshed
         function updateUI() {
+            // Update main balance
             updateBalance();
             
             // Update memory game stats
@@ -834,7 +840,7 @@
         // GAME IMPLEMENTATIONS
         // ========================
         
-        // Memory Game
+        // Memory Game - UPDATED to ensure proper state management
         const memoryGame = {
             fruits: ['🍎', '🍌', '🍒', '🍓', '🍊', '🍋', '🍐', '🍇'],
             values: [],
@@ -906,8 +912,8 @@
                 const [card1, card2] = this.flippedCards;
                 
                 userData.games.memory.attempts--;
+                saveUserData(); // Save immediately after attempts change
                 updateUI();
-                saveUserData();
                 
                 if (card1.dataset.value === card2.dataset.value) {
                     card1.classList.add('matched');
@@ -916,8 +922,7 @@
                     
                     userData.games.memory.wins++;
                     userData.games.memory.earnings += 800;
-                    updateUI();
-                    addGameEarnings(800);
+                    addGameEarnings(800); // This will save and update UI
                     document.getElementById('winSound').play();
                     
                     if (this.matchedPairs === 8) {
@@ -946,7 +951,7 @@
             }
         };
 
-        // Dice Game
+        // Dice Game - UPDATED to ensure proper state management
         const diceGame = {
             lastRoll: null,
             
@@ -961,8 +966,8 @@
                 }
                 
                 userData.games.dice.attempts--;
+                saveUserData(); // Save immediately after attempts change
                 updateUI();
-                saveUserData();
                 document.getElementById('clickSound').play();
                 
                 const roll = Math.floor(Math.random() * 6) + 1;
@@ -981,8 +986,7 @@
                             showNotification('🎲 You won ₦800!');
                             userData.games.dice.wins++;
                             userData.games.dice.earnings += 800;
-                            updateUI();
-                            addGameEarnings(800);
+                            addGameEarnings(800); // This will save and update UI
                             document.getElementById('winSound').play();
                         } else {
                             showNotification('Try again!');
@@ -997,7 +1001,7 @@
             }
         };
 
-        // Snake Game
+        // Snake Game - UPDATED to ensure proper state management
         const snakeGame = {
             canvas: null,
             ctx: null,
@@ -1131,9 +1135,8 @@
                 // Check if snake ate food
                 if (head.x === this.food.x && head.y === this.food.y) {
                     userData.games.snake.score++;
-                    updateUI();
-                    addGameEarnings(800);
                     userData.games.snake.earnings += 800;
+                    addGameEarnings(800); // This will save and update UI
                     document.getElementById('winSound').play();
                     this.placeFood();
                     
@@ -1222,8 +1225,8 @@
                 clearInterval(this.gameInterval);
                 this.gameStarted = false;
                 userData.games.snake.attempts--;
+                saveUserData(); // Save immediately after attempts change
                 updateUI();
-                saveUserData();
                 document.getElementById('loseSound').play();
                 
                 document.getElementById('startSnakeBtn').style.display = 'block';
@@ -1237,7 +1240,7 @@
             }
         };
 
-        // Trivia Game
+        // Trivia Game - UPDATED to ensure proper state management
         const triviaGame = {
             questions: [
                 // Nigeria General Knowledge (20)
@@ -1392,8 +1395,8 @@
                 }
                 
                 userData.games.trivia.attempts--;
+                saveUserData(); // Save immediately after attempts change
                 updateUI();
-                saveUserData();
                 document.getElementById('clickSound').play();
                 
                 const question = this.questions[this.currentQuestion];
@@ -1403,8 +1406,7 @@
                     options[selectedOption-1].classList.add('correct');
                     userData.games.trivia.correct++;
                     userData.games.trivia.earnings += 800;
-                    updateUI();
-                    addGameEarnings(800);
+                    addGameEarnings(800); // This will save and update UI
                     showNotification('✅ Correct! You earned ₦800');
                     document.getElementById('winSound').play();
                 } else {
@@ -1428,7 +1430,7 @@
             }
         };
 
-        // Wheel Spin Game
+        // Wheel Spin Game - UPDATED to ensure proper state management
         const wheelGame = {
             spinning: false,
             wheel: null,
@@ -1474,8 +1476,8 @@
                 if (this.spinning) return;
                 
                 userData.games.wheel.attempts--;
+                saveUserData(); // Save immediately after attempts change
                 updateUI();
-                saveUserData();
                 document.getElementById('clickSound').play();
                 
                 this.spinning = true;
@@ -1511,8 +1513,7 @@
                     if (prize > 0) {
                         userData.games.wheel.wins++;
                         userData.games.wheel.earnings += prize;
-                        updateUI();
-                        addGameEarnings(prize);
+                        addGameEarnings(prize); // This will save and update UI
                         document.getElementById('winSound').play();
                         showNotification(`🎡 You won ₦${prize}!`);
                     } else {
