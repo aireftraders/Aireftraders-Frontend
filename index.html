@@ -1520,230 +1520,151 @@
     <button id="adminPanelBtn" style="display: none;" class="primary">Admin Panel</button>
     
     <script>
-        // ===== BACKEND API SIMULATION =====
-        // In a real app, this would be actual API calls to your backend
-        class BackendAPI {
-            static BASE_URL = 'https://api.aireftraders.ng/v1';
+        // ===== DATA STORAGE MANAGER =====
+        class DataManager {
+            static USER_DATA_KEY = 'ai_ref_traders_user_data';
+            static EARNINGS_KEY = 'ai_ref_traders_earnings';
+            static STREAK_KEY = 'ai_ref_traders_streak';
+            static REFERRALS_KEY = 'ai_ref_traders_referrals';
             
-            static async getUserData(userId) {
-                // Simulate API call with localStorage fallback
-                try {
-                    // In a real app, this would be a fetch() call to your backend
-                    const response = await new Promise(resolve => {
-                        setTimeout(() => {
-                            const data = localStorage.getItem(`userData_${userId}`) || 
-                                         localStorage.getItem('userData') || 
-                                         JSON.stringify({
-                                            balance: 5000,
-                                            referrals: 0,
-                                            referralEarnings: 0,
-                                            adsWatched: 0,
-                                            tradingActive: false,
-                                            verified: false,
-                                            tradingCapital: 0,
-                                            dailyProfit: 0,
-                                            totalProfit: 0,
-                                            withdrawableProfit: 0,
-                                            bankDetails: null,
-                                            paymentCircle: { current: 0, total: 1000 },
-                                            supportTickets: []
-                                         });
-                            resolve({ 
-                                ok: true,
-                                json: () => Promise.resolve(JSON.parse(data))
-                            });
-                        }, 500);
-                    });
-                    
-                    if (!response.ok) throw new Error('Failed to fetch user data');
-                    return await response.json();
-                } catch (error) {
-                    console.error('API Error:', error);
-                    // Fallback to localStorage
-                    const data = localStorage.getItem(`userData_${userId}`) || 
-                                 localStorage.getItem('userData') || 
-                                 {
-                                    balance: 5000,
-                                    referrals: 0,
-                                    referralEarnings: 0,
-                                    adsWatched: 0,
-                                    tradingActive: false,
-                                    verified: false,
-                                    tradingCapital: 0,
-                                    dailyProfit: 0,
-                                    totalProfit: 0,
-                                    withdrawableProfit: 0,
-                                    bankDetails: null,
-                                    paymentCircle: { current: 0, total: 1000 },
-                                    supportTickets: []
-                                 };
-                    return typeof data === 'string' ? JSON.parse(data) : data;
+            static initialize() {
+                // Initialize user data if it doesn't exist
+                if (!localStorage.getItem(this.USER_DATA_KEY)) {
+                    localStorage.setItem(this.USER_DATA_KEY, JSON.stringify({
+                        balance: 5000,
+                        verified: false,
+                        tradingActive: false,
+                        tradingCapital: 0,
+                        dailyProfit: 0,
+                        totalProfit: 0,
+                        withdrawableProfit: 0,
+                        bankDetails: null,
+                        paymentCircle: { current: 0, total: 1000 },
+                        supportTickets: []
+                    }));
                 }
-            }
-            
-            static async saveUserData(userId, data) {
-                // First save to localStorage for immediate access
-                localStorage.setItem(`userData_${userId}`, JSON.stringify(data));
-                localStorage.setItem('userData', JSON.stringify(data));
                 
-                // Then try to sync with backend
-                try {
-                    // In a real app, this would be a fetch() call to your backend
-                    const response = await new Promise(resolve => {
-                        setTimeout(() => {
-                            resolve({ ok: true });
-                        }, 300);
-                    });
-                    
-                    if (!response.ok) throw new Error('Failed to save user data');
-                    return true;
-                } catch (error) {
-                    console.error('API Error:', error);
-                    // Data is already saved to localStorage, so we can continue
-                    return false;
+                // Initialize earnings data if it doesn't exist
+                if (!localStorage.getItem(this.EARNINGS_KEY)) {
+                    localStorage.setItem(this.EARNINGS_KEY, JSON.stringify({
+                        gameEarnings: 0,
+                        streakEarnings: 0,
+                        referralEarnings: 0,
+                        tradingEarnings: 0,
+                        totalEarnings: 0
+                    }));
                 }
-            }
-            
-            static async syncWithBackend(userId) {
-                // Get data from localStorage
-                const localData = localStorage.getItem(`userData_${userId}`) || 
-                                  localStorage.getItem('userData');
                 
-                if (!localData) return;
+                // Initialize streak data if it doesn't exist
+                if (!localStorage.getItem(this.STREAK_KEY)) {
+                    localStorage.setItem(this.STREAK_KEY, JSON.stringify({
+                        lastLogin: null,
+                        streak: 0,
+                        totalEarned: 0
+                    }));
+                }
                 
-                try {
-                    // In a real app, this would be a fetch() call to your backend
-                    const response = await new Promise(resolve => {
-                        setTimeout(() => {
-                            resolve({ 
-                                ok: true,
-                                json: () => Promise.resolve(JSON.parse(localData))
-                            });
-                        }, 500);
-                    });
-                    
-                    if (!response.ok) throw new Error('Failed to sync with backend');
-                    return await response.json();
-                } catch (error) {
-                    console.error('Sync Error:', error);
-                    return JSON.parse(localData);
+                // Initialize referrals data if it doesn't exist
+                if (!localStorage.getItem(this.REFERRALS_KEY)) {
+                    localStorage.setItem(this.REFERRALS_KEY, JSON.stringify({
+                        count: 0,
+                        earnings: 0
+                    }));
                 }
             }
             
-            static async getAnnouncements(userId) {
-                try {
-                    // In a real app, this would be a fetch() call to your backend
-                    const response = await new Promise(resolve => {
-                        setTimeout(() => {
-                            const announcements = localStorage.getItem('announcements') || 
-                                                 JSON.stringify([{
-                                                    _id: "1",
-                                                    title: "🚨 LIMITED TIME OFFER",
-                                                    message: "HURRY! Refer 6 friends NOW to unlock FREE AI Trading and start earning ₦7,000-₦17,500 DAILY! ⏳ Only 47 spots left in this payment batch!",
-                                                    time: "Today, 10:15 AM",
-                                                    recipients: [
-                                                        { userId: userId || 'demo', read: false }
-                                                    ]
-                                                }]);
-                            resolve({ 
-                                ok: true,
-                                json: () => Promise.resolve(JSON.parse(announcements))
-                            });
-                        }, 300);
-                    });
-                    
-                    if (!response.ok) throw new Error('Failed to fetch announcements');
-                    return await response.json();
-                } catch (error) {
-                    console.error('API Error:', error);
-                    const announcements = localStorage.getItem('announcements') || 
-                                           [{
-                                                _id: "1",
-                                                title: "🚨 LIMITED TIME OFFER",
-                                                message: "HURRY! Refer 6 friends NOW to unlock FREE AI Trading and start earning ₦7,000-₦17,500 DAILY! ⏳ Only 47 spots left in this payment batch!",
-                                                time: "Today, 10:15 AM",
-                                                recipients: [
-                                                    { userId: userId || 'demo', read: false }
-                                                ]
-                                            }];
-                    return typeof announcements === 'string' ? JSON.parse(announcements) : announcements;
-                }
+            static getUserData() {
+                return JSON.parse(localStorage.getItem(this.USER_DATA_KEY));
             }
             
-            static async saveAnnouncement(announcement) {
-                try {
-                    // Get existing announcements
-                    const existing = await this.getAnnouncements();
-                    existing.unshift(announcement);
-                    
-                    // Save to localStorage
-                    localStorage.setItem('announcements', JSON.stringify(existing));
-                    
-                    // In a real app, this would be a fetch() call to your backend
-                    const response = await new Promise(resolve => {
-                        setTimeout(() => {
-                            resolve({ ok: true });
-                        }, 300);
-                    });
-                    
-                    if (!response.ok) throw new Error('Failed to save announcement');
-                    return true;
-                } catch (error) {
-                    console.error('API Error:', error);
-                    return false;
-                }
+            static saveUserData(data) {
+                localStorage.setItem(this.USER_DATA_KEY, JSON.stringify(data));
+            }
+            
+            static getEarnings() {
+                return JSON.parse(localStorage.getItem(this.EARNINGS_KEY));
+            }
+            
+            static saveEarnings(earnings) {
+                localStorage.setItem(this.EARNINGS_KEY, JSON.stringify(earnings));
+            }
+            
+            static getStreakData() {
+                return JSON.parse(localStorage.getItem(this.STREAK_KEY));
+            }
+            
+            static saveStreakData(streakData) {
+                localStorage.setItem(this.STREAK_KEY, JSON.stringify(streakData));
+            }
+            
+            static getReferralData() {
+                return JSON.parse(localStorage.getItem(this.REFERRALS_KEY));
+            }
+            
+            static saveReferralData(referralData) {
+                localStorage.setItem(this.REFERRALS_KEY, JSON.stringify(referralData));
+            }
+            
+            // Simulate backend sync (in a real app, this would be an API call)
+            static async syncWithBackend() {
+                // Get all data from localStorage
+                const data = {
+                    userData: this.getUserData(),
+                    earnings: this.getEarnings(),
+                    streakData: this.getStreakData(),
+                    referralData: this.getReferralData()
+                };
+                
+                // In a real app, we would send this data to the backend here
+                console.log('Syncing data with backend:', data);
+                
+                // Return the combined data
+                return data;
             }
         }
 
-        // ===== DATA STORAGE AND SYNC MANAGER =====
-        class DataManager {
-            static async initialize() {
-                // Get user ID from Telegram or use a default
-                const tg = window.Telegram?.WebApp;
-                this.userId = tg?.initDataUnsafe?.user?.id || 'default_user';
+        // ===== EARNINGS TRACKER =====
+        class EarningsTracker {
+            static updateEarnings(type, amount) {
+                const earnings = DataManager.getEarnings();
                 
-                // Load data from backend with localStorage fallback
-                this.userData = await BackendAPI.getUserData(this.userId);
-                
-                // Initialize sync interval
-                setInterval(() => this.syncWithBackend(), 30000); // Sync every 30 seconds
-                
-                return this.userData;
-            }
-            
-            static async syncWithBackend() {
-                try {
-                    const updatedData = await BackendAPI.syncWithBackend(this.userId);
-                    if (updatedData) {
-                        this.userData = updatedData;
-                        localStorage.setItem(`userData_${this.userId}`, JSON.stringify(updatedData));
-                        localStorage.setItem('userData', JSON.stringify(updatedData));
-                    }
-                    return updatedData;
-                } catch (error) {
-                    console.error('Sync failed:', error);
-                    return this.userData;
+                switch(type) {
+                    case 'game':
+                        earnings.gameEarnings += amount;
+                        break;
+                    case 'streak':
+                        earnings.streakEarnings += amount;
+                        break;
+                    case 'referral':
+                        earnings.referralEarnings += amount;
+                        break;
+                    case 'trading':
+                        earnings.tradingEarnings += amount;
+                        break;
                 }
+                
+                // Update total earnings
+                earnings.totalEarnings = earnings.gameEarnings + earnings.streakEarnings + 
+                                         earnings.referralEarnings + earnings.tradingEarnings;
+                
+                // Save updated earnings
+                DataManager.saveEarnings(earnings);
+                
+                // Update the user's balance in user data
+                const userData = DataManager.getUserData();
+                userData.balance += amount;
+                DataManager.saveUserData(userData);
+                
+                return earnings;
             }
             
-            static async saveData() {
-                try {
-                    await BackendAPI.saveUserData(this.userId, this.userData);
-                    localStorage.setItem(`userData_${this.userId}`, JSON.stringify(this.userData));
-                    localStorage.setItem('userData', JSON.stringify(this.userData));
-                    return true;
-                } catch (error) {
-                    console.error('Save failed:', error);
-                    return false;
-                }
+            static getTotalEarnings() {
+                const earnings = DataManager.getEarnings();
+                return earnings.totalEarnings;
             }
             
-            static async getAnnouncements() {
-                return await BackendAPI.getAnnouncements(this.userId);
-            }
-            
-            static async saveAnnouncement(announcement) {
-                return await BackendAPI.saveAnnouncement(announcement);
+            static getEarningsBreakdown() {
+                return DataManager.getEarnings();
             }
         }
 
@@ -1751,13 +1672,7 @@
         function initializeStreak() {
             // Get the current date in YYYY-MM-DD format for comparison
             const today = new Date().toISOString().split('T')[0];
-            
-            // Check if we have streak data in localStorage
-            const streakData = JSON.parse(localStorage.getItem('streakData')) || {
-                lastLogin: null,
-                streak: 0,
-                totalEarned: 0
-            };
+            const streakData = DataManager.getStreakData();
             
             // Check if user logged in today
             if (streakData.lastLogin === today) {
@@ -1785,15 +1700,15 @@
             // Calculate today's bonus (500 for day 1, increasing by 100 each day up to day 7)
             const todayBonus = 500 + (Math.min(streakData.streak, 7) - 1) * 100;
             
-            // Update the user's balance immediately
-            userData.balance += todayBonus;
+            // Update earnings
+            EarningsTracker.updateEarnings('streak', todayBonus);
             streakData.totalEarned += todayBonus;
             
             // Update last login date
             streakData.lastLogin = today;
             
-            // Save to localStorage
-            localStorage.setItem('streakData', JSON.stringify(streakData));
+            // Save streak data
+            DataManager.saveStreakData(streakData);
             
             // Update UI and show notification
             updateStreakUI(streakData.streak, true, todayBonus);
@@ -1801,9 +1716,6 @@
             
             // Update the displayed balance
             updateBalance();
-            
-            // Save user data
-            DataManager.saveData();
         }
         
         function updateStreakUI(streakCount, isNewLogin, bonus = 0) {
@@ -1910,23 +1822,10 @@
         }
         
         // ===== CORE FUNCTIONALITY =====
-        const tg = window.Telegram.WebApp;
+        const tg = window.Telegram?.WebApp;
         if (tg) {
             tg.expand();
         }
-        
-        // User data will be loaded from DataManager
-        let userData = {};
-        
-        // Save user data using DataManager
-        async function saveUserData() {
-            await DataManager.saveData();
-        }
-        
-        // Announcements data
-        let announcements = [];
-        let unreadAnnouncements = 0;
-        let announcementTimeout;
         
         // DOM Elements
         const elements = {
@@ -2005,30 +1904,36 @@
         };
         
         // Update UI
-        async function updateUI() {
+        function updateUI() {
+            const userData = DataManager.getUserData();
+            const referralData = DataManager.getReferralData();
+            
             elements.verifiedBadge.textContent = userData.verified ? '✅' : '❌';
             updateBalance();
             updateReferralInfo();
             updateTradingInfo();
             updatePaymentCircle();
             updateSupportTickets();
-            await saveUserData(); // Save to localStorage and sync with backend
         }
         
         // Update balance display
         function updateBalance() {
+            const userData = DataManager.getUserData();
             elements.balance.textContent = userData.balance?.toLocaleString() || '0';
             elements.availableBalance.textContent = Math.max(0, userData.withdrawableProfit || 0).toLocaleString();
         }
         
         // Update referral display
         function updateReferralInfo() {
-            elements.currentReferrals.textContent = userData.referrals || 0;
-            elements.completedReferrals.textContent = userData.referrals || 0;
-            elements.referralProgress.value = userData.referrals || 0;
-            elements.referralEarnings.textContent = ((userData.referrals || 0) * 5000).toLocaleString();
+            const referralData = DataManager.getReferralData();
+            const userData = DataManager.getUserData();
             
-            if ((userData.referrals || 0) >= 6 && (userData.adsWatched || 0) >= 20) {
+            elements.currentReferrals.textContent = referralData.count || 0;
+            elements.completedReferrals.textContent = referralData.count || 0;
+            elements.referralProgress.value = referralData.count || 0;
+            elements.referralEarnings.textContent = (referralData.earnings || 0).toLocaleString();
+            
+            if ((referralData.count || 0) >= 6 && (userData.adsWatched || 0) >= 20) {
                 userData.tradingActive = true;
                 userData.tradingCapital = 35000; // ₦5k signup + ₦30k from 6 referrals
                 elements.tradingStatus.innerHTML = 'AI Bot: <b>Active</b> (24h Profit: ₦' + (userData.dailyProfit || 0).toLocaleString() + ')';
@@ -2043,10 +1948,13 @@
                     elements.toggleTrading.disabled = true;
                 }
             }
+            
+            DataManager.saveUserData(userData);
         }
         
         // Update trading info
         function updateTradingInfo() {
+            const userData = DataManager.getUserData();
             if (elements.tradingCapital) elements.tradingCapital.textContent = 'Trading Capital: ₦' + (userData.tradingCapital || 0).toLocaleString();
             if (elements.dailyProfit) elements.dailyProfit.textContent = 'Daily Profit: ₦' + (userData.dailyProfit || 0).toLocaleString();
             if (elements.totalProfit) elements.totalProfit.textContent = 'Total Profit: ₦' + (userData.totalProfit || 0).toLocaleString();
@@ -2055,12 +1963,14 @@
         
         // Update payment circle info
         function updatePaymentCircle() {
+            const userData = DataManager.getUserData();
             elements.paidUsers.textContent = (userData.paymentCircle?.current || 0).toLocaleString();
             elements.paymentCircleProgress.value = userData.paymentCircle?.current || 0;
 
             if ((userData.paymentCircle?.current || 0) >= 1000) {
                 showNotification('Payment circle complete! Admin has been notified to process payments.');
                 userData.paymentCircle.current = 0; // Reset the payment circle
+                DataManager.saveUserData(userData);
             }
         }
         
@@ -2069,6 +1979,8 @@
             if (!elements.ticketList) return;
             
             elements.ticketList.innerHTML = '';
+            
+            const userData = DataManager.getUserData();
             
             if (!userData.supportTickets || userData.supportTickets.length === 0) {
                 elements.ticketList.innerHTML = '<p>No support tickets yet</p>';
@@ -2108,7 +2020,9 @@
         }
         
         // Simulate trading
-        async function simulateTrading() {
+        function simulateTrading() {
+            const userData = DataManager.getUserData();
+            
             if (userData.tradingActive) {
                 const dailyReturn = Math.random() * (0.5 - 0.2) + 0.2;
                 userData.dailyProfit = (userData.tradingCapital || 0) * dailyReturn;
@@ -2116,6 +2030,9 @@
                 
                 const userShare = userData.dailyProfit * 0.7;
                 userData.withdrawableProfit = (userData.withdrawableProfit || 0) + userShare;
+                
+                // Update earnings
+                EarningsTracker.updateEarnings('trading', userShare);
                 
                 updateBalance();
                 updateTradingInfo();
@@ -2131,7 +2048,7 @@
                 }
                 
                 // Save the updated data
-                await saveUserData();
+                DataManager.saveUserData(userData);
             }
         }
         
@@ -2144,7 +2061,7 @@
         }
         
         // Submit support ticket
-        async function submitTicket() {
+        function submitTicket() {
             const subject = elements.ticketSubject.value;
             const message = elements.ticketMessage.value;
             
@@ -2152,6 +2069,8 @@
                 showNotification('Please fill all fields');
                 return;
             }
+            
+            const userData = DataManager.getUserData();
             
             // Add new ticket
             if (!userData.supportTickets) userData.supportTickets = [];
@@ -2167,102 +2086,15 @@
             elements.ticketMessage.value = '';
             
             // Update UI and save
+            DataManager.saveUserData(userData);
             updateSupportTickets();
             showNotification('Ticket submitted successfully!');
-            await saveUserData();
-        }
-        
-        // Load announcements
-        async function getAnnouncements() {
-            announcements = await DataManager.getAnnouncements();
-            unreadAnnouncements = announcements.filter(a => 
-                a.recipients?.some(r => r.userId === DataManager.userId && !r.read)
-            ).length;
-            
-            // Render announcements
-            announcements.slice(0, 3).forEach(announcement => {
-                const isUnread = announcement.recipients?.some(r => 
-                    r.userId === DataManager.userId && !r.read
-                );
-                renderAnnouncement(announcement, isUnread);
-            });
-            
-            // Update badge
-            if (elements.newAnnouncementBadge) {
-                elements.newAnnouncementBadge.style.display = unreadAnnouncements > 0 ? 'inline-block' : 'none';
-                elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
-            }
-        }
-        
-        // Render announcement
-        function renderAnnouncement(announcement, isNew) {
-            if (!elements.announcementList) return;
-            
-            const announcementItem = document.createElement('div');
-            announcementItem.className = `announcement-item ${isNew ? 'unread' : ''}`;
-            announcementItem.innerHTML = `
-                <h4>${announcement.title} ${isNew ? '<span class="badge">NEW</span>' : ''}</h4>
-                <p>${announcement.message}</p>
-                <div class="announcement-time">${announcement.time}</div>
-            `;
-            
-            // Add click handler to mark as read
-            announcementItem.addEventListener('click', () => {
-                if (isNew) {
-                    // Mark as read in the data
-                    const recipient = announcement.recipients?.find(r => r.userId === DataManager.userId);
-                    if (recipient) recipient.read = true;
-                    
-                    // Update UI
-                    announcementItem.classList.remove('unread');
-                    unreadAnnouncements--;
-                    
-                    if (elements.newAnnouncementBadge) {
-                        if (unreadAnnouncements <= 0) {
-                            elements.newAnnouncementBadge.style.display = 'none';
-                        } else {
-                            elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
-                        }
-                    }
-                    
-                    // Save the updated announcements
-                    DataManager.saveAnnouncement(announcement);
-                }
-            });
-            
-            elements.announcementList.insertBefore(announcementItem, elements.announcementList.firstChild);
-        }
-        
-        // Show announcement notification
-        function showAnnouncementNotification(message) {
-            if (!elements.announcementPreview || !elements.announcementNotification) return;
-            
-            elements.announcementPreview.textContent = message;
-            elements.announcementNotification.classList.add('show');
-            
-            // Auto-hide after 10 seconds
-            clearTimeout(announcementTimeout);
-            announcementTimeout = setTimeout(() => {
-                elements.announcementNotification.classList.remove('show');
-            }, 10000);
-        }
-        
-        // Handle announcement click
-        function handleAnnouncementClick() {
-            if (!elements.announcementNotification || !elements.announcementSection) return;
-            
-            elements.announcementNotification.classList.remove('show');
-            clearTimeout(announcementTimeout);
-            
-            // Show the announcement in the list
-            elements.announcementSection.style.display = 'block';
-            document.querySelector('.tab[data-tab="dashboard"]').click();
         }
         
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Initialize data manager and load user data
-            userData = await DataManager.initialize();
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize data storage
+            DataManager.initialize();
             
             // Initialize streak first
             initializeStreak();
@@ -2272,16 +2104,14 @@
             startTestimonialRotation();
             setupTestimonialDots();
             
-            // Load announcements
-            await getAnnouncements();
-            
             // Initialize UI
             updateUI();
             
             // Copy referral link functionality
             if (elements.copyLink) {
                 elements.copyLink.addEventListener('click', function() {
-                    const refLink = `https://t.me/aireftradersng_bot?startref=${DataManager.userId}`;
+                    const userId = tg?.initDataUnsafe?.user?.id || 'default_user';
+                    const refLink = `https://t.me/aireftradersng_bot?startref=${userId}`;
                     navigator.clipboard.writeText(refLink).then(() => {
                         showNotification('Referral link copied! Share with your Nigerian friends');
                     });
@@ -2300,6 +2130,8 @@
             // Withdraw button
             if (elements.withdrawBtn) {
                 elements.withdrawBtn.addEventListener('click', () => {
+                    const userData = DataManager.getUserData();
+                    
                     if (elements.withdrawalModal) {
                         elements.withdrawalModal.classList.add('active');
                         if (!userData.verified) {
@@ -2395,7 +2227,7 @@
             
             // Confirm bank binding
             if (elements.confirmBankBinding) {
-                elements.confirmBankBinding.addEventListener('click', async () => {
+                elements.confirmBankBinding.addEventListener('click', () => {
                     const bankName = elements.bankName.value === 'other' ? 
                         elements.otherBankName.value : elements.bankName.value;
                     const accountNumber = elements.accountNumber.value;
@@ -2406,10 +2238,18 @@
                     }
 
                     // Simulate bank verification fee and deposit
-                    setTimeout(async () => {
+                    setTimeout(() => {
+                        const userData = DataManager.getUserData();
                         userData.verified = true;
                         userData.bankDetails = { bankName, accountNumber };
                         userData.withdrawableProfit = (userData.withdrawableProfit || 0) + 1050; // Add ₦1,050 to withdrawable profit
+                        
+                        // Update earnings (verification fee is not counted as earnings)
+                        const earnings = DataManager.getEarnings();
+                        earnings.totalEarnings += 500; // Only the ₦500 deposit counts
+                        DataManager.saveEarnings(earnings);
+                        
+                        DataManager.saveUserData(userData);
                         updateBalance();
                         updateUI();
 
@@ -2418,9 +2258,6 @@
                             'Bank Account Verified',
                             '₦1,050 has been deposited into your withdrawable account. Your account is now verified and ready for payment in the next 1,000 payment circle.'
                         );
-                        
-                        // Save the updated data
-                        await saveUserData();
                     }, 1000);
                 });
             }
@@ -2434,8 +2271,9 @@
             
             // Confirm withdrawal
             if (elements.confirmWithdrawal) {
-                elements.confirmWithdrawal.addEventListener('click', async () => {
+                elements.confirmWithdrawal.addEventListener('click', () => {
                     const amount = parseInt(elements.withdrawalAmount.value);
+                    const userData = DataManager.getUserData();
 
                     if (isNaN(amount) || amount < 5000) {
                         showNotification('Minimum withdrawal amount is ₦5,000.');
@@ -2454,6 +2292,7 @@
 
                     // Deduct the amount from withdrawable profit
                     userData.withdrawableProfit = (userData.withdrawableProfit || 0) - amount;
+                    DataManager.saveUserData(userData);
                     updateBalance();
 
                     // Notify the user that the request has been submitted
@@ -2462,9 +2301,6 @@
                         'Withdrawal Requested',
                         `Your withdrawal request of ₦${amount.toLocaleString()} has been submitted for processing.`
                     );
-                    
-                    // Save the updated data
-                    await saveUserData();
                 });
             }
             
@@ -2541,42 +2377,11 @@
             }
             
             if (elements.sendAnnouncementBtn) {
-                elements.sendAnnouncementBtn.addEventListener('click', async () => {
+                elements.sendAnnouncementBtn.addEventListener('click', () => {
                     const announcementText = elements.announcementText.value;
                     if (!announcementText) {
                         showNotification('Please enter announcement text');
                         return;
-                    }
-                    
-                    // Create new announcement
-                    const now = new Date();
-                    const announcement = {
-                        _id: Date.now().toString(),
-                        title: 'Admin Announcement',
-                        message: announcementText,
-                        time: now.toLocaleString(),
-                        recipients: [
-                            { userId: DataManager.userId, read: false }
-                        ]
-                    };
-                    
-                    // Save announcement
-                    await DataManager.saveAnnouncement(announcement);
-                    
-                    // Render the new announcement
-                    renderAnnouncement(announcement, true);
-                    unreadAnnouncements++;
-                    
-                    // Show notification
-                    showAnnouncementNotification(announcementText);
-                    
-                    // Show announcement section if hidden
-                    if (elements.announcementSection) elements.announcementSection.style.display = 'block';
-                    
-                    // Update badge
-                    if (elements.newAnnouncementBadge) {
-                        elements.newAnnouncementBadge.style.display = 'inline-block';
-                        elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
                     }
                     
                     // Clear input and close modal
@@ -2585,35 +2390,20 @@
                 });
             }
             
-            if (elements.viewAllAnnouncementsBtn) {
-                elements.viewAllAnnouncementsBtn.addEventListener('click', () => {
-                    if (elements.newAnnouncementBadge) elements.newAnnouncementBadge.style.display = 'none';
-                });
-            }
-            
-            // Announcement notification click handler
-            if (elements.announcementNotification) {
-                elements.announcementNotification.addEventListener('click', handleAnnouncementClick);
-            }
-            
-            // Close announcement button
-            if (elements.closeAnnouncementBtn) {
-                elements.closeAnnouncementBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    clearTimeout(announcementTimeout);
-                    if (elements.announcementNotification) elements.announcementNotification.classList.remove('show');
-                });
-            }
-            
-            // Check if user is admin (for demo purposes, we'll simulate it)
-            if (elements.adminPanelBtn && tg?.initDataUnsafe?.user?.username === 'admin') {
-                elements.adminPanelBtn.style.display = 'block';
-            }
-            
             // Trading button functionality - direct to trading.html
             if (elements.tradingButton) {
                 elements.tradingButton.addEventListener('click', () => {
-                    window.location.href = 'trading.html';
+                    // In a real app, this would navigate to trading.html
+                    // For this demo, we'll simulate trading earnings
+                    const userData = DataManager.getUserData();
+                    if (userData.tradingActive) {
+                        const earnings = Math.floor(Math.random() * 5000) + 2000;
+                        EarningsTracker.updateEarnings('trading', earnings);
+                        updateUI();
+                        showNotification(`💰 Earned ₦${earnings.toLocaleString()} from AI Trading!`);
+                    } else {
+                        showNotification('Please complete 6 referrals and watch 20 ads to activate AI Trading');
+                    }
                 });
             }
             
@@ -2626,11 +2416,15 @@
                     const sixtyMinutesInMs = 60 * 60 * 1000;
                     
                     if (lastAdWatchTime && (currentTime - parseInt(lastAdWatchTime)) < sixtyMinutesInMs) {
-                        // User has watched ads within 60 minutes - allow access to games
-                        window.location.href = 'game.html';
+                        // User has watched ads within 60 minutes - simulate game earnings
+                        const earnings = 800; // ₦800 per game win
+                        EarningsTracker.updateEarnings('game', earnings);
+                        updateUI();
+                        showNotification(`🎮 Earned ₦${earnings.toLocaleString()} from games!`);
                     } else {
-                        // User hasn't watched ads or it's been more than 60 minutes - redirect to ads
-                        window.location.href = 'ads.html';
+                        // User hasn't watched ads or it's been more than 60 minutes - show ad notice
+                        showNotification('Please watch an ad to continue playing games');
+                        // In a real app, this would redirect to ads.html
                     }
                 });
             }
@@ -2640,6 +2434,13 @@
             
             // Initialize support tickets display
             updateSupportTickets();
+            
+            // Sync with backend every 30 seconds
+            setInterval(() => {
+                DataManager.syncWithBackend().then(data => {
+                    console.log('Data synced with backend:', data);
+                });
+            }, 30000);
         });
     </script>
 </body>
