@@ -218,6 +218,7 @@
         // Configuration
         const totalAds = 20;
         const minAdDuration = 15000; // 15 seconds per ad
+        const resetInterval = 60 * 60 * 1000; // 60 minutes in milliseconds
         let currentAdCount = 0;
         let timer = null;
         let adStartTime = 0;
@@ -250,9 +251,23 @@
             const adData = JSON.parse(localStorage.getItem('adAccessData')) || {
                 adsWatched: 0,
                 accessGranted: false,
-                accessExpiry: 0
+                expiryTime: 0
             };
-            currentAdCount = adData.adsWatched;
+            
+            // Check if the reset period has passed
+            const now = Date.now();
+            if (adData.expiryTime > 0 && now >= adData.expiryTime) {
+                // Reset the ad count
+                currentAdCount = 0;
+                localStorage.setItem('adAccessData', JSON.stringify({
+                    adsWatched: 0,
+                    accessGranted: false,
+                    expiryTime: 0
+                }));
+            } else {
+                currentAdCount = adData.adsWatched;
+            }
+            
             updateProgressDisplay();
             
             // Load first ad
@@ -353,17 +368,26 @@
             
             // Count the ad
             currentAdCount++;
-            localStorage.setItem('adAccessData', JSON.stringify({
-                adsWatched: currentAdCount,
-                accessGranted: currentAdCount >= totalAds,
-                accessExpiry: currentAdCount >= totalAds ? Date.now() + (60 * 60 * 1000) : 0
-            }));
             
             // Check if completed
             if (currentAdCount >= totalAds) {
+                // Set expiry time to 60 minutes from now
+                const expiryTime = Date.now() + resetInterval;
+                localStorage.setItem('adAccessData', JSON.stringify({
+                    adsWatched: currentAdCount,
+                    accessGranted: true,
+                    expiryTime: expiryTime
+                }));
                 grantAccessAndRedirect();
                 return;
             }
+            
+            // Update storage with current count
+            localStorage.setItem('adAccessData', JSON.stringify({
+                adsWatched: currentAdCount,
+                accessGranted: false,
+                expiryTime: 0
+            }));
             
             // Update display and load next ad
             updateProgressDisplay();
