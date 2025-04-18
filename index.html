@@ -902,21 +902,40 @@
             </div>
         </div>
         
-        <!-- AI Trading Tab - Changed to direct to trading.html -->
+        <!-- AI Trading Tab -->
         <div id="tradingTab" class="tab-content">
             <div class="status-card">
                 <h3>🤖 AI Trading</h3>
-                <p>Click the button below to access AI Trading</p>
-                <button class="primary" id="tradingButton">Start AI Trading</button>
+                <p id="tradingCapitalDisplay">Trading Capital: ₦0</p>
+                <p id="dailyProfitDisplay">Daily Profit: ₦0</p>
+                <p id="totalProfitDisplay">Total Profit: ₦0</p>
+                <p id="withdrawableProfitDisplay">Withdrawable: ₦0</p>
+                <button class="primary" id="startTradingBtn">Start AI Trading</button>
+                <button class="secondary" id="stopTradingBtn" style="display: none;">Stop Trading</button>
+            </div>
+            
+            <div class="status-card">
+                <h3>📈 Trading History</h3>
+                <div id="tradingHistory">
+                    <p>No trading activity yet</p>
+                </div>
             </div>
         </div>
         
-        <!-- Games Tab - Changed to check ads status -->
+        <!-- Games Tab -->
         <div id="gamesTab" class="tab-content">
             <div class="status-card">
                 <h3>🎮 Games</h3>
-                <p>Click the button below to access games</p>
-                <button class="primary" id="gamesButton">Play Games</button>
+                <p id="gameEarningsDisplay">Total Game Earnings: ₦0</p>
+                <p id="gamesPlayedDisplay">Games Played: 0</p>
+                <button class="primary" id="playGameBtn">Play Game</button>
+            </div>
+            
+            <div class="status-card">
+                <h3>🏆 Game History</h3>
+                <div id="gameHistory">
+                    <p>No games played yet</p>
+                </div>
             </div>
         </div>
         
@@ -1522,213 +1541,138 @@
     <script>
         // ===== DATA STORAGE MANAGER =====
         class DataManager {
-            static USER_DATA_KEY = 'ai_ref_traders_user_data';
-            static EARNINGS_KEY = 'ai_ref_traders_earnings';
-            static STREAK_KEY = 'ai_ref_traders_streak';
-            static REFERRALS_KEY = 'ai_ref_traders_referrals';
-            
-            static initialize() {
-                // Initialize user data if it doesn't exist
-                if (!localStorage.getItem(this.USER_DATA_KEY)) {
-                    localStorage.setItem(this.USER_DATA_KEY, JSON.stringify({
-                        balance: 5000,
-                        verified: false,
-                        tradingActive: false,
-                        tradingCapital: 0,
-                        dailyProfit: 0,
-                        totalProfit: 0,
-                        withdrawableProfit: 0,
-                        bankDetails: null,
-                        paymentCircle: { current: 0, total: 1000 },
-                        supportTickets: []
-                    }));
-                }
+            static async initialize() {
+                // Get user ID from Telegram or use a default
+                const tg = window.Telegram?.WebApp;
+                this.userId = tg?.initDataUnsafe?.user?.id || 'default_user';
                 
-                // Initialize earnings data if it doesn't exist
-                if (!localStorage.getItem(this.EARNINGS_KEY)) {
-                    localStorage.setItem(this.EARNINGS_KEY, JSON.stringify({
-                        gameEarnings: 0,
-                        streakEarnings: 0,
-                        referralEarnings: 0,
-                        tradingEarnings: 0,
-                        totalEarnings: 0
-                    }));
-                }
+                // Load data from localStorage
+                this.userData = this.loadUserData();
                 
-                // Initialize streak data if it doesn't exist
-                if (!localStorage.getItem(this.STREAK_KEY)) {
-                    localStorage.setItem(this.STREAK_KEY, JSON.stringify({
-                        lastLogin: null,
-                        streak: 0,
-                        totalEarned: 0
-                    }));
-                }
+                // Initialize sync interval (simulating backend sync)
+                setInterval(() => this.syncWithBackend(), 30000); // Sync every 30 seconds
                 
-                // Initialize referrals data if it doesn't exist
-                if (!localStorage.getItem(this.REFERRALS_KEY)) {
-                    localStorage.setItem(this.REFERRALS_KEY, JSON.stringify({
-                        count: 0,
-                        earnings: 0
-                    }));
-                }
+                return this.userData;
             }
             
-            static getUserData() {
-                return JSON.parse(localStorage.getItem(this.USER_DATA_KEY));
-            }
-            
-            static saveUserData(data) {
-                localStorage.setItem(this.USER_DATA_KEY, JSON.stringify(data));
-            }
-            
-            static getEarnings() {
-                return JSON.parse(localStorage.getItem(this.EARNINGS_KEY));
-            }
-            
-            static saveEarnings(earnings) {
-                localStorage.setItem(this.EARNINGS_KEY, JSON.stringify(earnings));
-            }
-            
-            static getStreakData() {
-                return JSON.parse(localStorage.getItem(this.STREAK_KEY));
-            }
-            
-            static saveStreakData(streakData) {
-                localStorage.setItem(this.STREAK_KEY, JSON.stringify(streakData));
-            }
-            
-            static getReferralData() {
-                return JSON.parse(localStorage.getItem(this.REFERRALS_KEY));
-            }
-            
-            static saveReferralData(referralData) {
-                localStorage.setItem(this.REFERRALS_KEY, JSON.stringify(referralData));
-            }
-            
-            // Simulate backend sync (in a real app, this would be an API call)
-            static async syncWithBackend() {
-                // Get all data from localStorage
-                const data = {
-                    userData: this.getUserData(),
-                    earnings: this.getEarnings(),
-                    streakData: this.getStreakData(),
-                    referralData: this.getReferralData()
+            static loadUserData() {
+                const defaultData = {
+                    balance: 5000,
+                    referrals: 0,
+                    referralEarnings: 0,
+                    adsWatched: 0,
+                    tradingActive: false,
+                    verified: false,
+                    tradingCapital: 0,
+                    dailyProfit: 0,
+                    totalProfit: 0,
+                    withdrawableProfit: 0,
+                    gameEarnings: 0,
+                    gamesPlayed: 0,
+                    bankDetails: null,
+                    paymentCircle: { current: 0, total: 1000 },
+                    supportTickets: [],
+                    tradingHistory: [],
+                    gameHistory: []
                 };
                 
-                // In a real app, we would send this data to the backend here
-                console.log('Syncing data with backend:', data);
+                const storedData = localStorage.getItem(`userData_${this.userId}`) || 
+                                  localStorage.getItem('userData');
                 
-                // Return the combined data
-                return data;
+                return storedData ? JSON.parse(storedData) : defaultData;
             }
-        }
-
-        // ===== EARNINGS TRACKER =====
-        class EarningsTracker {
-            static updateEarnings(type, amount) {
-                const earnings = DataManager.getEarnings();
-                
-                switch(type) {
-                    case 'game':
-                        earnings.gameEarnings += amount;
-                        break;
-                    case 'streak':
-                        earnings.streakEarnings += amount;
-                        break;
-                    case 'referral':
-                        earnings.referralEarnings += amount;
-                        break;
-                    case 'trading':
-                        earnings.tradingEarnings += amount;
-                        break;
+            
+            static async saveUserData(data) {
+                try {
+                    localStorage.setItem(`userData_${this.userId}`, JSON.stringify(data));
+                    localStorage.setItem('userData', JSON.stringify(data));
+                    return true;
+                } catch (error) {
+                    console.error('Error saving user data:', error);
+                    return false;
                 }
-                
-                // Update total earnings
-                earnings.totalEarnings = earnings.gameEarnings + earnings.streakEarnings + 
-                                         earnings.referralEarnings + earnings.tradingEarnings;
-                
-                // Save updated earnings
-                DataManager.saveEarnings(earnings);
-                
-                // Update the user's balance in user data
-                const userData = DataManager.getUserData();
-                userData.balance += amount;
-                DataManager.saveUserData(userData);
-                
-                return earnings;
             }
             
-            static getTotalEarnings() {
-                const earnings = DataManager.getEarnings();
-                return earnings.totalEarnings;
+            static async syncWithBackend() {
+                // In a real app, this would sync with your backend
+                // For now, we'll just save to localStorage
+                return this.saveUserData(this.userData);
             }
             
-            static getEarningsBreakdown() {
-                return DataManager.getEarnings();
+            static async getAnnouncements() {
+                // Simulate getting announcements
+                const defaultAnnouncements = [{
+                    _id: "1",
+                    title: "🚨 LIMITED TIME OFFER",
+                    message: "HURRY! Refer 6 friends NOW to unlock FREE AI Trading and start earning ₦7,000-₦17,500 DAILY! ⏳ Only 47 spots left in this payment batch!",
+                    time: "Today, 10:15 AM",
+                    recipients: [
+                        { userId: this.userId || 'demo', read: false }
+                    ]
+                }];
+                
+                const storedAnnouncements = localStorage.getItem('announcements');
+                return storedAnnouncements ? JSON.parse(storedAnnouncements) : defaultAnnouncements;
+            }
+            
+            static async saveAnnouncement(announcement) {
+                try {
+                    const announcements = await this.getAnnouncements();
+                    announcements.unshift(announcement);
+                    localStorage.setItem('announcements', JSON.stringify(announcements));
+                    return true;
+                } catch (error) {
+                    console.error('Error saving announcement:', error);
+                    return false;
+                }
             }
         }
 
         // ===== DAILY STREAK FUNCTIONALITY =====
         function initializeStreak() {
-            // Get the current date in YYYY-MM-DD format for comparison
             const today = new Date().toISOString().split('T')[0];
-            const streakData = DataManager.getStreakData();
+            const streakData = JSON.parse(localStorage.getItem('streakData')) || {
+                lastLogin: null,
+                streak: 0,
+                totalEarned: 0
+            };
             
-            // Check if user logged in today
             if (streakData.lastLogin === today) {
-                // User already logged in today
                 updateStreakUI(streakData.streak, false);
                 return;
             }
             
-            // Check if this is a consecutive day
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
             const yesterdayStr = yesterday.toISOString().split('T')[0];
             
             if (streakData.lastLogin === yesterdayStr) {
-                // Consecutive day - increment streak
                 streakData.streak++;
             } else if (streakData.lastLogin && streakData.lastLogin !== today) {
-                // Broken streak - reset to day 1
                 streakData.streak = 1;
             } else {
-                // First time or no previous login - start at day 1
                 streakData.streak = 1;
             }
             
-            // Calculate today's bonus (500 for day 1, increasing by 100 each day up to day 7)
             const todayBonus = 500 + (Math.min(streakData.streak, 7) - 1) * 100;
-            
-            // Update earnings
-            EarningsTracker.updateEarnings('streak', todayBonus);
+            userData.balance += todayBonus;
             streakData.totalEarned += todayBonus;
-            
-            // Update last login date
             streakData.lastLogin = today;
             
-            // Save streak data
-            DataManager.saveStreakData(streakData);
-            
-            // Update UI and show notification
+            localStorage.setItem('streakData', JSON.stringify(streakData));
             updateStreakUI(streakData.streak, true, todayBonus);
             showNotification(`🔥 Day ${streakData.streak} streak! ₦${todayBonus} added to your balance`);
-            
-            // Update the displayed balance
             updateBalance();
+            DataManager.saveUserData(userData);
         }
         
         function updateStreakUI(streakCount, isNewLogin, bonus = 0) {
-            // Update the streak display
             document.getElementById('streakCount').textContent = streakCount;
-            
-            // Calculate the current day's bonus (even if not new login)
             const currentBonus = 500 + (Math.min(streakCount, 7) - 1) * 100;
             document.getElementById('streakBonus').textContent = currentBonus;
             
-            // Update the calendar display
             const calendarDays = document.querySelectorAll('.streak-day');
-            const todayIndex = new Date().getDay(); // 0-6 (Sun-Sat)
+            const todayIndex = new Date().getDay();
             
             calendarDays.forEach((day, index) => {
                 day.classList.remove('active', 'today');
@@ -1737,7 +1681,6 @@
                     day.classList.add('today');
                 }
                 
-                // Mark previous days in the streak as active
                 if (isNewLogin && index < todayIndex && streakCount > todayIndex - index) {
                     day.classList.add('active');
                 } else if (!isNewLogin && streakCount >= todayIndex - index && index < todayIndex) {
@@ -1746,52 +1689,38 @@
             });
         }
 
-        // ===== NIGERIA-FOCUSED TESTIMONIAL ROTATION =====
+        // ===== TESTIMONIAL ROTATION =====
         let currentTestimonial = 1;
         const totalTestimonials = 15;
         let testimonialInterval;
         let isPaused = false;
         
         function showTestimonial(index) {
-            // Handle wrap-around
             if (index > totalTestimonials) index = 1;
             if (index < 1) index = totalTestimonials;
             
-            // Hide all testimonials
             document.querySelectorAll('.testimonial').forEach(t => {
                 t.classList.remove('show');
             });
             
-            // Show the selected one
             const testimonial = document.getElementById(`testimonial${index}`);
-            if (testimonial) {
-                testimonial.classList.add('show');
-            }
+            if (testimonial) testimonial.classList.add('show');
             
-            // Update dots
             document.querySelectorAll('.testimonial-dot').forEach(dot => {
                 dot.classList.remove('active');
             });
             
             const activeDot = document.querySelector(`.testimonial-dot[data-testimonial="${index}"]`);
-            if (activeDot) {
-                activeDot.classList.add('active');
-            }
+            if (activeDot) activeDot.classList.add('active');
             
             currentTestimonial = index;
         }
         
         function startTestimonialRotation() {
-            // Clear any existing interval
-            if (testimonialInterval) {
-                clearInterval(testimonialInterval);
-            }
+            if (testimonialInterval) clearInterval(testimonialInterval);
             
-            // Set up new interval (6 seconds)
             testimonialInterval = setInterval(() => {
-                if (!isPaused) {
-                    showTestimonial(currentTestimonial + 1);
-                }
+                if (!isPaused) showTestimonial(currentTestimonial + 1);
             }, 6000);
         }
         
@@ -1800,18 +1729,12 @@
                 dot.addEventListener('click', (e) => {
                     e.preventDefault();
                     isPaused = true;
-                    
-                    // Resume after 10 seconds of inactivity
-                    setTimeout(() => {
-                        isPaused = false;
-                    }, 10000);
-                    
+                    setTimeout(() => { isPaused = false; }, 10000);
                     const testimonialIndex = parseInt(dot.getAttribute('data-testimonial'));
                     showTestimonial(testimonialIndex);
                 });
             });
             
-            // Pause when hovering over testimonials
             document.querySelector('.testimonial-container').addEventListener('mouseenter', () => {
                 isPaused = true;
             });
@@ -1822,10 +1745,10 @@
         }
         
         // ===== CORE FUNCTIONALITY =====
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.expand();
-        }
+        const tg = window.Telegram.WebApp;
+        if (tg) tg.expand();
+        
+        let userData = {};
         
         // DOM Elements
         const elements = {
@@ -1840,12 +1763,17 @@
             bankBindingBtn: document.getElementById('bankBindingBtn'),
             withdrawBtn: document.getElementById('withdrawBtn'),
             depositBtn: document.getElementById('depositBtn'),
-            adsWatched: document.getElementById('adsWatched'),
-            toggleTrading: document.getElementById('toggleTrading'),
-            tradingCapital: document.getElementById('tradingCapital'),
-            dailyProfit: document.getElementById('dailyProfit'),
-            totalProfit: document.getElementById('totalProfit'),
-            withdrawableProfit: document.getElementById('withdrawableProfit'),
+            tradingCapitalDisplay: document.getElementById('tradingCapitalDisplay'),
+            dailyProfitDisplay: document.getElementById('dailyProfitDisplay'),
+            totalProfitDisplay: document.getElementById('totalProfitDisplay'),
+            withdrawableProfitDisplay: document.getElementById('withdrawableProfitDisplay'),
+            startTradingBtn: document.getElementById('startTradingBtn'),
+            stopTradingBtn: document.getElementById('stopTradingBtn'),
+            tradingHistory: document.getElementById('tradingHistory'),
+            gameEarningsDisplay: document.getElementById('gameEarningsDisplay'),
+            gamesPlayedDisplay: document.getElementById('gamesPlayedDisplay'),
+            playGameBtn: document.getElementById('playGameBtn'),
+            gameHistory: document.getElementById('gameHistory'),
             availableBalance: document.getElementById('availableBalance'),
             verificationNotice: document.getElementById('verificationNotice'),
             withdrawalForm: document.getElementById('withdrawalForm'),
@@ -1898,79 +1826,127 @@
             ticketSubject: document.getElementById('ticketSubject'),
             ticketMessage: document.getElementById('ticketMessage'),
             submitTicket: document.getElementById('submitTicket'),
-            ticketList: document.getElementById('ticketList'),
-            gamesButton: document.getElementById('gamesButton'),
-            tradingButton: document.getElementById('tradingButton')
+            ticketList: document.getElementById('ticketList')
         };
         
         // Update UI
-        function updateUI() {
-            const userData = DataManager.getUserData();
-            const referralData = DataManager.getReferralData();
-            
+        async function updateUI() {
             elements.verifiedBadge.textContent = userData.verified ? '✅' : '❌';
             updateBalance();
             updateReferralInfo();
             updateTradingInfo();
+            updateGameInfo();
             updatePaymentCircle();
             updateSupportTickets();
+            await DataManager.saveUserData(userData);
         }
         
         // Update balance display
         function updateBalance() {
-            const userData = DataManager.getUserData();
             elements.balance.textContent = userData.balance?.toLocaleString() || '0';
             elements.availableBalance.textContent = Math.max(0, userData.withdrawableProfit || 0).toLocaleString();
         }
         
         // Update referral display
         function updateReferralInfo() {
-            const referralData = DataManager.getReferralData();
-            const userData = DataManager.getUserData();
+            elements.currentReferrals.textContent = userData.referrals || 0;
+            elements.completedReferrals.textContent = userData.referrals || 0;
+            elements.referralProgress.value = userData.referrals || 0;
+            elements.referralEarnings.textContent = ((userData.referrals || 0) * 5000).toLocaleString();
             
-            elements.currentReferrals.textContent = referralData.count || 0;
-            elements.completedReferrals.textContent = referralData.count || 0;
-            elements.referralProgress.value = referralData.count || 0;
-            elements.referralEarnings.textContent = (referralData.earnings || 0).toLocaleString();
-            
-            if ((referralData.count || 0) >= 6 && (userData.adsWatched || 0) >= 20) {
+            if ((userData.referrals || 0) >= 6 && (userData.adsWatched || 0) >= 20) {
                 userData.tradingActive = true;
                 userData.tradingCapital = 35000; // ₦5k signup + ₦30k from 6 referrals
                 elements.tradingStatus.innerHTML = 'AI Bot: <b>Active</b> (24h Profit: ₦' + (userData.dailyProfit || 0).toLocaleString() + ')';
-                if (elements.toggleTrading) {
-                    elements.toggleTrading.textContent = 'Deactivate Trading';
-                    elements.toggleTrading.disabled = false;
-                }
             } else {
                 elements.tradingStatus.innerHTML = 'AI Bot: <b>Inactive</b> (Complete 6 referrals and 20 ads)';
-                if (elements.toggleTrading) {
-                    elements.toggleTrading.textContent = 'Activate Trading';
-                    elements.toggleTrading.disabled = true;
-                }
             }
-            
-            DataManager.saveUserData(userData);
         }
         
         // Update trading info
         function updateTradingInfo() {
-            const userData = DataManager.getUserData();
-            if (elements.tradingCapital) elements.tradingCapital.textContent = 'Trading Capital: ₦' + (userData.tradingCapital || 0).toLocaleString();
-            if (elements.dailyProfit) elements.dailyProfit.textContent = 'Daily Profit: ₦' + (userData.dailyProfit || 0).toLocaleString();
-            if (elements.totalProfit) elements.totalProfit.textContent = 'Total Profit: ₦' + (userData.totalProfit || 0).toLocaleString();
-            if (elements.withdrawableProfit) elements.withdrawableProfit.textContent = 'Withdrawable: ₦' + (userData.withdrawableProfit || 0).toLocaleString();
+            elements.tradingCapitalDisplay.textContent = 'Trading Capital: ₦' + (userData.tradingCapital || 0).toLocaleString();
+            elements.dailyProfitDisplay.textContent = 'Daily Profit: ₦' + (userData.dailyProfit || 0).toLocaleString();
+            elements.totalProfitDisplay.textContent = 'Total Profit: ₦' + (userData.totalProfit || 0).toLocaleString();
+            elements.withdrawableProfitDisplay.textContent = 'Withdrawable: ₦' + (userData.withdrawableProfit || 0).toLocaleString();
+            
+            if (userData.tradingActive) {
+                elements.startTradingBtn.style.display = 'none';
+                elements.stopTradingBtn.style.display = 'block';
+            } else {
+                elements.startTradingBtn.style.display = 'block';
+                elements.stopTradingBtn.style.display = 'none';
+            }
+            
+            // Update trading history
+            updateTradingHistory();
+        }
+        
+        // Update game info
+        function updateGameInfo() {
+            elements.gameEarningsDisplay.textContent = 'Total Game Earnings: ₦' + (userData.gameEarnings || 0).toLocaleString();
+            elements.gamesPlayedDisplay.textContent = 'Games Played: ' + (userData.gamesPlayed || 0);
+            
+            // Update game history
+            updateGameHistory();
+        }
+        
+        // Update trading history
+        function updateTradingHistory() {
+            if (!elements.tradingHistory) return;
+            
+            elements.tradingHistory.innerHTML = '';
+            
+            if (!userData.tradingHistory || userData.tradingHistory.length === 0) {
+                elements.tradingHistory.innerHTML = '<p>No trading activity yet</p>';
+                return;
+            }
+            
+            userData.tradingHistory.slice(0, 5).forEach(trade => {
+                const tradeElement = document.createElement('div');
+                tradeElement.className = 'status-card';
+                tradeElement.style.marginBottom = '10px';
+                tradeElement.innerHTML = `
+                    <p><b>${trade.type === 'profit' ? '💰 Profit' : '📉 Loss'}</b></p>
+                    <p>Amount: ₦${trade.amount.toLocaleString()}</p>
+                    <p><small>${new Date(trade.timestamp).toLocaleString()}</small></p>
+                `;
+                elements.tradingHistory.appendChild(tradeElement);
+            });
+        }
+        
+        // Update game history
+        function updateGameHistory() {
+            if (!elements.gameHistory) return;
+            
+            elements.gameHistory.innerHTML = '';
+            
+            if (!userData.gameHistory || userData.gameHistory.length === 0) {
+                elements.gameHistory.innerHTML = '<p>No games played yet</p>';
+                return;
+            }
+            
+            userData.gameHistory.slice(0, 5).forEach(game => {
+                const gameElement = document.createElement('div');
+                gameElement.className = 'status-card';
+                gameElement.style.marginBottom = '10px';
+                gameElement.innerHTML = `
+                    <p><b>${game.won ? '🎉 Won' : '😢 Lost'}</b></p>
+                    <p>Earnings: ₦${game.amount.toLocaleString()}</p>
+                    <p><small>${new Date(game.timestamp).toLocaleString()}</small></p>
+                `;
+                elements.gameHistory.appendChild(gameElement);
+            });
         }
         
         // Update payment circle info
         function updatePaymentCircle() {
-            const userData = DataManager.getUserData();
             elements.paidUsers.textContent = (userData.paymentCircle?.current || 0).toLocaleString();
             elements.paymentCircleProgress.value = userData.paymentCircle?.current || 0;
 
             if ((userData.paymentCircle?.current || 0) >= 1000) {
                 showNotification('Payment circle complete! Admin has been notified to process payments.');
-                userData.paymentCircle.current = 0; // Reset the payment circle
-                DataManager.saveUserData(userData);
+                userData.paymentCircle.current = 0;
             }
         }
         
@@ -1979,8 +1955,6 @@
             if (!elements.ticketList) return;
             
             elements.ticketList.innerHTML = '';
-            
-            const userData = DataManager.getUserData();
             
             if (!userData.supportTickets || userData.supportTickets.length === 0) {
                 elements.ticketList.innerHTML = '<p>No support tickets yet</p>';
@@ -2020,9 +1994,7 @@
         }
         
         // Simulate trading
-        function simulateTrading() {
-            const userData = DataManager.getUserData();
-            
+        async function simulateTrading() {
             if (userData.tradingActive) {
                 const dailyReturn = Math.random() * (0.5 - 0.2) + 0.2;
                 userData.dailyProfit = (userData.tradingCapital || 0) * dailyReturn;
@@ -2031,8 +2003,13 @@
                 const userShare = userData.dailyProfit * 0.7;
                 userData.withdrawableProfit = (userData.withdrawableProfit || 0) + userShare;
                 
-                // Update earnings
-                EarningsTracker.updateEarnings('trading', userShare);
+                // Add to trading history
+                userData.tradingHistory = userData.tradingHistory || [];
+                userData.tradingHistory.unshift({
+                    type: 'profit',
+                    amount: userShare,
+                    timestamp: Date.now()
+                });
                 
                 updateBalance();
                 updateTradingInfo();
@@ -2047,21 +2024,18 @@
                     updatePaymentCircle();
                 }
                 
-                // Save the updated data
-                DataManager.saveUserData(userData);
+                await DataManager.saveUserData(userData);
             }
         }
         
         // Toggle FAQ answer visibility
         function toggleFaq(index) {
             const answer = document.getElementById(`faq${index}`);
-            if (answer) {
-                answer.classList.toggle('show');
-            }
+            if (answer) answer.classList.toggle('show');
         }
         
         // Submit support ticket
-        function submitTicket() {
+        async function submitTicket() {
             const subject = elements.ticketSubject.value;
             const message = elements.ticketMessage.value;
             
@@ -2070,10 +2044,7 @@
                 return;
             }
             
-            const userData = DataManager.getUserData();
-            
-            // Add new ticket
-            if (!userData.supportTickets) userData.supportTickets = [];
+            userData.supportTickets = userData.supportTickets || [];
             userData.supportTickets.unshift({
                 subject,
                 message,
@@ -2081,20 +2052,142 @@
                 timestamp: Date.now()
             });
             
-            // Clear form
             elements.ticketSubject.value = '';
             elements.ticketMessage.value = '';
             
-            // Update UI and save
-            DataManager.saveUserData(userData);
             updateSupportTickets();
             showNotification('Ticket submitted successfully!');
+            await DataManager.saveUserData(userData);
+        }
+        
+        // Load announcements
+        async function getAnnouncements() {
+            const announcements = await DataManager.getAnnouncements();
+            const unreadAnnouncements = announcements.filter(a => 
+                a.recipients?.some(r => r.userId === DataManager.userId && !r.read)
+            ).length;
+            
+            announcements.slice(0, 3).forEach(announcement => {
+                const isUnread = announcement.recipients?.some(r => 
+                    r.userId === DataManager.userId && !r.read
+                );
+                renderAnnouncement(announcement, isUnread);
+            });
+            
+            if (elements.newAnnouncementBadge) {
+                elements.newAnnouncementBadge.style.display = unreadAnnouncements > 0 ? 'inline-block' : 'none';
+                elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
+            }
+        }
+        
+        // Render announcement
+        function renderAnnouncement(announcement, isNew) {
+            if (!elements.announcementList) return;
+            
+            const announcementItem = document.createElement('div');
+            announcementItem.className = `announcement-item ${isNew ? 'unread' : ''}`;
+            announcementItem.innerHTML = `
+                <h4>${announcement.title} ${isNew ? '<span class="badge">NEW</span>' : ''}</h4>
+                <p>${announcement.message}</p>
+                <div class="announcement-time">${announcement.time}</div>
+            `;
+            
+            announcementItem.addEventListener('click', () => {
+                if (isNew) {
+                    const recipient = announcement.recipients?.find(r => r.userId === DataManager.userId);
+                    if (recipient) recipient.read = true;
+                    
+                    announcementItem.classList.remove('unread');
+                    if (elements.newAnnouncementBadge) {
+                        const unreadCount = parseInt(elements.newAnnouncementBadge.textContent) - 1;
+                        if (unreadCount <= 0) {
+                            elements.newAnnouncementBadge.style.display = 'none';
+                        } else {
+                            elements.newAnnouncementBadge.textContent = unreadCount === 1 ? 'NEW' : `${unreadCount} NEW`;
+                        }
+                    }
+                    
+                    DataManager.saveAnnouncement(announcement);
+                }
+            });
+            
+            elements.announcementList.insertBefore(announcementItem, elements.announcementList.firstChild);
+        }
+        
+        // Show announcement notification
+        function showAnnouncementNotification(message) {
+            if (!elements.announcementPreview || !elements.announcementNotification) return;
+            
+            elements.announcementPreview.textContent = message;
+            elements.announcementNotification.classList.add('show');
+            
+            setTimeout(() => {
+                elements.announcementNotification.classList.remove('show');
+            }, 10000);
+        }
+        
+        // Handle announcement click
+        function handleAnnouncementClick() {
+            if (!elements.announcementNotification) return;
+            
+            elements.announcementNotification.classList.remove('show');
+            elements.announcementSection.style.display = 'block';
+            document.querySelector('.tab[data-tab="dashboard"]').click();
+        }
+        
+        // Start trading
+        async function startTrading() {
+            if ((userData.referrals || 0) >= 6 && (userData.adsWatched || 0) >= 20) {
+                userData.tradingActive = true;
+                userData.tradingCapital = 35000;
+                showNotification('AI Trading activated! Your capital is ₦35,000');
+                updateTradingInfo();
+                await DataManager.saveUserData(userData);
+            } else {
+                showNotification('Complete 6 referrals and watch 20 ads to activate trading');
+            }
+        }
+        
+        // Stop trading
+        async function stopTrading() {
+            userData.tradingActive = false;
+            showNotification('AI Trading deactivated');
+            updateTradingInfo();
+            await DataManager.saveUserData(userData);
+        }
+        
+        // Play game
+        async function playGame() {
+            const win = Math.random() > 0.4; // 60% chance to win
+            const amount = win ? 800 : 0;
+            
+            if (win) {
+                userData.gameEarnings = (userData.gameEarnings || 0) + amount;
+                userData.tradingCapital = (userData.tradingCapital || 0) + amount;
+                showNotification(`🎉 You won! ₦${amount} added to your trading capital`);
+            } else {
+                showNotification('😢 Better luck next time!');
+            }
+            
+            userData.gamesPlayed = (userData.gamesPlayed || 0) + 1;
+            
+            // Add to game history
+            userData.gameHistory = userData.gameHistory || [];
+            userData.gameHistory.unshift({
+                won: win,
+                amount: amount,
+                timestamp: Date.now()
+            });
+            
+            updateGameInfo();
+            updateTradingInfo();
+            await DataManager.saveUserData(userData);
         }
         
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initialize data storage
-            DataManager.initialize();
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize data manager and load user data
+            userData = await DataManager.initialize();
             
             // Initialize streak first
             initializeStreak();
@@ -2104,14 +2197,16 @@
             startTestimonialRotation();
             setupTestimonialDots();
             
+            // Load announcements
+            await getAnnouncements();
+            
             // Initialize UI
             updateUI();
             
             // Copy referral link functionality
             if (elements.copyLink) {
                 elements.copyLink.addEventListener('click', function() {
-                    const userId = tg?.initDataUnsafe?.user?.id || 'default_user';
-                    const refLink = `https://t.me/aireftradersng_bot?startref=${userId}`;
+                    const refLink = `https://t.me/aireftradersng_bot?startref=${DataManager.userId}`;
                     navigator.clipboard.writeText(refLink).then(() => {
                         showNotification('Referral link copied! Share with your Nigerian friends');
                     });
@@ -2121,17 +2216,13 @@
             // Bank binding
             if (elements.bankBindingBtn) {
                 elements.bankBindingBtn.addEventListener('click', () => {
-                    if (elements.bankModal) {
-                        elements.bankModal.classList.add('active');
-                    }
+                    if (elements.bankModal) elements.bankModal.classList.add('active');
                 });
             }
             
             // Withdraw button
             if (elements.withdrawBtn) {
                 elements.withdrawBtn.addEventListener('click', () => {
-                    const userData = DataManager.getUserData();
-                    
                     if (elements.withdrawalModal) {
                         elements.withdrawalModal.classList.add('active');
                         if (!userData.verified) {
@@ -2148,35 +2239,25 @@
             // Deposit button
             if (elements.depositBtn) {
                 elements.depositBtn.addEventListener('click', () => {
-                    if (elements.depositModal) {
-                        elements.depositModal.classList.add('active');
-                    }
+                    if (elements.depositModal) elements.depositModal.classList.add('active');
                 });
             }
             
             // Close deposit modal
             if (elements.closeDepositModal) {
                 elements.closeDepositModal.addEventListener('click', () => {
-                    if (elements.depositModal) {
-                        elements.depositModal.classList.remove('active');
-                    }
+                    if (elements.depositModal) elements.depositModal.classList.remove('active');
                 });
             }
             
             // Learn more button in deposit modal
             if (elements.learnMoreBtn) {
                 elements.learnMoreBtn.addEventListener('click', () => {
-                    if (elements.depositModal) {
-                        elements.depositModal.classList.remove('active');
-                    }
-                    // Switch to Info tab
+                    if (elements.depositModal) elements.depositModal.classList.remove('active');
                     document.querySelector('.tab[data-tab="info"]').click();
-                    // Scroll to investment section
                     setTimeout(() => {
                         const investmentSection = document.querySelector('.investment-section');
-                        if (investmentSection) {
-                            investmentSection.scrollIntoView({ behavior: 'smooth' });
-                        }
+                        if (investmentSection) investmentSection.scrollIntoView({ behavior: 'smooth' });
                     }, 300);
                 });
             }
@@ -2227,7 +2308,7 @@
             
             // Confirm bank binding
             if (elements.confirmBankBinding) {
-                elements.confirmBankBinding.addEventListener('click', () => {
+                elements.confirmBankBinding.addEventListener('click', async () => {
                     const bankName = elements.bankName.value === 'other' ? 
                         elements.otherBankName.value : elements.bankName.value;
                     const accountNumber = elements.accountNumber.value;
@@ -2237,19 +2318,10 @@
                         return;
                     }
 
-                    // Simulate bank verification fee and deposit
-                    setTimeout(() => {
-                        const userData = DataManager.getUserData();
+                    setTimeout(async () => {
                         userData.verified = true;
                         userData.bankDetails = { bankName, accountNumber };
-                        userData.withdrawableProfit = (userData.withdrawableProfit || 0) + 1050; // Add ₦1,050 to withdrawable profit
-                        
-                        // Update earnings (verification fee is not counted as earnings)
-                        const earnings = DataManager.getEarnings();
-                        earnings.totalEarnings += 500; // Only the ₦500 deposit counts
-                        DataManager.saveEarnings(earnings);
-                        
-                        DataManager.saveUserData(userData);
+                        userData.withdrawableProfit = (userData.withdrawableProfit || 0) + 1050;
                         updateBalance();
                         updateUI();
 
@@ -2258,6 +2330,8 @@
                             'Bank Account Verified',
                             '₦1,050 has been deposited into your withdrawable account. Your account is now verified and ready for payment in the next 1,000 payment circle.'
                         );
+                        
+                        await DataManager.saveUserData(userData);
                     }, 1000);
                 });
             }
@@ -2271,9 +2345,8 @@
             
             // Confirm withdrawal
             if (elements.confirmWithdrawal) {
-                elements.confirmWithdrawal.addEventListener('click', () => {
+                elements.confirmWithdrawal.addEventListener('click', async () => {
                     const amount = parseInt(elements.withdrawalAmount.value);
-                    const userData = DataManager.getUserData();
 
                     if (isNaN(amount) || amount < 5000) {
                         showNotification('Minimum withdrawal amount is ₦5,000.');
@@ -2290,17 +2363,16 @@
                         return;
                     }
 
-                    // Deduct the amount from withdrawable profit
                     userData.withdrawableProfit = (userData.withdrawableProfit || 0) - amount;
-                    DataManager.saveUserData(userData);
                     updateBalance();
 
-                    // Notify the user that the request has been submitted
                     if (elements.withdrawalModal) elements.withdrawalModal.classList.remove('active');
                     showSuccess(
                         'Withdrawal Requested',
                         `Your withdrawal request of ₦${amount.toLocaleString()} has been submitted for processing.`
                     );
+                    
+                    await DataManager.saveUserData(userData);
                 });
             }
             
@@ -2326,9 +2398,7 @@
             // Allow submitting ticket with Enter key
             if (elements.ticketMessage) {
                 elements.ticketMessage.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        submitTicket();
-                    }
+                    if (e.key === 'Enter') submitTicket();
                 });
             }
             
@@ -2351,11 +2421,10 @@
                 });
             }
             
-            // Account number validation (Nigerian account numbers are typically 10 digits)
+            // Account number validation
             if (elements.accountNumber) {
                 elements.accountNumber.addEventListener('input', function() {
                     if (this.value.length === 10) {
-                        // Simulate account name resolution
                         if (elements.accountName) elements.accountName.value = "Verified Account";
                     } else {
                         if (elements.accountName) elements.accountName.value = "";
@@ -2377,56 +2446,77 @@
             }
             
             if (elements.sendAnnouncementBtn) {
-                elements.sendAnnouncementBtn.addEventListener('click', () => {
+                elements.sendAnnouncementBtn.addEventListener('click', async () => {
                     const announcementText = elements.announcementText.value;
                     if (!announcementText) {
                         showNotification('Please enter announcement text');
                         return;
                     }
                     
-                    // Clear input and close modal
+                    const now = new Date();
+                    const announcement = {
+                        _id: Date.now().toString(),
+                        title: 'Admin Announcement',
+                        message: announcementText,
+                        time: now.toLocaleString(),
+                        recipients: [
+                            { userId: DataManager.userId, read: false }
+                        ]
+                    };
+                    
+                    await DataManager.saveAnnouncement(announcement);
+                    renderAnnouncement(announcement, true);
+                    showAnnouncementNotification(announcementText);
+                    
+                    if (elements.announcementSection) elements.announcementSection.style.display = 'block';
+                    
+                    if (elements.newAnnouncementBadge) {
+                        elements.newAnnouncementBadge.style.display = 'inline-block';
+                        elements.newAnnouncementBadge.textContent = 'NEW';
+                    }
+                    
                     if (elements.announcementText) elements.announcementText.value = '';
                     if (elements.adminAnnouncementModal) elements.adminAnnouncementModal.classList.remove('active');
                 });
             }
             
-            // Trading button functionality - direct to trading.html
-            if (elements.tradingButton) {
-                elements.tradingButton.addEventListener('click', () => {
-                    // In a real app, this would navigate to trading.html
-                    // For this demo, we'll simulate trading earnings
-                    const userData = DataManager.getUserData();
-                    if (userData.tradingActive) {
-                        const earnings = Math.floor(Math.random() * 5000) + 2000;
-                        EarningsTracker.updateEarnings('trading', earnings);
-                        updateUI();
-                        showNotification(`💰 Earned ₦${earnings.toLocaleString()} from AI Trading!`);
-                    } else {
-                        showNotification('Please complete 6 referrals and watch 20 ads to activate AI Trading');
-                    }
+            if (elements.viewAllAnnouncementsBtn) {
+                elements.viewAllAnnouncementsBtn.addEventListener('click', () => {
+                    if (elements.newAnnouncementBadge) elements.newAnnouncementBadge.style.display = 'none';
                 });
             }
             
-            // Games button functionality - check ads status
-            if (elements.gamesButton) {
-                elements.gamesButton.addEventListener('click', () => {
-                    // Check if user has watched ads within the last 60 minutes
-                    const lastAdWatchTime = localStorage.getItem('lastAdWatchTime');
-                    const currentTime = new Date().getTime();
-                    const sixtyMinutesInMs = 60 * 60 * 1000;
-                    
-                    if (lastAdWatchTime && (currentTime - parseInt(lastAdWatchTime)) < sixtyMinutesInMs) {
-                        // User has watched ads within 60 minutes - simulate game earnings
-                        const earnings = 800; // ₦800 per game win
-                        EarningsTracker.updateEarnings('game', earnings);
-                        updateUI();
-                        showNotification(`🎮 Earned ₦${earnings.toLocaleString()} from games!`);
-                    } else {
-                        // User hasn't watched ads or it's been more than 60 minutes - show ad notice
-                        showNotification('Please watch an ad to continue playing games');
-                        // In a real app, this would redirect to ads.html
-                    }
+            // Announcement notification click handler
+            if (elements.announcementNotification) {
+                elements.announcementNotification.addEventListener('click', handleAnnouncementClick);
+            }
+            
+            // Close announcement button
+            if (elements.closeAnnouncementBtn) {
+                elements.closeAnnouncementBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (elements.announcementNotification) elements.announcementNotification.classList.remove('show');
                 });
+            }
+            
+            // Check if user is admin (for demo purposes)
+            if (elements.adminPanelBtn && tg?.initDataUnsafe?.user?.username === 'admin') {
+                elements.adminPanelBtn.style.display = 'block';
+            }
+            
+            // Start trading button
+            if (elements.startTradingBtn) {
+                elements.startTradingBtn.addEventListener('click', startTrading);
+            }
+            
+            // Stop trading button
+            if (elements.stopTradingBtn) {
+                elements.stopTradingBtn.addEventListener('click', stopTrading);
+            }
+            
+            // Play game button
+            if (elements.playGameBtn) {
+                elements.playGameBtn.addEventListener('click', playGame);
             }
             
             // Simulate trading every 15 seconds for demo
@@ -2434,13 +2524,6 @@
             
             // Initialize support tickets display
             updateSupportTickets();
-            
-            // Sync with backend every 30 seconds
-            setInterval(() => {
-                DataManager.syncWithBackend().then(data => {
-                    console.log('Data synced with backend:', data);
-                });
-            }, 30000);
         });
     </script>
 </body>
