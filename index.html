@@ -1631,7 +1631,6 @@
                     // Save to localStorage
                     localStorage.setItem('announcements', JSON.stringify(existing));
                     
-                    // Send to backend
                     const response = await fetch(`${this.BASE_URL}/announcements`, {
                         method: 'POST',
                         headers: {
@@ -1641,6 +1640,47 @@
                     });
                     
                     if (!response.ok) throw new Error('Failed to save announcement');
+                    return true;
+                } catch (error) {
+                    console.error('API Error:', error);
+                    return false;
+                }
+            }
+            
+            static async getAdsStatus(userId) {
+                try {
+                    const response = await fetch(`${this.BASE_URL}/ads/status?userId=${userId}`);
+                    if (!response.ok) throw new Error('Failed to fetch ads status');
+                    return await response.json();
+                } catch (error) {
+                    console.error('API Error:', error);
+                    // Fallback to localStorage
+                    const adsData = localStorage.getItem(`adsData_${userId}`) || 
+                                     localStorage.getItem('adsData') || 
+                                     JSON.stringify({
+                                        adsWatched: 0,
+                                        lastAdWatchTime: null,
+                                        adsRequired: 20
+                                     });
+                    return typeof adsData === 'string' ? JSON.parse(adsData) : adsData;
+                }
+            }
+            
+            static async saveAdsStatus(userId, data) {
+                try {
+                    // Save to localStorage first
+                    localStorage.setItem(`adsData_${userId}`, JSON.stringify(data));
+                    localStorage.setItem('adsData', JSON.stringify(data));
+                    
+                    const response = await fetch(`${this.BASE_URL}/ads/status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ userId, ...data })
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to save ads status');
                     return true;
                 } catch (error) {
                     console.error('API Error:', error);
@@ -1658,11 +1698,12 @@
                 
                 // Load data from backend with localStorage fallback
                 this.userData = await BackendAPI.getUserData(this.userId);
+                this.adsData = await BackendAPI.getAdsStatus(this.userId);
                 
                 // Initialize sync interval
                 setInterval(() => this.syncWithBackend(), 30000); // Sync every 30 seconds
                 
-                return this.userData;
+                return { userData: this.userData, adsData: this.adsData };
             }
             
             static async syncWithBackend() {
@@ -1673,10 +1714,18 @@
                         localStorage.setItem(`userData_${this.userId}`, JSON.stringify(updatedData));
                         localStorage.setItem('userData', JSON.stringify(updatedData));
                     }
-                    return updatedData;
+                    
+                    const updatedAdsData = await BackendAPI.getAdsStatus(this.userId);
+                    if (updatedAdsData) {
+                        this.adsData = updatedAdsData;
+                        localStorage.setItem(`adsData_${this.userId}`, JSON.stringify(updatedAdsData));
+                        localStorage.setItem('adsData', JSON.stringify(updatedAdsData));
+                    }
+                    
+                    return { userData: this.userData, adsData: this.adsData };
                 } catch (error) {
                     console.error('Sync failed:', error);
-                    return this.userData;
+                    return { userData: this.userData, adsData: this.adsData };
                 }
             }
             
@@ -1688,6 +1737,18 @@
                     return true;
                 } catch (error) {
                     console.error('Save failed:', error);
+                    return false;
+                }
+            }
+            
+            static async saveAdsData() {
+                try {
+                    await BackendAPI.saveAdsStatus(this.userId, this.adsData);
+                    localStorage.setItem(`adsData_${this.userId}`, JSON.stringify(this.adsData));
+                    localStorage.setItem('adsData', JSON.stringify(this.adsData));
+                    return true;
+                } catch (error) {
+                    console.error('Save ads failed:', error);
                     return false;
                 }
             }
@@ -1871,10 +1932,16 @@
         
         // User data will be loaded from DataManager
         let userData = {};
+        let adsData = {};
         
         // Save user data using DataManager
         async function saveUserData() {
             await DataManager.saveData();
+        }
+        
+        // Save ads data using DataManager
+        async function saveAdsData() {
+            await DataManager.saveAdsData();
         }
         
         // Announcements data
@@ -1982,7 +2049,7 @@
             elements.referralProgress.value = userData.referrals || 0;
             elements.referralEarnings.textContent = ((userData.referrals || 0) * 5000).toLocaleString();
             
-            if ((userData.referrals || 0) >= 6 && (userData.adsWatched || 0) >= 20) {
+            if ((userData.referrals || 0) >= 6 && (adsData.adsWatched || 0) >= 20) {
                 userData.tradingActive = true;
                 userData.tradingCapital = 35000; // ₦5k signup + ₦30k from 6 referrals
                 elements.tradingStatus.innerHTML = 'AI Bot: <b>Active</b> (24h Profit: ₦' + (userData.dailyProfit || 0).toLocaleString() + ')';
@@ -2216,7 +2283,9 @@
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', async () => {
             // Initialize data manager and load user data
-            userData = await DataManager.initialize();
+            const data = await DataManager.initialize();
+            userData = data.userData;
+            adsData = data.adsData;
             
             // Initialize streak first
             initializeStreak();
@@ -2574,20 +2643,17 @@
             // Games button functionality - check ads status
             if (elements.gamesButton) {
                 elements.gamesButton.addEventListener('click', () => {
-                    // Check if user has watched 20 ads today
-                    const adsData = JSON.parse(localStorage.getItem('adsData')) || {
-                        count: 0,
-                        lastWatchDate: null
-                    };
+                    // Check if user has watched ads within the last 60 minutes
+                    const lastAdWatchTime = adsData.lastAdWatchTime;
+                    const currentTime = new Date().getTime();
+                    const sixtyMinutesInMs = 60 * 60 * 1000;
                     
-                    const today = new Date().toDateString();
-                    const adsWatchedToday = adsData.lastWatchDate === today ? adsData.count : 0;
-                    
-                    if (adsWatchedToday >= 20) {
-                        // User has watched 20 ads today - allow access to games
+                    if (lastAdWatchTime && (currentTime - lastAdWatchTime) < sixtyMinutesInMs && 
+                        adsData.adsWatched >= 20) {
+                        // User has watched ads within 60 minutes and completed 20 ads - allow access to games
                         window.location.href = 'game.html';
                     } else {
-                        // User hasn't watched 20 ads today - redirect to ads
+                        // User hasn't watched ads or it's been more than 60 minutes - redirect to ads
                         window.location.href = 'ads.html';
                     }
                 });
