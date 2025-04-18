@@ -1520,162 +1520,303 @@
     <button id="adminPanelBtn" style="display: none;" class="primary">Admin Panel</button>
     
     <script>
-        // ===== EARNINGS TRACKER AND SYNC SYSTEM =====
-        class EarningsTracker {
-            constructor() {
-                this.userData = this.loadUserData();
-                this.syncInterval = 30000; // Sync every 30 seconds
-                this.init();
-            }
+        // ===== BACKEND API SIMULATION =====
+        // In a real app, this would be actual API calls to your backend
+        class BackendAPI {
+            static BASE_URL = 'https://api.aireftraders.ng/v1';
             
-            init() {
-                // Initialize from localStorage
-                if (!this.userData) {
-                    this.userData = {
-                        balance: 5000,
-                        referrals: 0,
-                        referralEarnings: 0,
-                        adsWatched: 0,
-                        tradingActive: false,
-                        verified: false,
-                        tradingCapital: 0,
-                        dailyProfit: 0,
-                        totalProfit: 0,
-                        withdrawableProfit: 0,
-                        bankDetails: null,
-                        paymentCircle: { current: 0, total: 1000 },
-                        supportTickets: [],
-                        gameEarnings: 0,
-                        streakEarnings: 0,
-                        lastSync: Date.now()
-                    };
-                    this.saveUserData();
-                }
-                
-                // Start sync interval
-                setInterval(() => this.syncWithBackend(), this.syncInterval);
-            }
-            
-            loadUserData() {
-                const data = localStorage.getItem('userData');
-                return data ? JSON.parse(data) : null;
-            }
-            
-            saveUserData() {
-                localStorage.setItem('userData', JSON.stringify(this.userData));
-            }
-            
-            syncWithBackend() {
-                // In a real app, this would make an API call to your backend
-                console.log('Syncing user data with backend...');
-                this.userData.lastSync = Date.now();
-                this.saveUserData();
-            }
-            
-            addEarnings(type, amount) {
-                switch(type) {
-                    case 'game':
-                        this.userData.gameEarnings = (this.userData.gameEarnings || 0) + amount;
-                        this.userData.balance += amount;
-                        break;
-                    case 'streak':
-                        this.userData.streakEarnings = (this.userData.streakEarnings || 0) + amount;
-                        this.userData.balance += amount;
-                        break;
-                    case 'referral':
-                        this.userData.referralEarnings = (this.userData.referralEarnings || 0) + amount;
-                        this.userData.balance += amount;
-                        break;
-                    case 'trading':
-                        this.userData.dailyProfit = amount;
-                        this.userData.totalProfit = (this.userData.totalProfit || 0) + amount;
-                        this.userData.withdrawableProfit = (this.userData.withdrawableProfit || 0) + (amount * 0.7); // 70% to user
-                        break;
-                }
-                
-                this.saveUserData();
-                this.updateUI();
-            }
-            
-            updateUI() {
-                document.getElementById('balance').textContent = this.userData.balance.toLocaleString();
-                document.getElementById('referralEarnings').textContent = this.userData.referralEarnings.toLocaleString();
-                document.getElementById('currentReferrals').textContent = this.userData.referrals || 0;
-                document.getElementById('completedReferrals').textContent = this.userData.referrals || 0;
-                document.getElementById('referralProgress').value = this.userData.referrals || 0;
-                document.getElementById('availableBalance').textContent = Math.max(0, this.userData.withdrawableProfit || 0).toLocaleString();
-                
-                if (this.userData.tradingActive) {
-                    document.getElementById('tradingStatus').innerHTML = `AI Bot: <b>Active</b> (24h Profit: ₦${(this.userData.dailyProfit || 0).toLocaleString()})`;
-                }
-            }
-            
-            // Method to simulate trading profits
-            simulateTrading() {
-                if (this.userData.tradingActive) {
-                    const dailyReturn = Math.random() * (0.5 - 0.2) + 0.2; // 20-50% return
-                    const profit = this.userData.tradingCapital * dailyReturn;
-                    this.addEarnings('trading', profit);
+            static async getUserData(userId) {
+                // Simulate API call with localStorage fallback
+                try {
+                    // In a real app, this would be a fetch() call to your backend
+                    const response = await new Promise(resolve => {
+                        setTimeout(() => {
+                            const data = localStorage.getItem(`userData_${userId}`) || 
+                                         localStorage.getItem('userData') || 
+                                         JSON.stringify({
+                                            balance: 5000,
+                                            referrals: 0,
+                                            referralEarnings: 0,
+                                            adsWatched: 0,
+                                            tradingActive: false,
+                                            verified: false,
+                                            tradingCapital: 0,
+                                            dailyProfit: 0,
+                                            totalProfit: 0,
+                                            withdrawableProfit: 0,
+                                            bankDetails: null,
+                                            paymentCircle: { current: 0, total: 1000 },
+                                            supportTickets: []
+                                         });
+                            resolve({ 
+                                ok: true,
+                                json: () => Promise.resolve(JSON.parse(data))
+                            });
+                        }, 500);
+                    });
                     
-                    // Randomly increase payment circle
-                    if (Math.random() > 0.8) {
-                        this.userData.paymentCircle.current = Math.min(
-                            this.userData.paymentCircle.current + Math.floor(Math.random() * 50) + 10,
-                            this.userData.paymentCircle.total
-                        );
-                        document.getElementById('paidUsers').textContent = this.userData.paymentCircle.current;
-                        document.getElementById('paymentCircleProgress').value = this.userData.paymentCircle.current;
-                    }
+                    if (!response.ok) throw new Error('Failed to fetch user data');
+                    return await response.json();
+                } catch (error) {
+                    console.error('API Error:', error);
+                    // Fallback to localStorage
+                    const data = localStorage.getItem(`userData_${userId}`) || 
+                                 localStorage.getItem('userData') || 
+                                 {
+                                    balance: 5000,
+                                    referrals: 0,
+                                    referralEarnings: 0,
+                                    adsWatched: 0,
+                                    tradingActive: false,
+                                    verified: false,
+                                    tradingCapital: 0,
+                                    dailyProfit: 0,
+                                    totalProfit: 0,
+                                    withdrawableProfit: 0,
+                                    bankDetails: null,
+                                    paymentCircle: { current: 0, total: 1000 },
+                                    supportTickets: []
+                                 };
+                    return typeof data === 'string' ? JSON.parse(data) : data;
+                }
+            }
+            
+            static async saveUserData(userId, data) {
+                // First save to localStorage for immediate access
+                localStorage.setItem(`userData_${userId}`, JSON.stringify(data));
+                localStorage.setItem('userData', JSON.stringify(data));
+                
+                // Then try to sync with backend
+                try {
+                    // In a real app, this would be a fetch() call to your backend
+                    const response = await new Promise(resolve => {
+                        setTimeout(() => {
+                            resolve({ ok: true });
+                        }, 300);
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to save user data');
+                    return true;
+                } catch (error) {
+                    console.error('API Error:', error);
+                    // Data is already saved to localStorage, so we can continue
+                    return false;
+                }
+            }
+            
+            static async syncWithBackend(userId) {
+                // Get data from localStorage
+                const localData = localStorage.getItem(`userData_${userId}`) || 
+                                  localStorage.getItem('userData');
+                
+                if (!localData) return;
+                
+                try {
+                    // In a real app, this would be a fetch() call to your backend
+                    const response = await new Promise(resolve => {
+                        setTimeout(() => {
+                            resolve({ 
+                                ok: true,
+                                json: () => Promise.resolve(JSON.parse(localData))
+                            });
+                        }, 500);
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to sync with backend');
+                    return await response.json();
+                } catch (error) {
+                    console.error('Sync Error:', error);
+                    return JSON.parse(localData);
+                }
+            }
+            
+            static async getAnnouncements(userId) {
+                try {
+                    // In a real app, this would be a fetch() call to your backend
+                    const response = await new Promise(resolve => {
+                        setTimeout(() => {
+                            const announcements = localStorage.getItem('announcements') || 
+                                                 JSON.stringify([{
+                                                    _id: "1",
+                                                    title: "🚨 LIMITED TIME OFFER",
+                                                    message: "HURRY! Refer 6 friends NOW to unlock FREE AI Trading and start earning ₦7,000-₦17,500 DAILY! ⏳ Only 47 spots left in this payment batch!",
+                                                    time: "Today, 10:15 AM",
+                                                    recipients: [
+                                                        { userId: userId || 'demo', read: false }
+                                                    ]
+                                                }]);
+                            resolve({ 
+                                ok: true,
+                                json: () => Promise.resolve(JSON.parse(announcements))
+                            });
+                        }, 300);
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to fetch announcements');
+                    return await response.json();
+                } catch (error) {
+                    console.error('API Error:', error);
+                    const announcements = localStorage.getItem('announcements') || 
+                                           [{
+                                                _id: "1",
+                                                title: "🚨 LIMITED TIME OFFER",
+                                                message: "HURRY! Refer 6 friends NOW to unlock FREE AI Trading and start earning ₦7,000-₦17,500 DAILY! ⏳ Only 47 spots left in this payment batch!",
+                                                time: "Today, 10:15 AM",
+                                                recipients: [
+                                                    { userId: userId || 'demo', read: false }
+                                                ]
+                                            }];
+                    return typeof announcements === 'string' ? JSON.parse(announcements) : announcements;
+                }
+            }
+            
+            static async saveAnnouncement(announcement) {
+                try {
+                    // Get existing announcements
+                    const existing = await this.getAnnouncements();
+                    existing.unshift(announcement);
+                    
+                    // Save to localStorage
+                    localStorage.setItem('announcements', JSON.stringify(existing));
+                    
+                    // In a real app, this would be a fetch() call to your backend
+                    const response = await new Promise(resolve => {
+                        setTimeout(() => {
+                            resolve({ ok: true });
+                        }, 300);
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to save announcement');
+                    return true;
+                } catch (error) {
+                    console.error('API Error:', error);
+                    return false;
                 }
             }
         }
 
-        // Initialize the tracker
-        const earningsTracker = new EarningsTracker();
+        // ===== DATA STORAGE AND SYNC MANAGER =====
+        class DataManager {
+            static async initialize() {
+                // Get user ID from Telegram or use a default
+                const tg = window.Telegram?.WebApp;
+                this.userId = tg?.initDataUnsafe?.user?.id || 'default_user';
+                
+                // Load data from backend with localStorage fallback
+                this.userData = await BackendAPI.getUserData(this.userId);
+                
+                // Initialize sync interval
+                setInterval(() => this.syncWithBackend(), 30000); // Sync every 30 seconds
+                
+                return this.userData;
+            }
+            
+            static async syncWithBackend() {
+                try {
+                    const updatedData = await BackendAPI.syncWithBackend(this.userId);
+                    if (updatedData) {
+                        this.userData = updatedData;
+                        localStorage.setItem(`userData_${this.userId}`, JSON.stringify(updatedData));
+                        localStorage.setItem('userData', JSON.stringify(updatedData));
+                    }
+                    return updatedData;
+                } catch (error) {
+                    console.error('Sync failed:', error);
+                    return this.userData;
+                }
+            }
+            
+            static async saveData() {
+                try {
+                    await BackendAPI.saveUserData(this.userId, this.userData);
+                    localStorage.setItem(`userData_${this.userId}`, JSON.stringify(this.userData));
+                    localStorage.setItem('userData', JSON.stringify(this.userData));
+                    return true;
+                } catch (error) {
+                    console.error('Save failed:', error);
+                    return false;
+                }
+            }
+            
+            static async getAnnouncements() {
+                return await BackendAPI.getAnnouncements(this.userId);
+            }
+            
+            static async saveAnnouncement(announcement) {
+                return await BackendAPI.saveAnnouncement(announcement);
+            }
+        }
 
         // ===== DAILY STREAK FUNCTIONALITY =====
         function initializeStreak() {
+            // Get the current date in YYYY-MM-DD format for comparison
             const today = new Date().toISOString().split('T')[0];
+            
+            // Check if we have streak data in localStorage
             const streakData = JSON.parse(localStorage.getItem('streakData')) || {
                 lastLogin: null,
                 streak: 0,
                 totalEarned: 0
             };
             
+            // Check if user logged in today
             if (streakData.lastLogin === today) {
+                // User already logged in today
                 updateStreakUI(streakData.streak, false);
                 return;
             }
             
+            // Check if this is a consecutive day
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
             const yesterdayStr = yesterday.toISOString().split('T')[0];
             
             if (streakData.lastLogin === yesterdayStr) {
-                streakData.streek++;
+                // Consecutive day - increment streak
+                streakData.streak++;
             } else if (streakData.lastLogin && streakData.lastLogin !== today) {
+                // Broken streak - reset to day 1
                 streakData.streak = 1;
             } else {
+                // First time or no previous login - start at day 1
                 streakData.streak = 1;
             }
             
+            // Calculate today's bonus (500 for day 1, increasing by 100 each day up to day 7)
             const todayBonus = 500 + (Math.min(streakData.streak, 7) - 1) * 100;
-            earningsTracker.addEarnings('streak', todayBonus);
+            
+            // Update the user's balance immediately
+            userData.balance += todayBonus;
             streakData.totalEarned += todayBonus;
+            
+            // Update last login date
             streakData.lastLogin = today;
             
+            // Save to localStorage
             localStorage.setItem('streakData', JSON.stringify(streakData));
+            
+            // Update UI and show notification
             updateStreakUI(streakData.streak, true, todayBonus);
             showNotification(`🔥 Day ${streakData.streak} streak! ₦${todayBonus} added to your balance`);
+            
+            // Update the displayed balance
+            updateBalance();
+            
+            // Save user data
+            DataManager.saveData();
         }
         
         function updateStreakUI(streakCount, isNewLogin, bonus = 0) {
+            // Update the streak display
             document.getElementById('streakCount').textContent = streakCount;
+            
+            // Calculate the current day's bonus (even if not new login)
             const currentBonus = 500 + (Math.min(streakCount, 7) - 1) * 100;
             document.getElementById('streakBonus').textContent = currentBonus;
             
+            // Update the calendar display
             const calendarDays = document.querySelectorAll('.streak-day');
-            const todayIndex = new Date().getDay();
+            const todayIndex = new Date().getDay(); // 0-6 (Sun-Sat)
             
             calendarDays.forEach((day, index) => {
                 day.classList.remove('active', 'today');
@@ -1684,6 +1825,7 @@
                     day.classList.add('today');
                 }
                 
+                // Mark previous days in the streak as active
                 if (isNewLogin && index < todayIndex && streakCount > todayIndex - index) {
                     day.classList.add('active');
                 } else if (!isNewLogin && streakCount >= todayIndex - index && index < todayIndex) {
@@ -1699,18 +1841,22 @@
         let isPaused = false;
         
         function showTestimonial(index) {
+            // Handle wrap-around
             if (index > totalTestimonials) index = 1;
             if (index < 1) index = totalTestimonials;
             
+            // Hide all testimonials
             document.querySelectorAll('.testimonial').forEach(t => {
                 t.classList.remove('show');
             });
             
+            // Show the selected one
             const testimonial = document.getElementById(`testimonial${index}`);
             if (testimonial) {
                 testimonial.classList.add('show');
             }
             
+            // Update dots
             document.querySelectorAll('.testimonial-dot').forEach(dot => {
                 dot.classList.remove('active');
             });
@@ -1724,10 +1870,12 @@
         }
         
         function startTestimonialRotation() {
+            // Clear any existing interval
             if (testimonialInterval) {
                 clearInterval(testimonialInterval);
             }
             
+            // Set up new interval (6 seconds)
             testimonialInterval = setInterval(() => {
                 if (!isPaused) {
                     showTestimonial(currentTestimonial + 1);
@@ -1741,6 +1889,7 @@
                     e.preventDefault();
                     isPaused = true;
                     
+                    // Resume after 10 seconds of inactivity
                     setTimeout(() => {
                         isPaused = false;
                     }, 10000);
@@ -1750,6 +1899,7 @@
                 });
             });
             
+            // Pause when hovering over testimonials
             document.querySelector('.testimonial-container').addEventListener('mouseenter', () => {
                 isPaused = true;
             });
@@ -1760,84 +1910,168 @@
         }
         
         // ===== CORE FUNCTIONALITY =====
-        const tg = window.Telegram?.WebApp;
+        const tg = window.Telegram.WebApp;
         if (tg) {
             tg.expand();
         }
         
-        // Show notification
-        function showNotification(message) {
-            const notification = document.getElementById('notification');
-            const notificationText = document.getElementById('notificationText');
-            
-            if (!notification || !notificationText) return;
-            
-            notificationText.textContent = message;
-            notification.classList.add('show');
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+        // User data will be loaded from DataManager
+        let userData = {};
+        
+        // Save user data using DataManager
+        async function saveUserData() {
+            await DataManager.saveData();
         }
         
-        // Show success modal
-        function showSuccess(title, message) {
-            const successModal = document.getElementById('successModal');
-            const successTitle = document.getElementById('successTitle');
-            const successMessage = document.getElementById('successMessage');
-            
-            if (!successModal || !successTitle || !successMessage) return;
-            
-            successTitle.textContent = title;
-            successMessage.textContent = message;
-            successModal.classList.add('active');
-        }
+        // Announcements data
+        let announcements = [];
+        let unreadAnnouncements = 0;
+        let announcementTimeout;
         
-        // Toggle FAQ answer visibility
-        function toggleFaq(index) {
-            const answer = document.getElementById(`faq${index}`);
-            if (answer) {
-                answer.classList.toggle('show');
-            }
-        }
+        // DOM Elements
+        const elements = {
+            balance: document.getElementById('balance'),
+            verifiedBadge: document.getElementById('verifiedBadge'),
+            tradingStatus: document.getElementById('tradingStatus'),
+            referralProgress: document.getElementById('referralProgress'),
+            completedReferrals: document.getElementById('completedReferrals'),
+            currentReferrals: document.getElementById('currentReferrals'),
+            referralEarnings: document.getElementById('referralEarnings'),
+            copyLink: document.getElementById('copyLink'),
+            bankBindingBtn: document.getElementById('bankBindingBtn'),
+            withdrawBtn: document.getElementById('withdrawBtn'),
+            depositBtn: document.getElementById('depositBtn'),
+            adsWatched: document.getElementById('adsWatched'),
+            toggleTrading: document.getElementById('toggleTrading'),
+            tradingCapital: document.getElementById('tradingCapital'),
+            dailyProfit: document.getElementById('dailyProfit'),
+            totalProfit: document.getElementById('totalProfit'),
+            withdrawableProfit: document.getElementById('withdrawableProfit'),
+            availableBalance: document.getElementById('availableBalance'),
+            verificationNotice: document.getElementById('verificationNotice'),
+            withdrawalForm: document.getElementById('withdrawalForm'),
+            verifyAccountBtn: document.getElementById('verifyAccountBtn'),
+            withdrawalAmount: document.getElementById('withdrawalAmount'),
+            confirmWithdrawal: document.getElementById('confirmWithdrawal'),
+            cancelWithdrawal: document.getElementById('cancelWithdrawal'),
+            withdrawalModal: document.getElementById('withdrawalModal'),
+            depositModal: document.getElementById('depositModal'),
+            closeDepositModal: document.getElementById('closeDepositModal'),
+            successModal: document.getElementById('successModal'),
+            successTitle: document.getElementById('successTitle'),
+            successMessage: document.getElementById('successMessage'),
+            closeSuccessModal: document.getElementById('closeSuccessModal'),
+            notification: document.getElementById('notification'),
+            notificationText: document.getElementById('notificationText'),
+            paidUsers: document.getElementById('paidUsers'),
+            paymentCircleProgress: document.getElementById('paymentCircleProgress'),
+            bankModal: document.getElementById('bankModal'),
+            bankName: document.getElementById('bankName'),
+            bankSearch: document.getElementById('bankSearch'),
+            otherBankName: document.getElementById('otherBankName'),
+            accountNumber: document.getElementById('accountNumber'),
+            accountName: document.getElementById('accountName'),
+            confirmBankBinding: document.getElementById('confirmBankBinding'),
+            cancelBankBinding: document.getElementById('cancelBankBinding'),
+            tabs: document.querySelectorAll('.tab'),
+            tabContents: {
+                dashboard: document.getElementById('dashboardTab'),
+                trading: document.getElementById('tradingTab'),
+                games: document.getElementById('gamesTab'),
+                info: document.getElementById('infoTab'),
+                support: document.getElementById('supportTab')
+            },
+            streakCount: document.getElementById('streakCount'),
+            streakBonus: document.getElementById('streakBonus'),
+            learnMoreBtn: document.getElementById('learnMoreBtn'),
+            adminPanelBtn: document.getElementById('adminPanelBtn'),
+            adminAnnouncementModal: document.getElementById('adminAnnouncementModal'),
+            announcementText: document.getElementById('announcementText'),
+            sendAnnouncementBtn: document.getElementById('sendAnnouncementBtn'),
+            cancelAnnouncementBtn: document.getElementById('cancelAnnouncementBtn'),
+            announcementSection: document.getElementById('announcementSection'),
+            announcementList: document.getElementById('announcementList'),
+            newAnnouncementBadge: document.getElementById('newAnnouncementBadge'),
+            viewAllAnnouncementsBtn: document.getElementById('viewAllAnnouncementsBtn'),
+            announcementNotification: document.getElementById('announcementNotification'),
+            announcementPreview: document.getElementById('announcementPreview'),
+            closeAnnouncementBtn: document.getElementById('closeAnnouncementBtn'),
+            ticketSubject: document.getElementById('ticketSubject'),
+            ticketMessage: document.getElementById('ticketMessage'),
+            submitTicket: document.getElementById('submitTicket'),
+            ticketList: document.getElementById('ticketList'),
+            gamesButton: document.getElementById('gamesButton'),
+            tradingButton: document.getElementById('tradingButton')
+        };
         
-        // Submit support ticket
-        function submitTicket() {
-            const subject = document.getElementById('ticketSubject').value;
-            const message = document.getElementById('ticketMessage').value;
-            
-            if (!subject || !message) {
-                showNotification('Please fill all fields');
-                return;
-            }
-            
-            const userData = earningsTracker.userData;
-            if (!userData.supportTickets) userData.supportTickets = [];
-            
-            userData.supportTickets.unshift({
-                subject,
-                message,
-                status: 'Pending',
-                timestamp: Date.now()
-            });
-            
-            document.getElementById('ticketSubject').value = '';
-            document.getElementById('ticketMessage').value = '';
-            
+        // Update UI
+        async function updateUI() {
+            elements.verifiedBadge.textContent = userData.verified ? '✅' : '❌';
+            updateBalance();
+            updateReferralInfo();
+            updateTradingInfo();
+            updatePaymentCircle();
             updateSupportTickets();
-            showNotification('Ticket submitted successfully!');
-            earningsTracker.saveUserData();
+            await saveUserData(); // Save to localStorage and sync with backend
+        }
+        
+        // Update balance display
+        function updateBalance() {
+            elements.balance.textContent = userData.balance?.toLocaleString() || '0';
+            elements.availableBalance.textContent = Math.max(0, userData.withdrawableProfit || 0).toLocaleString();
+        }
+        
+        // Update referral display
+        function updateReferralInfo() {
+            elements.currentReferrals.textContent = userData.referrals || 0;
+            elements.completedReferrals.textContent = userData.referrals || 0;
+            elements.referralProgress.value = userData.referrals || 0;
+            elements.referralEarnings.textContent = ((userData.referrals || 0) * 5000).toLocaleString();
+            
+            if ((userData.referrals || 0) >= 6 && (userData.adsWatched || 0) >= 20) {
+                userData.tradingActive = true;
+                userData.tradingCapital = 35000; // ₦5k signup + ₦30k from 6 referrals
+                elements.tradingStatus.innerHTML = 'AI Bot: <b>Active</b> (24h Profit: ₦' + (userData.dailyProfit || 0).toLocaleString() + ')';
+                if (elements.toggleTrading) {
+                    elements.toggleTrading.textContent = 'Deactivate Trading';
+                    elements.toggleTrading.disabled = false;
+                }
+            } else {
+                elements.tradingStatus.innerHTML = 'AI Bot: <b>Inactive</b> (Complete 6 referrals and 20 ads)';
+                if (elements.toggleTrading) {
+                    elements.toggleTrading.textContent = 'Activate Trading';
+                    elements.toggleTrading.disabled = true;
+                }
+            }
+        }
+        
+        // Update trading info
+        function updateTradingInfo() {
+            if (elements.tradingCapital) elements.tradingCapital.textContent = 'Trading Capital: ₦' + (userData.tradingCapital || 0).toLocaleString();
+            if (elements.dailyProfit) elements.dailyProfit.textContent = 'Daily Profit: ₦' + (userData.dailyProfit || 0).toLocaleString();
+            if (elements.totalProfit) elements.totalProfit.textContent = 'Total Profit: ₦' + (userData.totalProfit || 0).toLocaleString();
+            if (elements.withdrawableProfit) elements.withdrawableProfit.textContent = 'Withdrawable: ₦' + (userData.withdrawableProfit || 0).toLocaleString();
+        }
+        
+        // Update payment circle info
+        function updatePaymentCircle() {
+            elements.paidUsers.textContent = (userData.paymentCircle?.current || 0).toLocaleString();
+            elements.paymentCircleProgress.value = userData.paymentCircle?.current || 0;
+
+            if ((userData.paymentCircle?.current || 0) >= 1000) {
+                showNotification('Payment circle complete! Admin has been notified to process payments.');
+                userData.paymentCircle.current = 0; // Reset the payment circle
+            }
         }
         
         // Update support tickets list
         function updateSupportTickets() {
-            const ticketList = document.getElementById('ticketList');
-            if (!ticketList) return;
+            if (!elements.ticketList) return;
             
-            ticketList.innerHTML = '';
+            elements.ticketList.innerHTML = '';
             
-            const userData = earningsTracker.userData;
             if (!userData.supportTickets || userData.supportTickets.length === 0) {
-                ticketList.innerHTML = '<p>No support tickets yet</p>';
+                elements.ticketList.innerHTML = '<p>No support tickets yet</p>';
                 return;
             }
             
@@ -1851,12 +2085,185 @@
                     <p>Status: ${ticket.status || 'Pending'}</p>
                     ${ticket.response ? `<p>Response: ${ticket.response}</p>` : ''}
                 `;
-                ticketList.appendChild(ticketElement);
+                elements.ticketList.appendChild(ticketElement);
             });
         }
         
+        // Show notification
+        function showNotification(message) {
+            if (!elements.notification || !elements.notificationText) return;
+            
+            elements.notificationText.textContent = message;
+            elements.notification.classList.add('show');
+            setTimeout(() => {
+                elements.notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Show success modal
+        function showSuccess(title, message) {
+            elements.successTitle.textContent = title;
+            elements.successMessage.textContent = message;
+            elements.successModal.classList.add('active');
+        }
+        
+        // Simulate trading
+        async function simulateTrading() {
+            if (userData.tradingActive) {
+                const dailyReturn = Math.random() * (0.5 - 0.2) + 0.2;
+                userData.dailyProfit = (userData.tradingCapital || 0) * dailyReturn;
+                userData.totalProfit = (userData.totalProfit || 0) + userData.dailyProfit;
+                
+                const userShare = userData.dailyProfit * 0.7;
+                userData.withdrawableProfit = (userData.withdrawableProfit || 0) + userShare;
+                
+                updateBalance();
+                updateTradingInfo();
+                updateReferralInfo();
+                
+                if (Math.random() > 0.7) {
+                    showNotification('💸 Profit earned: ₦' + Math.floor(userShare).toLocaleString());
+                }
+                
+                if (Math.random() > 0.8) {
+                    userData.paymentCircle.current = (userData.paymentCircle?.current || 0) + Math.floor(Math.random() * 50) + 10;
+                    updatePaymentCircle();
+                }
+                
+                // Save the updated data
+                await saveUserData();
+            }
+        }
+        
+        // Toggle FAQ answer visibility
+        function toggleFaq(index) {
+            const answer = document.getElementById(`faq${index}`);
+            if (answer) {
+                answer.classList.toggle('show');
+            }
+        }
+        
+        // Submit support ticket
+        async function submitTicket() {
+            const subject = elements.ticketSubject.value;
+            const message = elements.ticketMessage.value;
+            
+            if (!subject || !message) {
+                showNotification('Please fill all fields');
+                return;
+            }
+            
+            // Add new ticket
+            if (!userData.supportTickets) userData.supportTickets = [];
+            userData.supportTickets.unshift({
+                subject,
+                message,
+                status: 'Pending',
+                timestamp: Date.now()
+            });
+            
+            // Clear form
+            elements.ticketSubject.value = '';
+            elements.ticketMessage.value = '';
+            
+            // Update UI and save
+            updateSupportTickets();
+            showNotification('Ticket submitted successfully!');
+            await saveUserData();
+        }
+        
+        // Load announcements
+        async function getAnnouncements() {
+            announcements = await DataManager.getAnnouncements();
+            unreadAnnouncements = announcements.filter(a => 
+                a.recipients?.some(r => r.userId === DataManager.userId && !r.read)
+            ).length;
+            
+            // Render announcements
+            announcements.slice(0, 3).forEach(announcement => {
+                const isUnread = announcement.recipients?.some(r => 
+                    r.userId === DataManager.userId && !r.read
+                );
+                renderAnnouncement(announcement, isUnread);
+            });
+            
+            // Update badge
+            if (elements.newAnnouncementBadge) {
+                elements.newAnnouncementBadge.style.display = unreadAnnouncements > 0 ? 'inline-block' : 'none';
+                elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
+            }
+        }
+        
+        // Render announcement
+        function renderAnnouncement(announcement, isNew) {
+            if (!elements.announcementList) return;
+            
+            const announcementItem = document.createElement('div');
+            announcementItem.className = `announcement-item ${isNew ? 'unread' : ''}`;
+            announcementItem.innerHTML = `
+                <h4>${announcement.title} ${isNew ? '<span class="badge">NEW</span>' : ''}</h4>
+                <p>${announcement.message}</p>
+                <div class="announcement-time">${announcement.time}</div>
+            `;
+            
+            // Add click handler to mark as read
+            announcementItem.addEventListener('click', () => {
+                if (isNew) {
+                    // Mark as read in the data
+                    const recipient = announcement.recipients?.find(r => r.userId === DataManager.userId);
+                    if (recipient) recipient.read = true;
+                    
+                    // Update UI
+                    announcementItem.classList.remove('unread');
+                    unreadAnnouncements--;
+                    
+                    if (elements.newAnnouncementBadge) {
+                        if (unreadAnnouncements <= 0) {
+                            elements.newAnnouncementBadge.style.display = 'none';
+                        } else {
+                            elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
+                        }
+                    }
+                    
+                    // Save the updated announcements
+                    DataManager.saveAnnouncement(announcement);
+                }
+            });
+            
+            elements.announcementList.insertBefore(announcementItem, elements.announcementList.firstChild);
+        }
+        
+        // Show announcement notification
+        function showAnnouncementNotification(message) {
+            if (!elements.announcementPreview || !elements.announcementNotification) return;
+            
+            elements.announcementPreview.textContent = message;
+            elements.announcementNotification.classList.add('show');
+            
+            // Auto-hide after 10 seconds
+            clearTimeout(announcementTimeout);
+            announcementTimeout = setTimeout(() => {
+                elements.announcementNotification.classList.remove('show');
+            }, 10000);
+        }
+        
+        // Handle announcement click
+        function handleAnnouncementClick() {
+            if (!elements.announcementNotification || !elements.announcementSection) return;
+            
+            elements.announcementNotification.classList.remove('show');
+            clearTimeout(announcementTimeout);
+            
+            // Show the announcement in the list
+            elements.announcementSection.style.display = 'block';
+            document.querySelector('.tab[data-tab="dashboard"]').click();
+        }
+        
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize data manager and load user data
+            userData = await DataManager.initialize();
+            
             // Initialize streak first
             initializeStreak();
             
@@ -1865,14 +2272,16 @@
             startTestimonialRotation();
             setupTestimonialDots();
             
-            // Update UI with current data
-            earningsTracker.updateUI();
+            // Load announcements
+            await getAnnouncements();
+            
+            // Initialize UI
+            updateUI();
             
             // Copy referral link functionality
-            const copyLink = document.getElementById('copyLink');
-            if (copyLink) {
-                copyLink.addEventListener('click', function() {
-                    const refLink = `https://t.me/aireftradersng_bot?startref=${tg?.initDataUnsafe?.user?.id || 'default_user'}`;
+            if (elements.copyLink) {
+                elements.copyLink.addEventListener('click', function() {
+                    const refLink = `https://t.me/aireftradersng_bot?startref=${DataManager.userId}`;
                     navigator.clipboard.writeText(refLink).then(() => {
                         showNotification('Referral link copied! Share with your Nigerian friends');
                     });
@@ -1880,69 +2289,57 @@
             }
             
             // Bank binding
-            const bankBindingBtn = document.getElementById('bankBindingBtn');
-            if (bankBindingBtn) {
-                bankBindingBtn.addEventListener('click', () => {
-                    const bankModal = document.getElementById('bankModal');
-                    if (bankModal) {
-                        bankModal.classList.add('active');
+            if (elements.bankBindingBtn) {
+                elements.bankBindingBtn.addEventListener('click', () => {
+                    if (elements.bankModal) {
+                        elements.bankModal.classList.add('active');
                     }
                 });
             }
             
             // Withdraw button
-            const withdrawBtn = document.getElementById('withdrawBtn');
-            if (withdrawBtn) {
-                withdrawBtn.addEventListener('click', () => {
-                    const withdrawalModal = document.getElementById('withdrawalModal');
-                    if (withdrawalModal) {
-                        withdrawalModal.classList.add('active');
-                        const verificationNotice = document.getElementById('verificationNotice');
-                        const withdrawalForm = document.getElementById('withdrawalForm');
-                        
-                        if (!earningsTracker.userData.verified) {
-                            if (verificationNotice) verificationNotice.style.display = 'block';
-                            if (withdrawalForm) withdrawalForm.style.display = 'none';
+            if (elements.withdrawBtn) {
+                elements.withdrawBtn.addEventListener('click', () => {
+                    if (elements.withdrawalModal) {
+                        elements.withdrawalModal.classList.add('active');
+                        if (!userData.verified) {
+                            if (elements.verificationNotice) elements.verificationNotice.style.display = 'block';
+                            if (elements.withdrawalForm) elements.withdrawalForm.style.display = 'none';
                         } else {
-                            if (verificationNotice) verificationNotice.style.display = 'none';
-                            if (withdrawalForm) withdrawalForm.style.display = 'block';
+                            if (elements.verificationNotice) elements.verificationNotice.style.display = 'none';
+                            if (elements.withdrawalForm) elements.withdrawalForm.style.display = 'block';
                         }
                     }
                 });
             }
             
             // Deposit button
-            const depositBtn = document.getElementById('depositBtn');
-            if (depositBtn) {
-                depositBtn.addEventListener('click', () => {
-                    const depositModal = document.getElementById('depositModal');
-                    if (depositModal) {
-                        depositModal.classList.add('active');
+            if (elements.depositBtn) {
+                elements.depositBtn.addEventListener('click', () => {
+                    if (elements.depositModal) {
+                        elements.depositModal.classList.add('active');
                     }
                 });
             }
             
             // Close deposit modal
-            const closeDepositModal = document.getElementById('closeDepositModal');
-            if (closeDepositModal) {
-                closeDepositModal.addEventListener('click', () => {
-                    const depositModal = document.getElementById('depositModal');
-                    if (depositModal) {
-                        depositModal.classList.remove('active');
+            if (elements.closeDepositModal) {
+                elements.closeDepositModal.addEventListener('click', () => {
+                    if (elements.depositModal) {
+                        elements.depositModal.classList.remove('active');
                     }
                 });
             }
             
             // Learn more button in deposit modal
-            const learnMoreBtn = document.getElementById('learnMoreBtn');
-            if (learnMoreBtn) {
-                learnMoreBtn.addEventListener('click', () => {
-                    const depositModal = document.getElementById('depositModal');
-                    if (depositModal) {
-                        depositModal.classList.remove('active');
+            if (elements.learnMoreBtn) {
+                elements.learnMoreBtn.addEventListener('click', () => {
+                    if (elements.depositModal) {
+                        elements.depositModal.classList.remove('active');
                     }
-                    
+                    // Switch to Info tab
                     document.querySelector('.tab[data-tab="info"]').click();
+                    // Scroll to investment section
                     setTimeout(() => {
                         const investmentSection = document.querySelector('.investment-section');
                         if (investmentSection) {
@@ -1953,39 +2350,30 @@
             }
             
             // Verify account from withdrawal modal
-            const verifyAccountBtn = document.getElementById('verifyAccountBtn');
-            if (verifyAccountBtn) {
-                verifyAccountBtn.addEventListener('click', () => {
-                    const withdrawalModal = document.getElementById('withdrawalModal');
-                    if (withdrawalModal) withdrawalModal.classList.remove('active');
-                    
-                    const bankModal = document.getElementById('bankModal');
-                    if (bankModal) bankModal.classList.add('active');
+            if (elements.verifyAccountBtn) {
+                elements.verifyAccountBtn.addEventListener('click', () => {
+                    if (elements.withdrawalModal) elements.withdrawalModal.classList.remove('active');
+                    if (elements.bankModal) elements.bankModal.classList.add('active');
                 });
             }
             
             // Bank selection functionality
-            const bankName = document.getElementById('bankName');
-            if (bankName) {
-                bankName.addEventListener('change', function() {
-                    const otherBankName = document.getElementById('otherBankName');
-                    const bankSearch = document.getElementById('bankSearch');
-                    
+            if (elements.bankName) {
+                elements.bankName.addEventListener('change', function() {
                     if (this.value === 'other') {
-                        if (otherBankName) otherBankName.classList.add('active');
-                        if (bankSearch) bankSearch.classList.remove('active');
+                        if (elements.otherBankName) elements.otherBankName.classList.add('active');
+                        if (elements.bankSearch) elements.bankSearch.classList.remove('active');
                     } else {
-                        if (otherBankName) otherBankName.classList.remove('active');
+                        if (elements.otherBankName) elements.otherBankName.classList.remove('active');
                     }
                 });
             }
             
             // Bank search functionality
-            const bankSearch = document.getElementById('bankSearch');
-            if (bankSearch) {
-                bankSearch.addEventListener('input', function() {
+            if (elements.bankSearch) {
+                elements.bankSearch.addEventListener('input', function() {
                     const searchTerm = this.value.toLowerCase();
-                    const options = document.getElementById('bankName').options;
+                    const options = elements.bankName.options;
                     
                     for (let i = 0; i < options.length; i++) {
                         const option = options[i];
@@ -1999,123 +2387,109 @@
             }
             
             // Show bank search when typing in select
-            if (bankName) {
-                bankName.addEventListener('focus', function() {
-                    if (bankSearch) bankSearch.classList.add('active');
+            if (elements.bankName) {
+                elements.bankName.addEventListener('focus', function() {
+                    if (elements.bankSearch) elements.bankSearch.classList.add('active');
                 });
             }
             
             // Confirm bank binding
-            const confirmBankBinding = document.getElementById('confirmBankBinding');
-            if (confirmBankBinding) {
-                confirmBankBinding.addEventListener('click', () => {
-                    const bankName = document.getElementById('bankName');
-                    const otherBankName = document.getElementById('otherBankName');
-                    const accountNumber = document.getElementById('accountNumber');
-                    
-                    const selectedBank = bankName.value === 'other' ? 
-                        otherBankName.value : bankName.value;
-                    const accountNum = accountNumber.value;
+            if (elements.confirmBankBinding) {
+                elements.confirmBankBinding.addEventListener('click', async () => {
+                    const bankName = elements.bankName.value === 'other' ? 
+                        elements.otherBankName.value : elements.bankName.value;
+                    const accountNumber = elements.accountNumber.value;
 
-                    if (!selectedBank || !accountNum || accountNum.length !== 10) {
+                    if (!bankName || !accountNumber || accountNumber.length !== 10) {
                         showNotification('Please provide valid bank details (10-digit account number)');
                         return;
                     }
 
-                    setTimeout(() => {
-                        earningsTracker.userData.verified = true;
-                        earningsTracker.userData.bankDetails = { 
-                            bankName: selectedBank, 
-                            accountNumber: accountNum 
-                        };
-                        earningsTracker.userData.withdrawableProfit = (earningsTracker.userData.withdrawableProfit || 0) + 1050;
-                        earningsTracker.updateUI();
-                        earningsTracker.saveUserData();
+                    // Simulate bank verification fee and deposit
+                    setTimeout(async () => {
+                        userData.verified = true;
+                        userData.bankDetails = { bankName, accountNumber };
+                        userData.withdrawableProfit = (userData.withdrawableProfit || 0) + 1050; // Add ₦1,050 to withdrawable profit
+                        updateBalance();
+                        updateUI();
 
-                        const bankModal = document.getElementById('bankModal');
-                        if (bankModal) bankModal.classList.remove('active');
-                        
+                        if (elements.bankModal) elements.bankModal.classList.remove('active');
                         showSuccess(
                             'Bank Account Verified',
                             '₦1,050 has been deposited into your withdrawable account. Your account is now verified and ready for payment in the next 1,000 payment circle.'
                         );
+                        
+                        // Save the updated data
+                        await saveUserData();
                     }, 1000);
                 });
             }
             
             // Cancel bank binding
-            const cancelBankBinding = document.getElementById('cancelBankBinding');
-            if (cancelBankBinding) {
-                cancelBankBinding.addEventListener('click', () => {
-                    const bankModal = document.getElementById('bankModal');
-                    if (bankModal) bankModal.classList.remove('active');
+            if (elements.cancelBankBinding) {
+                elements.cancelBankBinding.addEventListener('click', () => {
+                    if (elements.bankModal) elements.bankModal.classList.remove('active');
                 });
             }
             
             // Confirm withdrawal
-            const confirmWithdrawal = document.getElementById('confirmWithdrawal');
-            if (confirmWithdrawal) {
-                confirmWithdrawal.addEventListener('click', () => {
-                    const withdrawalAmount = document.getElementById('withdrawalAmount');
-                    const amount = parseInt(withdrawalAmount.value);
+            if (elements.confirmWithdrawal) {
+                elements.confirmWithdrawal.addEventListener('click', async () => {
+                    const amount = parseInt(elements.withdrawalAmount.value);
 
                     if (isNaN(amount) || amount < 5000) {
                         showNotification('Minimum withdrawal amount is ₦5,000.');
                         return;
                     }
 
-                    if (amount > (earningsTracker.userData.withdrawableProfit || 0)) {
+                    if (amount > (userData.withdrawableProfit || 0)) {
                         showNotification('Insufficient withdrawable balance.');
                         return;
                     }
 
-                    if (!earningsTracker.userData.bankDetails || !earningsTracker.userData.verified) {
+                    if (!userData.bankDetails || !userData.verified) {
                         showNotification('Please verify and bind your bank account before withdrawing.');
                         return;
                     }
 
-                    earningsTracker.userData.withdrawableProfit = (earningsTracker.userData.withdrawableProfit || 0) - amount;
-                    earningsTracker.updateUI();
-                    earningsTracker.saveUserData();
+                    // Deduct the amount from withdrawable profit
+                    userData.withdrawableProfit = (userData.withdrawableProfit || 0) - amount;
+                    updateBalance();
 
-                    const withdrawalModal = document.getElementById('withdrawalModal');
-                    if (withdrawalModal) withdrawalModal.classList.remove('active');
-                    
+                    // Notify the user that the request has been submitted
+                    if (elements.withdrawalModal) elements.withdrawalModal.classList.remove('active');
                     showSuccess(
                         'Withdrawal Requested',
                         `Your withdrawal request of ₦${amount.toLocaleString()} has been submitted for processing.`
                     );
+                    
+                    // Save the updated data
+                    await saveUserData();
                 });
             }
             
             // Cancel withdrawal
-            const cancelWithdrawal = document.getElementById('cancelWithdrawal');
-            if (cancelWithdrawal) {
-                cancelWithdrawal.addEventListener('click', () => {
-                    const withdrawalModal = document.getElementById('withdrawalModal');
-                    if (withdrawalModal) withdrawalModal.classList.remove('active');
+            if (elements.cancelWithdrawal) {
+                elements.cancelWithdrawal.addEventListener('click', () => {
+                    if (elements.withdrawalModal) elements.withdrawalModal.classList.remove('active');
                 });
             }
             
             // Close success modal
-            const closeSuccessModal = document.getElementById('closeSuccessModal');
-            if (closeSuccessModal) {
-                closeSuccessModal.addEventListener('click', () => {
-                    const successModal = document.getElementById('successModal');
-                    if (successModal) successModal.classList.remove('active');
+            if (elements.closeSuccessModal) {
+                elements.closeSuccessModal.addEventListener('click', () => {
+                    if (elements.successModal) elements.successModal.classList.remove('active');
                 });
             }
             
             // Submit ticket
-            const submitTicketBtn = document.getElementById('submitTicket');
-            if (submitTicketBtn) {
-                submitTicketBtn.addEventListener('click', submitTicket);
+            if (elements.submitTicket) {
+                elements.submitTicket.addEventListener('click', submitTicket);
             }
             
             // Allow submitting ticket with Enter key
-            const ticketMessage = document.getElementById('ticketMessage');
-            if (ticketMessage) {
-                ticketMessage.addEventListener('keypress', (e) => {
+            if (elements.ticketMessage) {
+                elements.ticketMessage.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
                         submitTicket();
                     }
@@ -2123,82 +2497,146 @@
             }
             
             // Tab switching
-            const tabs = document.querySelectorAll('.tab');
-            if (tabs) {
-                tabs.forEach(tab => {
+            if (elements.tabs) {
+                elements.tabs.forEach(tab => {
                     tab.addEventListener('click', () => {
-                        tabs.forEach(t => t.classList.remove('active'));
+                        elements.tabs.forEach(t => t.classList.remove('active'));
                         tab.classList.add('active');
                         
-                        const tabContents = {
-                            dashboard: document.getElementById('dashboardTab'),
-                            trading: document.getElementById('tradingTab'),
-                            games: document.getElementById('gamesTab'),
-                            info: document.getElementById('infoTab'),
-                            support: document.getElementById('supportTab')
-                        };
-                        
-                        Object.values(tabContents).forEach(content => {
+                        Object.values(elements.tabContents).forEach(content => {
                             if (content) content.classList.remove('active');
                         });
                         
                         const tabName = tab.dataset.tab;
-                        if (tabContents[tabName]) {
-                            tabContents[tabName].classList.add('active');
+                        if (elements.tabContents[tabName]) {
+                            elements.tabContents[tabName].classList.add('active');
                         }
                     });
                 });
             }
             
-            // Account number validation
-            const accountNumber = document.getElementById('accountNumber');
-            if (accountNumber) {
-                accountNumber.addEventListener('input', function() {
-                    const accountName = document.getElementById('accountName');
+            // Account number validation (Nigerian account numbers are typically 10 digits)
+            if (elements.accountNumber) {
+                elements.accountNumber.addEventListener('input', function() {
                     if (this.value.length === 10) {
-                        if (accountName) accountName.value = "Verified Account";
+                        // Simulate account name resolution
+                        if (elements.accountName) elements.accountName.value = "Verified Account";
                     } else {
-                        if (accountName) accountName.value = "";
+                        if (elements.accountName) elements.accountName.value = "";
                     }
                 });
             }
             
             // Admin panel functionality
-            const adminPanelBtn = document.getElementById('adminPanelBtn');
-            if (adminPanelBtn && tg?.initDataUnsafe?.user?.username === 'admin') {
-                adminPanelBtn.style.display = 'block';
-                adminPanelBtn.addEventListener('click', () => {
-                    const adminAnnouncementModal = document.getElementById('adminAnnouncementModal');
-                    if (adminAnnouncementModal) adminAnnouncementModal.classList.add('active');
+            if (elements.adminPanelBtn) {
+                elements.adminPanelBtn.addEventListener('click', () => {
+                    if (elements.adminAnnouncementModal) elements.adminAnnouncementModal.classList.add('active');
                 });
             }
             
+            if (elements.cancelAnnouncementBtn) {
+                elements.cancelAnnouncementBtn.addEventListener('click', () => {
+                    if (elements.adminAnnouncementModal) elements.adminAnnouncementModal.classList.remove('active');
+                });
+            }
+            
+            if (elements.sendAnnouncementBtn) {
+                elements.sendAnnouncementBtn.addEventListener('click', async () => {
+                    const announcementText = elements.announcementText.value;
+                    if (!announcementText) {
+                        showNotification('Please enter announcement text');
+                        return;
+                    }
+                    
+                    // Create new announcement
+                    const now = new Date();
+                    const announcement = {
+                        _id: Date.now().toString(),
+                        title: 'Admin Announcement',
+                        message: announcementText,
+                        time: now.toLocaleString(),
+                        recipients: [
+                            { userId: DataManager.userId, read: false }
+                        ]
+                    };
+                    
+                    // Save announcement
+                    await DataManager.saveAnnouncement(announcement);
+                    
+                    // Render the new announcement
+                    renderAnnouncement(announcement, true);
+                    unreadAnnouncements++;
+                    
+                    // Show notification
+                    showAnnouncementNotification(announcementText);
+                    
+                    // Show announcement section if hidden
+                    if (elements.announcementSection) elements.announcementSection.style.display = 'block';
+                    
+                    // Update badge
+                    if (elements.newAnnouncementBadge) {
+                        elements.newAnnouncementBadge.style.display = 'inline-block';
+                        elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
+                    }
+                    
+                    // Clear input and close modal
+                    if (elements.announcementText) elements.announcementText.value = '';
+                    if (elements.adminAnnouncementModal) elements.adminAnnouncementModal.classList.remove('active');
+                });
+            }
+            
+            if (elements.viewAllAnnouncementsBtn) {
+                elements.viewAllAnnouncementsBtn.addEventListener('click', () => {
+                    if (elements.newAnnouncementBadge) elements.newAnnouncementBadge.style.display = 'none';
+                });
+            }
+            
+            // Announcement notification click handler
+            if (elements.announcementNotification) {
+                elements.announcementNotification.addEventListener('click', handleAnnouncementClick);
+            }
+            
+            // Close announcement button
+            if (elements.closeAnnouncementBtn) {
+                elements.closeAnnouncementBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    clearTimeout(announcementTimeout);
+                    if (elements.announcementNotification) elements.announcementNotification.classList.remove('show');
+                });
+            }
+            
+            // Check if user is admin (for demo purposes, we'll simulate it)
+            if (elements.adminPanelBtn && tg?.initDataUnsafe?.user?.username === 'admin') {
+                elements.adminPanelBtn.style.display = 'block';
+            }
+            
             // Trading button functionality - direct to trading.html
-            const tradingButton = document.getElementById('tradingButton');
-            if (tradingButton) {
-                tradingButton.addEventListener('click', () => {
-                    // In a single-page app, we would show the trading content here
-                    // For demo purposes, we'll just show a message
-                    showNotification('AI Trading would be shown here in the full implementation');
+            if (elements.tradingButton) {
+                elements.tradingButton.addEventListener('click', () => {
+                    window.location.href = 'trading.html';
                 });
             }
             
             // Games button functionality - check ads status
-            const gamesButton = document.getElementById('gamesButton');
-            if (gamesButton) {
-                gamesButton.addEventListener('click', () => {
-                    // In a single-page app, we would show the games content here
-                    // For demo purposes, we'll just show a message
-                    showNotification('Games would be shown here in the full implementation');
+            if (elements.gamesButton) {
+                elements.gamesButton.addEventListener('click', () => {
+                    // Check if user has watched ads within the last 60 minutes
+                    const lastAdWatchTime = localStorage.getItem('lastAdWatchTime');
+                    const currentTime = new Date().getTime();
+                    const sixtyMinutesInMs = 60 * 60 * 1000;
                     
-                    // Simulate earning from games (₦800 per win)
-                    earningsTracker.addEarnings('game', 800);
-                    showNotification('🎉 You won ₦800 from the game! Added to your balance.');
+                    if (lastAdWatchTime && (currentTime - parseInt(lastAdWatchTime)) < sixtyMinutesInMs) {
+                        // User has watched ads within 60 minutes - allow access to games
+                        window.location.href = 'game.html';
+                    } else {
+                        // User hasn't watched ads or it's been more than 60 minutes - redirect to ads
+                        window.location.href = 'ads.html';
+                    }
                 });
             }
             
             // Simulate trading every 15 seconds for demo
-            setInterval(() => earningsTracker.simulateTrading(), 15000);
+            setInterval(simulateTrading, 15000);
             
             // Initialize support tickets display
             updateSupportTickets();
