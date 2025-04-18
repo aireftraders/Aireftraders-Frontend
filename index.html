@@ -250,6 +250,11 @@
             transform: scale(0.98);
         }
         
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
         .primary {
             background: var(--primary);
             color: white;
@@ -264,20 +269,6 @@
         .danger {
             background: var(--danger);
             color: white;
-        }
-        
-        /* Game Container Styles */
-        .game-container {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            margin: 20px 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            display: none;
-        }
-        
-        .game-container.active {
-            display: block;
         }
         
         /* Tab Styles */
@@ -384,39 +375,6 @@
             margin-top: 0;
         }
         
-        /* Game Specific Styles */
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin: 15px 0;
-        }
-        
-        .card {
-            background: var(--primary);
-            color: white;
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            font-size: 24px;
-            cursor: pointer;
-            transition: all 0.3s;
-            user-select: none;
-        }
-        
-        .card.flipped {
-            background: white !important;
-            color: var(--primary);
-            border: 2px solid var(--primary);
-            transform: rotateY(180deg);
-        }
-        
-        .card.matched {
-            visibility: hidden;
-        }
-        
         /* Profit Distribution Chart */
         .profit-chart {
             display: flex;
@@ -495,198 +453,6 @@
             border: 2px solid var(--nigerian-green);
         }
         
-        /* Snake Game */
-        #snakeCanvas {
-            background: #f0f0f0;
-            border-radius: 8px;
-            display: block;
-            margin: 0 auto;
-        }
-        
-        .snake-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            grid-template-rows: auto auto;
-            gap: 5px;
-            margin-top: 10px;
-        }
-        
-        .snake-btn {
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            background: var(--primary);
-            color: white;
-            font-weight: bold;
-        }
-        
-        .snake-btn.up {
-            grid-column: 2;
-            grid-row: 1;
-        }
-        
-        .snake-btn.left {
-            grid-column: 1;
-            grid-row: 2;
-        }
-        
-        .snake-btn.right {
-            grid-column: 3;
-            grid-row: 2;
-        }
-        
-        .snake-btn.down {
-            grid-column: 2;
-            grid-row: 3;
-        }
-        
-        .snake-start-btn {
-            margin: 10px auto;
-            display: block;
-            padding: 10px 20px;
-            background: var(--success);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-        }
-        
-        /* Trivia Game */
-        .trivia-question {
-            font-weight: bold;
-            margin: 15px 0;
-        }
-        
-        .trivia-options {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-            margin: 15px 0;
-        }
-        
-        .trivia-option {
-            padding: 10px;
-            border-radius: 8px;
-            background: #f0f0f0;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .trivia-option:hover {
-            background: #e0e0e0;
-        }
-        
-        .trivia-option.correct {
-            background: var(--success);
-            color: white;
-        }
-        
-        .trivia-option.incorrect {
-            background: var(--danger);
-            color: white;
-        }
-        
-        /* Wheel Spin Game */
-        .wheel-container {
-            position: relative;
-            width: 300px;
-            height: 300px;
-            margin: 20px auto;
-        }
-        
-        .wheel {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            position: relative;
-            overflow: hidden;
-            border: 8px solid #333;
-            box-shadow: 0 0 0 8px #6C5CE7, 0 0 20px rgba(0,0,0,0.5);
-            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
-            transform: rotate(0deg);
-        }
-        
-        .wheel-section {
-            position: absolute;
-            width: 50%;
-            height: 50%;
-            transform-origin: bottom right;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-        
-        .wheel-pointer {
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 40px;
-            z-index: 10;
-        }
-        
-        .wheel-pointer:before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 20px solid transparent;
-            border-right: 20px solid transparent;
-            border-top: 30px solid #D63031;
-        }
-        
-        .spin-btn {
-            display: block;
-            margin: 20px auto;
-            padding: 12px 30px;
-            background: var(--nigerian-green);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            transition: all 0.3s;
-        }
-        
-        .spin-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-        }
-        
-        .spin-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .spin-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-        
-        .wheel-result {
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            margin: 20px 0;
-            min-height: 36px;
-        }
-        
-        .wheel-prize {
-            color: var(--nigerian-green);
-            font-size: 28px;
-        }
-        
         /* FAQ Styles */
         .faq-item {
             margin-bottom: 15px;
@@ -712,43 +478,6 @@
         
         .faq-answer.show {
             display: block;
-        }
-        
-        /* Game Cards */
-        .game-cards {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .game-card {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        
-        .game-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .game-card-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
-        }
-        
-        .game-card-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .game-card-desc {
-            font-size: 12px;
-            color: #666;
         }
         
         /* Cost Table */
@@ -898,6 +627,10 @@
             padding: 10px 15px;
             border-radius: 50px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
         }
         
         /* Announcement Notification */
@@ -962,85 +695,24 @@
         
         /* Ad Modal Styles */
         .ad-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 20px;
-            text-align: center;
+            display: none;
         }
-        /* ===== AD MODAL FIXES ===== */
-.ad-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.95);
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.ad-content {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    width: 340px;
-    text-align: center;
-}
-
-/* Remove any close buttons */
-.ad-close-btn {
-    display: none !important;
-}
-
-/* Force modal to stay open */
-/* ===== BULLETPROOF AD MODAL ===== */
-.ad-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.95);
-    z-index: 2147483647; /* Maximum possible z-index */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    -webkit-overflow-scrolling: touch;
-}
-
-.ad-content {
-    background: white;
-    border-radius: 12px;
-    width: 320px;
-    max-width: 95vw;
-    padding: 20px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    position: relative;
-}
-
-/* Force all children to allow pointer events */
-.ad-modal * {
-    pointer-events: auto !important;
-}
-
-/* Disable background scrolling */
-body.ad-active {
-    overflow: hidden;
-    position: fixed;
-    width: 100%;
-    height: 100%;
-}
+        
+        /* Support Ticket Form */
+        .bank-form input[type="text"],
+        .bank-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+        
+        .bank-form textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
         
         /* Responsive Design */
         @media (max-width: 600px) {
@@ -1052,25 +724,12 @@ body.ad-active {
                 flex-direction: column;
             }
             
-            .cards-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            
-            .game-cards {
-                grid-template-columns: 1fr;
-            }
-            
             .cost-table {
                 font-size: 14px;
             }
             
             .cost-table th, .cost-table td {
                 padding: 8px 10px;
-            }
-            
-            .wheel-container {
-                width: 250px;
-                height: 250px;
             }
         }
         
@@ -1243,181 +902,21 @@ body.ad-active {
             </div>
         </div>
         
-        <!-- AI Trading Tab -->
+        <!-- AI Trading Tab - Changed to direct to trading.html -->
         <div id="tradingTab" class="tab-content">
             <div class="status-card">
                 <h3>🤖 AI Trading</h3>
-                <p id="tradingCapital">Trading Capital: ₦0</p>
-                <p id="dailyProfit">Daily Profit: ₦0</p>
-                <p id="totalProfit">Total Profit: ₦0</p>
-                <p id="withdrawableProfit">Withdrawable: ₦0</p>
-                <button id="toggleTrading" class="primary" disabled>Activate Trading</button>
-            </div>
-            
-            <div class="status-card">
-                <h3>📊 Profit Distribution</h3>
-                <div class="profit-chart">
-                    <div class="chart-bar user" style="width: 70%;">You (70%)</div>
-                    <div class="chart-bar company" style="width: 25%;">Company (25%)</div>
-                    <div class="chart-bar system" style="width: 5%;">System (5%)</div>
-                </div>
-                <p>70% of all profits go directly to you</p>
-            </div>
-            
-            <div class="status-card">
-                <h3>📈 Trading Performance</h3>
-                <p>Daily ROI: 20-50%</p>
-                <p>Risk Level: Medium</p>
-                <p>Strategy: AI-Powered Algorithm</p>
-                <p>Markets: Crypto, Forex, Commodities</p>
+                <p>Click the button below to access AI Trading</p>
+                <button class="primary" id="tradingButton">Start AI Trading</button>
             </div>
         </div>
         
-        <!-- Games Tab -->
+        <!-- Games Tab - Changed to check ads status -->
         <div id="gamesTab" class="tab-content">
-            <div class="game-cards">
-                <div class="game-card" data-game="memory">
-                    <div class="game-card-icon">🧠</div>
-                    <div class="game-card-title">Memory Match</div>
-                    <div class="game-card-desc">Match pairs to earn ₦800 per pair</div>
-                    <button class="primary" style="margin-top: 10px;">Play Now</button>
-                </div>
-                
-                <div class="game-card" data-game="dice">
-                    <div class="game-card-icon">🎲</div>
-                    <div class="game-card-title">Lucky Dice</div>
-                    <div class="game-card-desc">Roll dice to win ₦800 per correct guess</div>
-                    <button class="primary" style="margin-top: 10px;">Play Now</button>
-                </div>
-                
-                <div class="game-card" data-game="snake">
-                    <div class="game-card-icon">🐍</div>
-                    <div class="game-card-title">Snake Game</div>
-                    <div class="game-card-desc">Grow your snake to earn ₦800 per food</div>
-                    <button class="primary" style="margin-top: 10px;">Play Now</button>
-                </div>
-                
-                <div class="game-card" data-game="trivia">
-                    <div class="game-card-icon">❓</div>
-                    <div class="game-card-title">Trivia Quiz</div>
-                    <div class="game-card-desc">Answer questions to earn ₦800 each</div>
-                    <button class="primary" style="margin-top: 10px;">Play Now</button>
-                </div>
-                
-                <div class="game-card" data-game="wheel">
-                    <div class="game-card-icon">🎡</div>
-                    <div class="game-card-title">Lucky Wheel</div>
-                    <div class="game-card-desc">Spin to win ₦200-₦1,600 prizes</div>
-                    <button class="primary" style="margin-top: 10px;">Play Now</button>
-                </div>
-            </div>
-            
-            <div class="game-container" id="memoryGame">
-                <h3>🎮 Memory Match Game</h3>
-                <p>Match the fruits to win ₦800 per pair</p>
-                <p>Ads required: <span id="memoryAdsRequired">2</span></p>
-                <p class="attempts-counter">Attempts left: <span id="memoryAttempts">10</span>/10</p>
-                
-                <div class="cards-grid" id="gameBoard"></div>
-                
-                <div class="game-stats">
-                    <p>🎯 Matched: <span id="wins">0</span> pairs</p>
-                    <p>💰 Earned: ₦<span id="gameEarnings">0</span></p>
-                </div>
-                
-                <button class="secondary" id="backToGames1" style="width: 100%; margin-top: 15px;">← Back to Games</button>
-            </div>
-            
-            <div class="game-container" id="diceGame">
-                <h3>🎲 Lucky Dice</h3>
-                <p>Roll the dice to win ₦800 per correct guess</p>
-                <p>Ads required: <span id="diceAdsRequired">2</span></p>
-                <p class="attempts-counter">Attempts left: <span id="diceAttempts">10</span>/10</p>
-                
-                <div style="text-align: center; margin: 20px 0;">
-                    <div id="diceResult" style="font-size: 48px; margin: 20px 0;">?</div>
-                    <button id="rollDiceBtn" class="primary" style="width: 100%;">Roll Dice (₦800)</button>
-                </div>
-                
-                <div class="game-stats">
-                    <p>🎯 Wins: <span id="diceWins">0</span></p>
-                    <p>💰 Earned: ₦<span id="diceEarnings">0</span></p>
-                </div>
-                
-                <button class="secondary" id="backToGames2" style="width: 100%; margin-top: 15px;">← Back to Games</button>
-            </div>
-            
-            <div class="game-container" id="snakeGame">
-                <h3>🐍 Snake Game</h3>
-                <p>Grow your snake to earn ₦800 per food</p>
-                <p>Ads required: <span id="snakeAdsRequired">2</span></p>
-                <p class="attempts-counter">Attempts left: <span id="snakeAttempts">10</span>/10</p>
-                
-                <canvas id="snakeCanvas" width="300" height="300"></canvas>
-                
-                <button id="startSnakeBtn" class="snake-start-btn">Start Game</button>
-                
-                <div class="snake-controls" style="display: none;">
-                    <button class="snake-btn up">↑</button>
-                    <button class="snake-btn left">←</button>
-                    <button class="snake-btn right">→</button>
-                    <button class="snake-btn down">↓</button>
-                </div>
-                
-                <div class="game-stats">
-                    <p>🎯 Score: <span id="snakeScore">0</span></p>
-                    <p>💰 Earned: ₦<span id="snakeEarnings">0</span></p>
-                </div>
-                
-                <button class="secondary" id="backToGames3" style="width: 100%; margin-top: 15px;">← Back to Games</button>
-            </div>
-            
-            <div class="game-container" id="triviaGame">
-                <h3>🧠 Trivia Quiz</h3>
-                <p>Answer questions correctly to earn ₦800 each</p>
-                <p>Ads required: <span id="triviaAdsRequired">2</span></p>
-                <p class="attempts-counter">Attempts left: <span id="triviaAttempts">10</span>/10</p>
-                
-                <div id="triviaQuestion" class="trivia-question">Loading question...</div>
-                <div id="triviaOptions" class="trivia-options">
-                    <div class="trivia-option" data-option="1">Option 1</div>
-                    <div class="trivia-option" data-option="2">Option 2</div>
-                    <div class="trivia-option" data-option="3">Option 3</div>
-                    <div class="trivia-option" data-option="4">Option 4</div>
-                </div>
-                
-                <div class="game-stats">
-                    <p>🎯 Correct: <span id="triviaCorrect">0</span></p>
-                    <p>💰 Earned: ₦<span id="triviaEarnings">0</span></p>
-                </div>
-                
-                <button class="secondary" id="backToGames4" style="width: 100%; margin-top: 15px;">← Back to Games</button>
-            </div>
-            
-            <div class="game-container" id="wheelGame">
-                <h3>🎡 Lucky Wheel</h3>
-                <p>Spin the wheel to win prizes from ₦0 to ₦1,600</p>
-                <p>Ads required: <span id="wheelAdsRequired">4</span></p>
-                <p class="attempts-counter">Attempts left: <span id="wheelAttempts">10</span>/10</p>
-                
-                <div class="wheel-container">
-                    <div class="wheel" id="wheel"></div>
-                    <div class="wheel-pointer"></div>
-                </div>
-                
-                <div class="wheel-result">
-                    <div id="wheelMessage">Tap SPIN to play</div>
-                    <div id="wheelPrize" class="wheel-prize"></div>
-                </div>
-                
-                <button id="spinWheelBtn" class="spin-btn">SPIN (₦0-₦1,600)</button>
-                
-                <div class="game-stats">
-                    <p>🎯 Wins: <span id="wheelWins">0</span></p>
-                    <p>💰 Earned: ₦<span id="wheelEarnings">0</span></p>
-                </div>
-                
-                <button class="secondary" id="backToGames5" style="width: 100%; margin-top: 15px;">← Back to Games</button>
+            <div class="status-card">
+                <h3>🎮 Games</h3>
+                <p>Click the button below to access games</p>
+                <button class="primary" id="gamesButton">Play Games</button>
             </div>
         </div>
         
@@ -1425,59 +924,21 @@ body.ad-active {
         <div id="infoTab" class="tab-content">
             <div class="info-section">
                 <h3>📚 How It Works</h3>
-                <p>1. Complete 6 referrals and watch 10 ads to activate AI trading</p>
+                <p>1. Complete 6 referrals and watch 20 ads to activate AI trading</p>
                 <p>2. Earn ₦5,000 per referral (first 6 referrals = ₦30,000 capital)</p>
                 <p>3. Play games to earn additional capital (₦800 per win)</p>
                 <p>4. AI trading generates daily profits (20-50% of capital)</p>
                 <p>5. Withdraw profits (minimum ₦5,000) after verification</p>
-                <p>6. Verify your bank account with ₦550 one-time fee to withdraw</p>
+                <p>6. Verify your bank account with ₦1,050 one-time fee to withdraw</p>
                 <p>7. Payments are processed in batches when 1,000 users reach threshold</p>
                 <p>8. Maintain a login streak for daily bonuses (₦500 per day)</p>
                 <p>9. 70% of profits go to you, 25% to company, 5% system fee</p>
                 <p>10. Support available 24/7 for any questions or issues</p>
             </div>
             
-            <!-- Future Investment Section -->
-            <div class="investment-section">
-                <h3>🚀 Future Investment Opportunities</h3>
-                <p><strong>Planned Launch:</strong> December 2025 (we'll notify everyone in advance)</p>
-                <p>We're currently focused on building trust by proving our system works before accepting any investments.</p>
-                
-                <h4>Why We're Different</h4>
-                <p>Unlike other platforms, we're building trust first by proving our system works before accepting any investments.</p>
-                
-                <h4>What You Get Now:</h4>
-                <div class="investment-feature">
-                    <div class="investment-feature-icon">✔</div>
-                    <div class="investment-feature-text">Free Trading Capital from our ads revenue</div>
-                </div>
-                <div class="investment-feature">
-                    <div class="investment-feature-icon">✔</div>
-                    <div class="investment-feature-text">Full Profit Sharing with our transparent system</div>
-                </div>
-                <div class="investment-feature">
-                    <div class="investment-feature-icon">✔</div>
-                    <div class="investment-feature-text">Risk-Free Testing of our AI trading accuracy</div>
-                </div>
-                
-                <h4>When Deposits Launch:</h4>
-                <div class="investment-feature">
-                    <div class="investment-feature-icon">💡</div>
-                    <div class="investment-feature-text">Completely optional - no pressure to participate</div>
-                </div>
-                <div class="investment-feature">
-                    <div class="investment-feature-icon">💰</div>
-                    <div class="investment-feature-text">Higher earning potential for those who want more</div>
-                </div>
-                <div class="investment-feature">
-                    <div class="investment-feature-icon">🔔</div>
-                    <div class="investment-feature-text">Advance notice before any changes</div>
-                </div>
-            </div>
-            
             <div class="info-section">
                 <h3>💰 Cost Structure & Verification Fees</h3>
-                <p>Your current model charges ₦550 for bank verification. Here's how this covers initial costs:</p>
+                <p>Your current model charges ₦1,050 for bank verification. Here's how this covers initial costs:</p>
                 
                 <table class="cost-table">
                     <thead>
@@ -1518,8 +979,36 @@ body.ad-active {
                             <td><strong>₦550</strong></td>
                             <td></td>
                         </tr>
+                        <tr>
+                            <td><strong>Instant Deposit to Withdrawable Account</strong></td>
+                            <td><strong>₦500</strong></td>
+                            <td class="checkmark">✅ Yes</td>
+                        </tr>
                     </tbody>
                 </table>
+            </div>
+            
+            <div class="info-section investment-section">
+                <h3>🚀 Future Investment Opportunities</h3>
+                <p><b>Planned Launch:</b> December 2025 (we'll notify everyone in advance)</p>
+                <p>We're currently focused on building trust by proving our system works before accepting any investments.</p>
+                
+                <h4>Why We're Different</h4>
+                <p>Unlike other platforms, we're building trust first by proving our system works before accepting any investments.</p>
+                
+                <h4>What You Get Now:</h4>
+                <ul>
+                    <li>✔ Free Trading Capital from our ads revenue</li>
+                    <li>✔ Full Profit Sharing with our transparent system</li>
+                    <li>✔ Risk-Free Testing of our AI trading accuracy</li>
+                </ul>
+                
+                <h4>When Deposits Launch:</h4>
+                <ul>
+                    <li>💡 Completely optional - no pressure to participate</li>
+                    <li>💰 Higher earning potential for those who want more</li>
+                    <li>🔔 Advance notice before any changes</li>
+                </ul>
             </div>
             
             <div class="info-section">
@@ -1530,7 +1019,7 @@ body.ad-active {
                         <span>+</span>
                     </div>
                     <div class="faq-answer" id="faq1">
-                        You need to complete 6 referrals, watch 10 ads, and verify your bank account with the ₦550 fee. This qualifies you for AI trading and withdrawals.
+                        You need to complete 6 referrals, watch 20 ads, and verify your bank account with the ₦1,050 fee. This qualifies you for AI trading and withdrawals.
                     </div>
                 </div>
                 
@@ -1560,7 +1049,7 @@ body.ad-active {
                         <span>+</span>
                     </div>
                     <div class="faq-answer" id="faq4">
-                        Each game win adds ₦800 to your trading capital. After completing the initial 10 ads and 6 referrals, you'll need to watch ads periodically to continue playing games.
+                        Each game win adds ₦800 to your trading capital. After completing the initial 20 ads and 6 referrals, you'll need to watch ads periodically to continue playing games.
                     </div>
                 </div>
                 
@@ -1576,14 +1065,32 @@ body.ad-active {
                 
                 <div class="faq-item">
                     <div class="faq-question" onclick="toggleFaq(6)">
-                        Why the ₦550 verification fee?
+                        Why the ₦1,050 verification fee?
                         <span>+</span>
                     </div>
                     <div class="faq-answer" id="faq6">
-                        This covers KYC verification, bank integration, fraud prevention, and support costs. It's a one-time fee that ensures only serious users can withdraw.
+                        The ₦1,050 fee consists of two parts:
+                        <ul>
+                            <li>₦550 Non-Refundable Fee covers:
+                                <ul>
+                                    <li>KYC verification (₦150) - We verify your identity to prevent fraud</li>
+                                    <li>Bank API integration (₦150) - Secure connection to Nigerian banks</li>
+                                    <li>Fraud prevention (₦100) - Advanced security checks</li>
+                                    <li>Customer support (₦100) - Dedicated withdrawal assistance</li>
+                                    <li>Transaction fees (₦50) - Processing costs</li>
+                                </ul>
+                            </li>
+                            <li>₦500 Account Binding Test (explained below)</li>
+                        </ul>
+                        This one-time payment ensures:
+                        <ul>
+                            <li>✔ Only real users can withdraw</li>
+                            <li>✔ Sustainable platform operations</li>
+                            <li>✔ Faster payment processing</li>
+                        </ul>
                     </div>
                 </div>
-                
+
                 <div class="faq-item">
                     <div class="faq-question" onclick="toggleFaq(7)">
                         How are profits calculated?
@@ -1610,7 +1117,7 @@ body.ad-active {
                         <span>+</span>
                     </div>
                     <div class="faq-answer" id="faq9">
-                        Yes, but you need to complete 6 referrals and watch 10 ads to qualify for withdrawals. Games help build your trading capital faster.
+                        Yes, but you need to complete 6 referrals and watch 20 ads to qualify for withdrawals. Games help build your trading capital faster.
                     </div>
                 </div>
                 
@@ -1624,34 +1131,40 @@ body.ad-active {
                     </div>
                 </div>
 
-                <!-- FAQ Item for Deposits -->
                 <div class="faq-item">
                     <div class="faq-question" onclick="toggleFaq(11)">
-                        Can I deposit money to increase my earnings?
+                        Why pay ₦500 that goes to my account?
                         <span>+</span>
                     </div>
                     <div class="faq-answer" id="faq11">
-                        <strong>Planned Launch:</strong> December 2025 (we'll notify everyone in advance)
-                        <br><br>
-                        <strong>Current Status:</strong> We are not currently accepting any investment deposits
-                        <br><br>
-                        <strong>Our Trust-First Approach:</strong>
-                        <br>
-                        We believe you should see results before investing. That's why we're:
+                        The ₦500 transfer serves three critical purposes:
                         <ul>
-                            <li>✅ Giving you free capital from our ads revenue</li>
-                            <li>✅ Letting you test our AI risk-free</li>
-                            <li>✅ Proving our profitability first</li>
+                            <li><b>Account Verification</b>
+                                <ul>
+                                    <li>Confirms your bank account is active and belongs to you</li>
+                                    <li>Prevents fraudulent withdrawals to wrong accounts</li>
+                                </ul>
+                            </li>
+                            <li><b>Instant Credit Proof</b>
+                                <ul>
+                                    <li>The ₦500 is immediately added to your withdrawal balance</li>
+                                    <li>Demonstrates our payment system works before you withdraw profits</li>
+                                </ul>
+                            </li>
+                            <li><b>Security Measure</b>
+                                <ul>
+                                    <li>Final check against money laundering</li>
+                                    <li>Matches your registered account with actual ownership</li>
+                                </ul>
+                            </li>
                         </ul>
-                        
-                        <strong>Future Deposit Features:</strong>
-                        <br>
-                        When we launch deposit options, remember:
+                        <p><b>What happens next?</b></p>
                         <ul>
-                            <li>🔓 100% Optional - no requirement to deposit</li>
-                            <li>🚀 Higher earning potential for serious investors</li>
-                            <li>📢 Clear communication before any changes</li>
+                            <li>You'll receive instant confirmation of the ₦500 deposit</li>
+                            <li>Your account status changes to "Verified & Bound"</li>
+                            <li>You become eligible for batch withdrawals</li>
                         </ul>
+                        <p><b>Note:</b> The ₦500 remains yours - it boosts your withdrawable balance while verifying your account.</p>
                     </div>
                 </div>
             </div>
@@ -1708,7 +1221,7 @@ body.ad-active {
             <!-- Testimonial 3 -->
             <div class="testimonial" id="testimonial3">
                 <div class="testimonial-content">
-                    "Verified with ₦550 and got my first withdrawal to UBA in 2 days. The payment circle system works - when they hit 1,000 users, payments go out."
+                    "Verified with ₦1,050 and got my first withdrawal to UBA in 2 days. The payment circle system works - when they hit 1,000 users, payments go out."
                 </div>
                 <div class="testimonial-author">
                     <span>👨‍💼</span> Adebola S.
@@ -1741,7 +1254,7 @@ body.ad-active {
             <!-- Testimonial 6 -->
             <div class="testimonial" id="testimonial6">
                 <div class="testimonial-content">
-                    "The ₦550 verification was worth it. Withdrew ₦25k profits last week to my Opay account. No stress!"
+                    "The ₦1,050 verification was worth it. Withdrew ₦25k profits last week to my Opay account. No stress!"
                 </div>
                 <div class="testimonial-author">
                     <span>👨‍⚕️</span> Yusuf M.
@@ -1785,7 +1298,7 @@ body.ad-active {
             <!-- Testimonial 10 -->
             <div class="testimonial" id="testimonial10">
                 <div class="testimonial-content">
-                    "Watching the 10 ads was easy while commuting. Combined with referrals, I qualified for trading in 2 days."
+                    "Watching the 20 ads was easy while commuting. Combined with referrals, I qualified for trading in 2 days."
                 </div>
                 <div class="testimonial-author">
                     <span>👨‍🎓</span> Femi A.
@@ -1879,8 +1392,9 @@ body.ad-active {
         <div class="modal-content">
             <h3>Bank Account Binding</h3>
             <div class="bank-form">
-                <p>To withdraw earnings, verify your Nigerian bank account (₦550 fee)</p>
-                
+                <p>To withdraw earnings, verify and bind your Nigerian bank account with a one-time fee of ₦1,050.</p>
+                <p>Note: ₦550 covers the total operational cost, while ₦500 is instantly credited to your withdrawable account balance. This ensures only your verified account is used for payments.</p>
+                <p>If you wish to change your bank account, please contact support. A new verification and binding fee of ₦1,050 will apply.</p>
                 <div class="bank-select-container">
                     <select id="bankName" class="bank-select">
                         <option value="">Select Your Bank</option>
@@ -1916,7 +1430,7 @@ body.ad-active {
                 <input type="text" id="accountNumber" placeholder="Account Number">
                 <input type="text" id="accountName" placeholder="Account Name" readonly>
                 <div class="modal-actions">
-                    <button id="confirmBankBinding" class="primary">Pay ₦550 & Verify</button>
+                    <button id="confirmBankBinding" class="primary">Pay ₦1,050 & Verify</button>
                     <button id="cancelBankBinding" class="secondary">Cancel</button>
                 </div>
             </div>
@@ -1930,8 +1444,9 @@ body.ad-active {
             <p>Minimum withdrawal: ₦5,000</p>
             <p>Available: ₦<span id="availableBalance">0</span></p>
             <div id="verificationNotice" style="display: none;">
-                <p>⚠️ Account verification required (₦550 fee)</p>
-                <button id="verifyAccountBtn" class="danger">Pay ₦550 Verification Fee</button>
+                <p>⚠️ Account verification required (₦1,050 fee)</p>
+                <p>Note: ₦550 covers the total operational cost, while ₦500 is instantly credited to your withdrawable account balance.</p>
+                <button id="verifyAccountBtn" class="danger">Pay ₦1,050 Verification Fee</button>
             </div>
             <div id="withdrawalForm" style="display: none;">
                 <p>Enter amount to withdraw:</p>
@@ -2002,128 +1517,236 @@ body.ad-active {
     </div>
     
     <!-- Admin Panel Button -->
-    <button id="adminPanelBtn" style="display: none; position: fixed; bottom: 20px; right: 20px; z-index: 100;" class="primary">Admin Panel</button>
-    
-    <!-- Audio elements for game sounds -->
-    <audio id="flipSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3" preload="auto"></audio>
-    <audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" preload="auto"></audio>
-    <audio id="loseSound" src="https://assets.mixkit.co/sfx/preview/mixkit-retro-arcade-lose-2027.mp3" preload="auto"></audio>
-    <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3" preload="auto"></audio>
-    <audio id="coinFlipSound" src="https://assets.mixkit.co/sfx/preview/mixkit-coin-flip-1940.mp3" preload="auto"></audio>
-    <audio id="coinLandSound" src="https://assets.mixkit.co/sfx/preview/mixkit-metal-hit-impact-2065.mp3" preload="auto"></audio>
-    
-    <div class="ad-modal" id="adModal" style="display: none;">
-        <div class="ad-content">
-            <div class="ad-header" style="font-weight: bold; margin-bottom: 15px;">
-                Watch Ad to Continue
-            </div>
-            
-            <!-- Ad Container -->
-            <div id="adContainer" style="min-height: 250px; width: 300px; margin: 0 auto;">
-                <!-- Ad content will be injected here -->
-            </div>
-            
-            <div style="margin-top: 15px;">
-                <div id="adTimer" style="font-size: 14px;">
-                    Ad will complete in <span>15</span> seconds
-                </div>
-                <button id="forceContinueBtn" style="margin-top: 10px; padding: 8px 15px; display: none;">
-                    Continue Anyway
-                </button>
-            </div>
-        </div>
-    </div>
+    <button id="adminPanelBtn" style="display: none;" class="primary">Admin Panel</button>
     
     <script>
- // ===== FOOLPROOF AD SYSTEM =====
-let adTimer;
-let currentSeconds = 15;
-
-function showAdModal() {
-    // Block background
-    document.body.classList.add('ad-active');
-    
-    // Reset modal
-    const adModal = document.getElementById('adModal');
-    adModal.style.display = 'flex';
-    currentSeconds = 15;
-    document.querySelector('#adTimer span').textContent = currentSeconds;
-    document.getElementById('forceContinueBtn').style.display = 'none';
-    
-    // Load your ad (example using Adsterra)
-    const adContainer = document.getElementById('adContainer');
-    adContainer.innerHTML = `
-        <iframe src="https://example.com/your-ad-path" 
-                style="width:100%; height:100%; border:none;"
-                allowtransparency="true"
-                scrolling="no"
-                frameborder="0"></iframe>
-    `;
-    
-    // Start timer
-    adTimer = setInterval(() => {
-        currentSeconds--;
-        document.querySelector('#adTimer span').textContent = currentSeconds;
-        
-        if (currentSeconds <= 0) {
-            closeAdModal();
+        // ===== BACKEND API SIMULATION =====
+        // In a real app, this would be actual API calls to your backend
+        class BackendAPI {
+            static BASE_URL = 'https://api.aireftraders.ng/v1';
+            
+            static async getUserData(userId) {
+                // Simulate API call with localStorage fallback
+                try {
+                    // In a real app, this would be a fetch() call to your backend
+                    const response = await new Promise(resolve => {
+                        setTimeout(() => {
+                            const data = localStorage.getItem(`userData_${userId}`) || 
+                                         localStorage.getItem('userData') || 
+                                         JSON.stringify({
+                                            balance: 5000,
+                                            referrals: 0,
+                                            referralEarnings: 0,
+                                            adsWatched: 0,
+                                            tradingActive: false,
+                                            verified: false,
+                                            tradingCapital: 0,
+                                            dailyProfit: 0,
+                                            totalProfit: 0,
+                                            withdrawableProfit: 0,
+                                            bankDetails: null,
+                                            paymentCircle: { current: 0, total: 1000 },
+                                            supportTickets: []
+                                         });
+                            resolve({ 
+                                ok: true,
+                                json: () => Promise.resolve(JSON.parse(data))
+                            });
+                        }, 500);
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to fetch user data');
+                    return await response.json();
+                } catch (error) {
+                    console.error('API Error:', error);
+                    // Fallback to localStorage
+                    const data = localStorage.getItem(`userData_${userId}`) || 
+                                 localStorage.getItem('userData') || 
+                                 {
+                                    balance: 5000,
+                                    referrals: 0,
+                                    referralEarnings: 0,
+                                    adsWatched: 0,
+                                    tradingActive: false,
+                                    verified: false,
+                                    tradingCapital: 0,
+                                    dailyProfit: 0,
+                                    totalProfit: 0,
+                                    withdrawableProfit: 0,
+                                    bankDetails: null,
+                                    paymentCircle: { current: 0, total: 1000 },
+                                    supportTickets: []
+                                 };
+                    return typeof data === 'string' ? JSON.parse(data) : data;
+                }
+            }
+            
+            static async saveUserData(userId, data) {
+                // First save to localStorage for immediate access
+                localStorage.setItem(`userData_${userId}`, JSON.stringify(data));
+                localStorage.setItem('userData', JSON.stringify(data));
+                
+                // Then try to sync with backend
+                try {
+                    // In a real app, this would be a fetch() call to your backend
+                    const response = await new Promise(resolve => {
+                        setTimeout(() => {
+                            resolve({ ok: true });
+                        }, 300);
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to save user data');
+                    return true;
+                } catch (error) {
+                    console.error('API Error:', error);
+                    // Data is already saved to localStorage, so we can continue
+                    return false;
+                }
+            }
+            
+            static async syncWithBackend(userId) {
+                // Get data from localStorage
+                const localData = localStorage.getItem(`userData_${userId}`) || 
+                                  localStorage.getItem('userData');
+                
+                if (!localData) return;
+                
+                try {
+                    // In a real app, this would be a fetch() call to your backend
+                    const response = await new Promise(resolve => {
+                        setTimeout(() => {
+                            resolve({ 
+                                ok: true,
+                                json: () => Promise.resolve(JSON.parse(localData))
+                            });
+                        }, 500);
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to sync with backend');
+                    return await response.json();
+                } catch (error) {
+                    console.error('Sync Error:', error);
+                    return JSON.parse(localData);
+                }
+            }
+            
+            static async getAnnouncements(userId) {
+                try {
+                    // In a real app, this would be a fetch() call to your backend
+                    const response = await new Promise(resolve => {
+                        setTimeout(() => {
+                            const announcements = localStorage.getItem('announcements') || 
+                                                 JSON.stringify([{
+                                                    _id: "1",
+                                                    title: "🚨 LIMITED TIME OFFER",
+                                                    message: "HURRY! Refer 6 friends NOW to unlock FREE AI Trading and start earning ₦7,000-₦17,500 DAILY! ⏳ Only 47 spots left in this payment batch!",
+                                                    time: "Today, 10:15 AM",
+                                                    recipients: [
+                                                        { userId: userId || 'demo', read: false }
+                                                    ]
+                                                }]);
+                            resolve({ 
+                                ok: true,
+                                json: () => Promise.resolve(JSON.parse(announcements))
+                            });
+                        }, 300);
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to fetch announcements');
+                    return await response.json();
+                } catch (error) {
+                    console.error('API Error:', error);
+                    const announcements = localStorage.getItem('announcements') || 
+                                           [{
+                                                _id: "1",
+                                                title: "🚨 LIMITED TIME OFFER",
+                                                message: "HURRY! Refer 6 friends NOW to unlock FREE AI Trading and start earning ₦7,000-₦17,500 DAILY! ⏳ Only 47 spots left in this payment batch!",
+                                                time: "Today, 10:15 AM",
+                                                recipients: [
+                                                    { userId: userId || 'demo', read: false }
+                                                ]
+                                            }];
+                    return typeof announcements === 'string' ? JSON.parse(announcements) : announcements;
+                }
+            }
+            
+            static async saveAnnouncement(announcement) {
+                try {
+                    // Get existing announcements
+                    const existing = await this.getAnnouncements();
+                    existing.unshift(announcement);
+                    
+                    // Save to localStorage
+                    localStorage.setItem('announcements', JSON.stringify(existing));
+                    
+                    // In a real app, this would be a fetch() call to your backend
+                    const response = await new Promise(resolve => {
+                        setTimeout(() => {
+                            resolve({ ok: true });
+                        }, 300);
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to save announcement');
+                    return true;
+                } catch (error) {
+                    console.error('API Error:', error);
+                    return false;
+                }
+            }
         }
-        
-        // Show continue button if stuck
-        if (currentSeconds <= 5) {
-            document.getElementById('forceContinueBtn').style.display = 'block';
+
+        // ===== DATA STORAGE AND SYNC MANAGER =====
+        class DataManager {
+            static async initialize() {
+                // Get user ID from Telegram or use a default
+                const tg = window.Telegram?.WebApp;
+                this.userId = tg?.initDataUnsafe?.user?.id || 'default_user';
+                
+                // Load data from backend with localStorage fallback
+                this.userData = await BackendAPI.getUserData(this.userId);
+                
+                // Initialize sync interval
+                setInterval(() => this.syncWithBackend(), 30000); // Sync every 30 seconds
+                
+                return this.userData;
+            }
+            
+            static async syncWithBackend() {
+                try {
+                    const updatedData = await BackendAPI.syncWithBackend(this.userId);
+                    if (updatedData) {
+                        this.userData = updatedData;
+                        localStorage.setItem(`userData_${this.userId}`, JSON.stringify(updatedData));
+                        localStorage.setItem('userData', JSON.stringify(updatedData));
+                    }
+                    return updatedData;
+                } catch (error) {
+                    console.error('Sync failed:', error);
+                    return this.userData;
+                }
+            }
+            
+            static async saveData() {
+                try {
+                    await BackendAPI.saveUserData(this.userId, this.userData);
+                    localStorage.setItem(`userData_${this.userId}`, JSON.stringify(this.userData));
+                    localStorage.setItem('userData', JSON.stringify(this.userData));
+                    return true;
+                } catch (error) {
+                    console.error('Save failed:', error);
+                    return false;
+                }
+            }
+            
+            static async getAnnouncements() {
+                return await BackendAPI.getAnnouncements(this.userId);
+            }
+            
+            static async saveAnnouncement(announcement) {
+                return await BackendAPI.saveAnnouncement(announcement);
+            }
         }
-    }, 1000);
-    
-    // Force continue button
-    document.getElementById('forceContinueBtn').onclick = closeAdModal;
-}
 
-function closeAdModal() {
-    clearInterval(adTimer);
-    document.body.classList.remove('ad-active');
-    document.getElementById('adModal').style.display = 'none';
-    
-    // Clean up ad container
-    document.getElementById('adContainer').innerHTML = '';
-    
-    // Continue your game logic here
-    console.log("Ad completed - continue game");
-}
-
-// Error fallback
-window.addEventListener('error', () => {
-    closeAdModal();
-});
-function completeAdView() {
-    clearInterval(adTimerInterval);
-    document.getElementById('adModal').style.display = 'none';
-    userData.adsWatched++;
-    showNotification('Ad completed! You can continue playing.');
-    
-    // Resume game
-    switch(currentGame) {
-        case 'memory': memoryGame.canPlay = true; break;
-        case 'snake': 
-            snakeGame.gameStarted = true;
-            document.getElementById('startSnakeBtn').style.display = 'none';
-            document.querySelector('.snake-controls').style.display = 'grid';
-            snakeGame.startGame();
-            break;
-    }
-}
-
-function shouldShowAd(game) {
-    if (!userData.gamePlayCounts) {
-        userData.gamePlayCounts = { memory:0, dice:0, snake:0, trivia:0, wheel:0 };
-    }
-    userData.gamePlayCounts[game]++;
-    
-    const frequencies = { memory:5, dice:5, snake:5, trivia:5, wheel:2.5 };
-    return game === 'wheel' 
-        ? userData.gamePlayCounts[game] % 2.5 < 1
-        : userData.gamePlayCounts[game] % 5 === 0;
-}
         // ===== DAILY STREAK FUNCTIONALITY =====
         function initializeStreak() {
             // Get the current date in YYYY-MM-DD format for comparison
@@ -2178,6 +1801,9 @@ function shouldShowAd(game) {
             
             // Update the displayed balance
             updateBalance();
+            
+            // Save user data
+            DataManager.saveData();
         }
         
         function updateStreakUI(streakCount, isNewLogin, bonus = 0) {
@@ -2283,962 +1909,19 @@ function shouldShowAd(game) {
             });
         }
         
-        // ===== GAME FUNCTIONALITY =====
-        // Memory Game
-        const memoryGame = {
-            fruits: ['🍎', '🍌', '🍒', '🍓', '🍊', '🍋', '🍐', '🍇'],
-            values: [],
-            flippedCards: [],
-            matchedPairs: 0,
-            canPlay: false,
-            attempts: 10,
-            wins: 0,
-            earnings: 0,
-            
-            init: function() {
-                document.getElementById('gameBoard').innerHTML = '';
-                this.matchedPairs = 0;
-                this.flippedCards = [];
-                
-                this.values = [];
-                this.fruits.forEach(fruit => {
-                    this.values.push(fruit, fruit);
-                });
-                
-                const shuffled = [...this.values].sort(() => 0.5 - Math.random());
-                
-                shuffled.forEach((value, index) => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.dataset.value = value;
-                    card.dataset.index = index;
-                    card.textContent = '?';
-                    card.style.fontSize = '30px';
-                    
-                    card.addEventListener('click', () => {
-                        if (this.canPlay && this.attempts > 0 && !card.classList.contains('flipped') && 
-                            !card.classList.contains('matched') && this.flippedCards.length < 2) {
-                            this.flipCard(card);
-                        }
-                    });
-                    
-                    document.getElementById('gameBoard').appendChild(card);
-                });
-                
-                const cards = document.querySelectorAll('.card');
-                cards.forEach(card => {
-                    card.classList.add('flipped');
-                    card.textContent = card.dataset.value;
-                });
-                
-                setTimeout(() => {
-                    cards.forEach(card => {
-                        card.classList.remove('flipped');
-                        card.textContent = '?';
-                    });
-                    this.canPlay = true;
-                }, 3000);
-                
-                this.updateAttempts();
-            },
-            
-            flipCard: function(card) {
-                if (this.flippedCards.length < 2 && !card.classList.contains('flipped') && !card.classList.contains('matched')) {
-                    document.getElementById('clickSound').play();
-                    card.classList.add('flipped');
-                    card.textContent = card.dataset.value;
-                    this.flippedCards.push(card);
-                    
-                    if (this.flippedCards.length === 2) {
-                        this.canPlay = false;
-                        setTimeout(() => this.checkMatch(), 500);
-                    }
-                }
-            },
-            
-            checkMatch: function() {
-                const [card1, card2] = this.flippedCards;
-                
-                this.attempts--;
-                this.updateAttempts();
-                this.updateServerAttempts();
-                
-                if (card1.dataset.value === card2.dataset.value) {
-                    card1.classList.add('matched');
-                    card2.classList.add('matched');
-                    this.matchedPairs++;
-                    
-                    this.wins++;
-                    this.earnings += 800;
-                    this.updateStats();
-                    addGameEarnings(800);
-                    document.getElementById('winSound').play();
-                    
-                    if (this.matchedPairs === 8) {
-                        showNotification('🎉 You won ₦6,400!');
-                        setTimeout(() => {
-                            this.matchedPairs = 0;
-                            this.init();
-                        }, 2000);
-                    }
-                } else {
-                    setTimeout(() => {
-                        card1.classList.remove('flipped');
-                        card2.classList.remove('flipped');
-                        card1.textContent = '?';
-                        card2.textContent = '?';
-                        document.getElementById('loseSound').play();
-                    }, 500);
-                }
-                
-                this.flippedCards = [];
-                
-                // Check if we should show an ad
-                if (shouldShowAd('memory')) {
-                    showAdModal('memory');
-                } else {
-                    this.canPlay = true;
-                }
-                
-                if (this.attempts <= 0) {
-                    showNotification('Memory game attempts exhausted. Watch ads to get more attempts!');
-                    document.getElementById('memoryGame').classList.add('game-disabled');
-                }
-            },
-            
-            updateAttempts: function() {
-                document.getElementById('memoryAttempts').textContent = this.attempts;
-            },
-            
-            updateStats: function() {
-                document.getElementById('wins').textContent = this.wins;
-                document.getElementById('gameEarnings').textContent = this.earnings;
-            },
-            
-            updateServerAttempts: async function() {
-                try {
-                    const response = await fetch('/api/games/update-attempts', {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Telegram-Init-Data': window.Telegram.WebApp.initData || 'test'
-                        },
-                        body: JSON.stringify({ 
-                            gameType: 'memory',
-                            attempts: this.attempts 
-                        })
-                    });
-                    
-                    if (!response.ok) throw new Error('Failed to save progress');
-                    return await response.json();
-                } catch (error) {
-                    console.error('Update attempts error:', error);
-                    showNotification('⚠️ Progress not saved (check connection)');
-                }
-            }
-        };
-
-        // Dice Game
-        const diceGame = {
-            lastRoll: null,
-            attempts: 10,
-            wins: 0,
-            earnings: 0,
-            
-            init: function() {
-                document.getElementById('rollDiceBtn').addEventListener('click', () => this.rollDice());
-                this.updateAttempts();
-            },
-            
-            rollDice: function() {
-                if (this.attempts <= 0) {
-                    showNotification('Watch ads to get more dice attempts!');
-                    return;
-                }
-                
-                // Check if we should show an ad before playing
-                if (shouldShowAd('dice')) {
-                    showAdModal('dice');
-                    return;
-                }
-                
-                this.attempts--;
-                this.updateAttempts();
-                this.updateServerAttempts();
-                document.getElementById('clickSound').play();
-                
-                const roll = Math.floor(Math.random() * 6) + 1;
-                this.lastRoll = roll;
-                document.getElementById('diceResult').textContent = roll;
-                
-                let rolls = 0;
-                const animateRoll = setInterval(() => {
-                    document.getElementById('diceResult').textContent = Math.floor(Math.random() * 6) + 1;
-                    rolls++;
-                    if (rolls > 10) {
-                        clearInterval(animateRoll);
-                        document.getElementById('diceResult').textContent = roll;
-                        
-                        if (Math.random() > 0.5) {
-                            showNotification('🎲 You won ₦800!');
-                            this.wins++;
-                            this.earnings += 800;
-                            this.updateStats();
-                            addGameEarnings(800);
-                            document.getElementById('winSound').play();
-                        } else {
-                            showNotification('Try again!');
-                            document.getElementById('loseSound').play();
-                        }
-                        
-                        if (this.attempts <= 0) {
-                            showNotification('Dice game attempts exhausted. Watch ads to get more attempts!');
-                            document.getElementById('diceGame').classList.add('game-disabled');
-                        }
-                    }
-                }, 100);
-            },
-            
-            updateAttempts: function() {
-                document.getElementById('diceAttempts').textContent = this.attempts;
-            },
-            
-            updateStats: function() {
-                document.getElementById('diceWins').textContent = this.wins;
-                document.getElementById('diceEarnings').textContent = this.earnings;
-            },
-            
-            updateServerAttempts: async function() {
-                try {
-                    const response = await fetch('/api/games/update-attempts', {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Telegram-Init-Data': window.Telegram.WebApp.initData || 'test'
-                        },
-                        body: JSON.stringify({ 
-                            gameType: 'dice',
-                            attempts: this.attempts 
-                        })
-                    });
-                    
-                    if (!response.ok) throw new Error('Failed to save progress');
-                    return await response.json();
-                } catch (error) {
-                    console.error('Update attempts error:', error);
-                    showNotification('⚠️ Progress not saved (check connection)');
-                }
-            }
-        };
-
-        // Snake Game - COMPLETELY OVERHAULED
-        const snakeGame = {
-            canvas: null,
-            ctx: null,
-            snake: [],
-            direction: 'right',
-            food: {},
-            gridSize: 20,
-            score: 0,
-            attempts: 10,
-            earnings: 0,
-            gameInterval: null,
-            gameStarted: false,
-            speed: 200, // Initial speed (higher = slower)
-            gameActive: false,
-            
-            init: function() {
-                this.canvas = document.getElementById('snakeCanvas');
-                this.ctx = this.canvas.getContext('2d');
-                
-                // Initialize snake
-                this.snake = [
-                    {x: 5, y: 10},
-                    {x: 4, y: 10},
-                    {x: 3, y: 10}
-                ];
-                
-                // Place first food
-                this.placeFood();
-                
-                // Set up controls
-                document.querySelector('.snake-btn.up').addEventListener('click', () => {
-                    if (this.direction !== 'down' && this.gameStarted) {
-                        this.direction = 'up';
-                        document.getElementById('clickSound').play();
-                    }
-                });
-                document.querySelector('.snake-btn.down').addEventListener('click', () => {
-                    if (this.direction !== 'up' && this.gameStarted) {
-                        this.direction = 'down';
-                        document.getElementById('clickSound').play();
-                    }
-                });
-                document.querySelector('.snake-btn.left').addEventListener('click', () => {
-                    if (this.direction !== 'right' && this.gameStarted) {
-                        this.direction = 'left';
-                        document.getElementById('clickSound').play();
-                    }
-                });
-                document.querySelector('.snake-btn.right').addEventListener('click', () => {
-                    if (this.direction !== 'left' && this.gameStarted) {
-                        this.direction = 'right';
-                        document.getElementById('clickSound').play();
-                    }
-                });
-                
-                // Start button
-                document.getElementById('startSnakeBtn').addEventListener('click', () => {
-                    if (this.attempts <= 0) {
-                        showNotification('Watch ads to get more snake attempts!');
-                        return;
-                    }
-                    
-                    // Check if we should show an ad before starting
-                    if (shouldShowAd('snake')) {
-                        showAdModal('snake');
-                        return;
-                    }
-                    
-                    this.resetGame();
-                    this.gameStarted = true;
-                    document.getElementById('startSnakeBtn').style.display = 'none';
-                    document.querySelector('.snake-controls').style.display = 'grid';
-                    this.startGame();
-                    document.getElementById('clickSound').play();
-                });
-                
-                this.updateAttempts();
-                this.draw();
-            },
-            
-            resetGame: function() {
-                clearInterval(this.gameInterval);
-                this.snake = [
-                    {x: 5, y: 10},
-                    {x: 4, y: 10},
-                    {x: 3, y: 10}
-                ];
-                this.direction = 'right';
-                this.score = 0;
-                this.speed = 200;
-                this.gameActive = true;
-                this.updateStats();
-                this.placeFood();
-            },
-            
-            startGame: function() {
-                if (this.gameInterval) clearInterval(this.gameInterval);
-                
-                this.gameInterval = setInterval(() => {
-                    this.update();
-                    this.draw();
-                }, this.speed);
-            },
-            
-            update: function() {
-                if (!this.gameStarted || !this.gameActive) return;
-                
-                // Move snake
-                const head = {x: this.snake[0].x, y: this.snake[0].y};
-                
-                switch(this.direction) {
-                    case 'up':
-                        head.y -= 1;
-                        break;
-                    case 'down':
-                        head.y += 1;
-                        break;
-                    case 'left':
-                        head.x -= 1;
-                        break;
-                    case 'right':
-                        head.x += 1;
-                        break;
-                }
-                
-                // Check collision with walls
-                if (head.x < 0 || head.x >= this.canvas.width/this.gridSize || 
-                    head.y < 0 || head.y >= this.canvas.height/this.gridSize) {
-                    this.gameOver();
-                    return;
-                }
-                
-                // Check collision with self
-                for (let i = 0; i < this.snake.length; i++) {
-                    if (head.x === this.snake[i].x && head.y === this.snake[i].y) {
-                        this.gameOver();
-                        return;
-                    }
-                }
-                
-                // Check if snake ate food
-                if (head.x === this.food.x && head.y === this.food.y) {
-                    this.score++;
-                    this.updateStats();
-                    addGameEarnings(800);
-                    this.earnings += 800;
-                    document.getElementById('winSound').play();
-                    this.placeFood();
-                    
-                    // Don't remove tail if food eaten - snake grows
-                    
-                    // Increase speed slightly as score increases (but not too much)
-                    this.speed = Math.max(150, this.speed - 2);
-                    if (this.gameInterval) {
-                        clearInterval(this.gameInterval);
-                        this.gameInterval = setInterval(() => {
-                            this.update();
-                            this.draw();
-                        }, this.speed);
-                    }
-                } else {
-                    // Remove tail if no food eaten
-                    this.snake.pop();
-                }
-                
-                // Add new head
-                this.snake.unshift(head);
-            },
-            
-            draw: function() {
-                // Clear canvas
-                this.ctx.fillStyle = '#f0f0f0';
-                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-                
-                // Draw snake
-                this.ctx.fillStyle = '#6C5CE7';
-                for (let i = 0; i < this.snake.length; i++) {
-                    this.ctx.fillRect(
-                        this.snake[i].x * this.gridSize, 
-                        this.snake[i].y * this.gridSize, 
-                        this.gridSize, 
-                        this.gridSize
-                    );
-                    
-                    // Draw eyes on head
-                    if (i === 0) {
-                        this.ctx.fillStyle = 'white';
-                        this.ctx.fillRect(
-                            this.snake[i].x * this.gridSize + 5, 
-                            this.snake[i].y * this.gridSize + 5, 
-                            5, 
-                            5
-                        );
-                        this.ctx.fillRect(
-                            this.snake[i].x * this.gridSize + 10, 
-                            this.snake[i].y * this.gridSize + 5, 
-                            5, 
-                            5
-                        );
-                        this.ctx.fillStyle = '#6C5CE7';
-                    }
-                }
-                
-                // Draw food
-                this.ctx.fillStyle = '#D63031';
-                this.ctx.beginPath();
-                this.ctx.arc(
-                    this.food.x * this.gridSize + this.gridSize/2, 
-                    this.food.y * this.gridSize + this.gridSize/2, 
-                    this.gridSize/2, 
-                    0, 
-                    Math.PI * 2
-                );
-                this.ctx.fill();
-            },
-            
-            placeFood: function() {
-                this.food = {
-                    x: Math.floor(Math.random() * (this.canvas.width/this.gridSize)),
-                    y: Math.floor(Math.random() * (this.canvas.height/this.gridSize))
-                };
-                
-                // Make sure food doesn't appear on snake
-                for (let i = 0; i < this.snake.length; i++) {
-                    if (this.food.x === this.snake[i].x && this.food.y === this.snake[i].y) {
-                        this.placeFood();
-                        return;
-                    }
-                }
-            },
-            
-            gameOver: function() {
-                this.gameActive = false;
-                clearInterval(this.gameInterval);
-                this.gameStarted = false;
-                this.attempts--;
-                this.updateAttempts();
-                this.updateServerAttempts();
-                document.getElementById('loseSound').play();
-                
-                document.getElementById('startSnakeBtn').style.display = 'block';
-                document.querySelector('.snake-controls').style.display = 'none';
-                
-                if (this.attempts <= 0) {
-                    showNotification('Snake game attempts exhausted. Watch ads to get more attempts!');
-                    document.getElementById('snakeGame').classList.add('game-disabled');
-                } else {
-                    showNotification('Game Over! Tap to play again');
-                }
-            },
-            
-            updateAttempts: function() {
-                document.getElementById('snakeAttempts').textContent = this.attempts;
-            },
-            
-            updateStats: function() {
-                document.getElementById('snakeScore').textContent = this.score;
-                document.getElementById('snakeEarnings').textContent = this.earnings;
-            },
-            
-            updateServerAttempts: async function() {
-                try {
-                    const response = await fetch('/api/games/update-attempts', {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Telegram-Init-Data': window.Telegram.WebApp.initData || 'test'
-                        },
-                        body: JSON.stringify({ 
-                            gameType: 'snake',
-                            attempts: this.attempts 
-                        })
-                    });
-                    
-                    if (!response.ok) throw new Error('Failed to save progress');
-                    return await response.json();
-                } catch (error) {
-                    console.error('Update attempts error:', error);
-                    showNotification('⚠️ Progress not saved (check connection)');
-                }
-            }
-        };
-
-        // Trivia Game
-        const triviaGame = {
-            questions: [
-                // Nigeria General Knowledge (20)
-                {
-                    question: "What is the capital of Nigeria?",
-                    options: ["Lagos", "Abuja", "Kano", "Port Harcourt"],
-                    answer: 2
-                },
-                {
-                    question: "Which Nigerian artist sang 'Fall'?",
-                    options: ["Wizkid", "Davido", "Burna Boy", "Mr Eazi"],
-                    answer: 2
-                },
-                {
-                    question: "What year did Nigeria gain independence?",
-                    options: ["1957", "1960", "1963", "1970"],
-                    answer: 2
-                },
-                {
-                    question: "Which of these is NOT a Nigerian bank?",
-                    options: ["GTBank", "Zenith", "First Bank", "Barclays"],
-                    answer: 4
-                },
-                {
-                    question: "What is the most populous city in Nigeria?",
-                    options: ["Lagos", "Kano", "Ibadan", "Abuja"],
-                    answer: 1
-                },
-                {
-                    question: "Which Nigerian state is known as the 'Centre of Excellence'?",
-                    options: ["Lagos", "Rivers", "Ogun", "Kano"],
-                    answer: 1
-                },
-                {
-                    question: "What is the official language of Nigeria?",
-                    options: ["English", "Yoruba", "Hausa", "Igbo"],
-                    answer: 1
-                },
-                {
-                    question: "Which Nigerian president introduced the 'War Against Indiscipline'?",
-                    options: ["Obasanjo", "Buhari", "Babangida", "Shagari"],
-                    answer: 2
-                },
-                {
-                    question: "What is the name of Nigeria's currency?",
-                    options: ["Dollar", "Pound", "Naira", "Cedi"],
-                    answer: 3
-                },
-                {
-                    question: "Which of these is a popular Nigerian dish?",
-                    options: ["Jollof Rice", "Pounded Yam", "Egusi Soup", "All of the above"],
-                    answer: 4
-                },
-                {
-                    question: "Which Nigerian musician is known as the 'Afrobeats King'?",
-                    options: ["Fela Kuti", "2Baba", "D'banj", "Wizkid"],
-                    answer: 1
-                },
-                {
-                    question: "What is the name of Nigeria's film industry?",
-                    options: ["Nollywood", "Kannywood", "Yorubawood", "All of the above"],
-                    answer: 4
-                },
-                {
-                    question: "Which river is the longest in Nigeria?",
-                    options: ["Niger", "Benue", "Kaduna", "Cross"],
-                    answer: 1
-                },
-                {
-                    question: "What is the name of Nigeria's national football team?",
-                    options: ["Super Eagles", "Green Eagles", "Flying Eagles", "Golden Eagles"],
-                    answer: 1
-                },
-                {
-                    question: "Which Nigerian state is known as the 'Giant of Africa'?",
-                    options: ["Lagos", "Kano", "Rivers", "Nigeria is called this"],
-                    answer: 4
-                },
-                {
-                    question: "What is the name of Nigeria's current president (as of 2023)?",
-                    options: ["Muhammadu Buhari", "Bola Tinubu", "Goodluck Jonathan", "Olusegun Obasanjo"],
-                    answer: 2
-                },
-                {
-                    question: "Which of these Nigerian cities is located in the North?",
-                    options: ["Enugu", "Kaduna", "Calabar", "Abeokuta"],
-                    answer: 2
-                },
-                {
-                    question: "What is the name of Nigeria's stock exchange?",
-                    options: ["NSE", "NGX", "NigerX", "StockNig"],
-                    answer: 2
-                },
-                {
-                    question: "Which Nigerian state is known for its oil production?",
-                    options: ["Lagos", "Kano", "Rivers", "Oyo"],
-                    answer: 3
-                },
-                {
-                    question: "What is the name of Nigeria's central bank?",
-                    options: ["First Bank", "Central Bank of Nigeria", "Nigeria Reserve Bank", "Bank of Nigeria"],
-                    answer: 2
-                },
-                // Add more questions here to reach 100+
-                // ... (80 more questions would be added in a real implementation)
-            ],
-            currentQuestion: 0,
-            score: 0,
-            attempts: 10,
-            earnings: 0,
-            usedQuestions: [],
-            
-            init: function() {
-                this.loadQuestion();
-                
-                // Set up option click handlers
-                document.querySelectorAll('.trivia-option').forEach(option => {
-                    option.addEventListener('click', (e) => {
-                        const selectedOption = parseInt(e.target.getAttribute('data-option'));
-                        this.checkAnswer(selectedOption);
-                    });
-                });
-                
-                this.updateAttempts();
-            },
-            
-            loadQuestion: function() {
-                // If all questions have been used, reset
-                if (this.usedQuestions.length >= this.questions.length) {
-                    this.usedQuestions = [];
-                }
-                
-                // Find a question that hasn't been used yet
-                let availableQuestions = this.questions.filter((q, index) => !this.usedQuestions.includes(index));
-                
-                if (availableQuestions.length === 0) {
-                    // All questions have been used, reset
-                    this.usedQuestions = [];
-                    availableQuestions = [...this.questions];
-                }
-                
-                const randomIndex = Math.floor(Math.random() * availableQuestions.length);
-                const question = availableQuestions[randomIndex];
-                this.currentQuestion = this.questions.indexOf(question);
-                
-                document.getElementById('triviaQuestion').textContent = question.question;
-                
-                const options = document.querySelectorAll('.trivia-option');
-                question.options.forEach((option, index) => {
-                    options[index].textContent = option;
-                    options[index].classList.remove('correct', 'incorrect');
-                });
-            },
-            
-            checkAnswer: function(selectedOption) {
-                if (this.attempts <= 0) {
-                    showNotification('Watch ads to get more trivia attempts!');
-                    return;
-                }
-                
-                // Check if we should show an ad before answering
-                if (shouldShowAd('trivia')) {
-                    showAdModal('trivia');
-                    return;
-                }
-                
-                this.attempts--;
-                this.updateAttempts();
-                this.updateServerAttempts();
-                document.getElementById('clickSound').play();
-                
-                const question = this.questions[this.currentQuestion];
-                const options = document.querySelectorAll('.trivia-option');
-                
-                if (selectedOption === question.answer) {
-                    options[selectedOption-1].classList.add('correct');
-                    this.score++;
-                    this.earnings += 800;
-                    addGameEarnings(800);
-                    this.updateStats();
-                    showNotification('✅ Correct! You earned ₦800');
-                    document.getElementById('winSound').play();
-                } else {
-                    options[selectedOption-1].classList.add('incorrect');
-                    options[question.answer-1].classList.add('correct');
-                    showNotification('❌ Wrong answer! Try again');
-                    document.getElementById('loseSound').play();
-                }
-                
-                // Mark question as used
-                this.usedQuestions.push(this.currentQuestion);
-                
-                // Move to next question after delay
-                setTimeout(() => {
-                    this.loadQuestion();
-                    
-                    if (this.attempts <= 0) {
-                        showNotification('Trivia attempts exhausted. Watch ads to get more attempts!');
-                        document.getElementById('triviaGame').classList.add('game-disabled');
-                    }
-                }, 1500);
-            },
-            
-            updateAttempts: function() {
-                document.getElementById('triviaAttempts').textContent = this.attempts;
-            },
-            
-            updateStats: function() {
-                document.getElementById('triviaCorrect').textContent = this.score;
-                document.getElementById('triviaEarnings').textContent = this.earnings;
-            },
-            
-            updateServerAttempts: async function() {
-                try {
-                    const response = await fetch('/api/games/update-attempts', {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Telegram-Init-Data': window.Telegram.WebApp.initData || 'test'
-                        },
-                        body: JSON.stringify({ 
-                            gameType: 'trivia',
-                            attempts: this.attempts 
-                        })
-                    });
-                    
-                    if (!response.ok) throw new Error('Failed to save progress');
-                    return await response.json();
-                } catch (error) {
-                    console.error('Update attempts error:', error);
-                    showNotification('⚠️ Progress not saved (check connection)');
-                }
-            }
-        };
-
-        // Wheel Spin Game
-        const wheelGame = {
-            attempts: 10,
-            wins: 0,
-            earnings: 0,
-            spinning: false,
-            wheel: null,
-            sections: 16, // More sections for better distribution
-            prizes: [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600], // ₦ prizes
-            colors: ['#FF5252', '#FF4081', '#E040FB', '#7C4DFF', '#536DFE', '#448AFF', '#40C4FF', '#18FFFF', '#64FFDA', '#69F0AE', '#B2FF59', '#EEFF41', '#FFFF00', '#FFD740', '#FFAB40', '#FF6E40'],
-            
-            init: function() {
-                this.wheel = document.getElementById('wheel');
-                this.createWheel();
-                
-                document.getElementById('spinWheelBtn').addEventListener('click', () => this.spin());
-                this.updateAttempts();
-            },
-            
-            createWheel: function() {
-                this.wheel.innerHTML = '';
-                const sectionAngle = 360 / this.sections;
-                
-                for (let i = 0; i < this.sections; i++) {
-                    const section = document.createElement('div');
-                    section.className = 'wheel-section';
-                    section.style.transform = `rotate(${i * sectionAngle}deg)`;
-                    section.style.backgroundColor = this.colors[i % this.colors.length];
-                    section.style.clipPath = 'polygon(0 0, 100% 0, 100% 100%)';
-                    
-                    // Add prize text
-                    const prizeText = document.createElement('div');
-                    prizeText.style.transform = 'rotate(45deg) translate(-10px, 10px)';
-                    prizeText.style.fontSize = '14px'; // Smaller font for more sections
-                    prizeText.textContent = `₦${this.prizes[i]}`;
-                    section.appendChild(prizeText);
-                    
-                    this.wheel.appendChild(section);
-                }
-            },
-            
-            spin: function() {
-                if (this.attempts <= 0) {
-                    showNotification('Watch ads to get more wheel spin attempts!');
-                    return;
-                }
-                
-                if (this.spinning) return;
-                
-                // Check if we should show an ad before spinning
-                if (shouldShowAd('wheel')) {
-                    showAdModal('wheel');
-                    return;
-                }
-                
-                this.attempts--;
-                this.updateAttempts();
-                this.updateServerAttempts();
-                document.getElementById('clickSound').play();
-                
-                this.spinning = true;
-                const spinBtn = document.getElementById('spinWheelBtn');
-                spinBtn.disabled = true;
-                
-                // Randomly select a prize (weighted towards higher amounts)
-                const prizeIndex = this.getWeightedPrizeIndex();
-                const prize = this.prizes[prizeIndex];
-                
-                // Calculate rotation (5 full rotations + angle to selected prize)
-                const sectionAngle = 360 / this.sections;
-                const targetAngle = 1800 + (360 - (prizeIndex * sectionAngle)) + (Math.random() * sectionAngle);
-                
-                // Animate the spin
-                this.wheel.style.transform = `rotate(${targetAngle}deg)`;
-                this.wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
-                
-                // Show spinning message
-                document.getElementById('wheelMessage').textContent = 'Spinning...';
-                document.getElementById('wheelPrize').textContent = '';
-                
-                // After spin completes
-                setTimeout(() => {
-                    this.spinning = false;
-                    spinBtn.disabled = false;
-                    
-                    // Show result
-                    document.getElementById('wheelMessage').textContent = 'You won:';
-                    document.getElementById('wheelPrize').textContent = `₦${prize}`;
-                    
-                    // Add winnings
-                    this.wins++;
-                    this.earnings += prize;
-                    this.updateStats();
-                    addGameEarnings(prize);
-                    
-                    if (prize > 0) {
-                        document.getElementById('winSound').play();
-                        showNotification(`🎡 You won ₦${prize}!`);
-                    } else {
-                        document.getElementById('loseSound').play();
-                        showNotification('Better luck next time!');
-                    }
-                    
-                    if (this.attempts <= 0) {
-                        showNotification('Wheel spin attempts exhausted. Watch ads to get more attempts!');
-                        document.getElementById('wheelGame').classList.add('game-disabled');
-                    }
-                }, 4000);
-            },
-            
-            // Weighted probability - higher chance for higher prizes
-            getWeightedPrizeIndex: function() {
-                // Create weights where higher prizes have higher weights
-                const weights = [];
-                for (let i = 0; i < this.prizes.length; i++) {
-                    // Base weight is the prize amount divided by 100 (so ₦1600 has weight 16)
-                    weights.push(Math.max(1, Math.floor(this.prizes[i] / 100)));
-                }
-                
-                // Make the 0 prize very unlikely (weight 1)
-                weights[0] = 1;
-                
-                const total = weights.reduce((a, b) => a + b, 0);
-                const random = Math.random() * total;
-                
-                let sum = 0;
-                for (let i = 0; i < weights.length; i++) {
-                    sum += weights[i];
-                    if (random <= sum) return i;
-                }
-                
-                return this.prizes.length - 1; // Default to last prize
-            },
-            
-            updateAttempts: function() {
-                document.getElementById('wheelAttempts').textContent = this.attempts;
-            },
-            
-            updateStats: function() {
-                document.getElementById('wheelWins').textContent = this.wins;
-                document.getElementById('wheelEarnings').textContent = this.earnings;
-            },
-            
-            updateServerAttempts: async function() {
-                try {
-                    const response = await fetch('/api/games/update-attempts', {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Telegram-Init-Data': window.Telegram.WebApp.initData || 'test'
-                        },
-                        body: JSON.stringify({ 
-                            gameType: 'wheel',
-                            attempts: this.attempts 
-                        })
-                    });
-                    
-                    if (!response.ok) throw new Error('Failed to save progress');
-                    return await response.json();
-                } catch (error) {
-                    console.error('Update attempts error:', error);
-                    showNotification('⚠️ Progress not saved (check connection)');
-                }
-            }
-        };
-
         // ===== CORE FUNCTIONALITY =====
         const tg = window.Telegram.WebApp;
-        tg.expand();
+        if (tg) {
+            tg.expand();
+        }
         
-        // User data
-        let userData = {
-            balance: 5000, // Signup bonus of ₦5000
-            referrals: 0,
-            referralEarnings: 0,
-            adsWatched: 0,
-            tradingActive: false,
-            verified: false,
-            tradingCapital: 0,
-            dailyProfit: 0,
-            totalProfit: 0,
-            withdrawableProfit: 0,
-            bankDetails: null,
-            paymentCircle: {
-                current: 0,
-                total: 1000
-            }
-        };
+        // User data will be loaded from DataManager
+        let userData = {};
+        
+        // Save user data using DataManager
+        async function saveUserData() {
+            await DataManager.saveData();
+        }
         
         // Announcements data
         let announcements = [];
@@ -3298,19 +1981,8 @@ function shouldShowAd(game) {
                 info: document.getElementById('infoTab'),
                 support: document.getElementById('supportTab')
             },
-            gameCards: document.querySelectorAll('.game-card'),
-            memoryGame: document.getElementById('memoryGame'),
-            diceGame: document.getElementById('diceGame'),
-            snakeGame: document.getElementById('snakeGame'),
-            triviaGame: document.getElementById('triviaGame'),
-            wheelGame: document.getElementById('wheelGame'),
             streakCount: document.getElementById('streakCount'),
             streakBonus: document.getElementById('streakBonus'),
-            backToGames1: document.getElementById('backToGames1'),
-            backToGames2: document.getElementById('backToGames2'),
-            backToGames3: document.getElementById('backToGames3'),
-            backToGames4: document.getElementById('backToGames4'),
-            backToGames5: document.getElementById('backToGames5'),
             learnMoreBtn: document.getElementById('learnMoreBtn'),
             adminPanelBtn: document.getElementById('adminPanelBtn'),
             adminAnnouncementModal: document.getElementById('adminAnnouncementModal'),
@@ -3323,122 +1995,104 @@ function shouldShowAd(game) {
             viewAllAnnouncementsBtn: document.getElementById('viewAllAnnouncementsBtn'),
             announcementNotification: document.getElementById('announcementNotification'),
             announcementPreview: document.getElementById('announcementPreview'),
-            closeAnnouncementBtn: document.getElementById('closeAnnouncementBtn')
+            closeAnnouncementBtn: document.getElementById('closeAnnouncementBtn'),
+            ticketSubject: document.getElementById('ticketSubject'),
+            ticketMessage: document.getElementById('ticketMessage'),
+            submitTicket: document.getElementById('submitTicket'),
+            ticketList: document.getElementById('ticketList'),
+            gamesButton: document.getElementById('gamesButton'),
+            tradingButton: document.getElementById('tradingButton')
         };
         
-        // Initialize games
-        function initGames() {
-            memoryGame.init();
-            diceGame.init();
-            snakeGame.init();
-            triviaGame.init();
-            wheelGame.init();
-        }
-        
-        // Show game
-        function showGame(game) {
-            // Hide all game containers
-            elements.memoryGame.classList.remove('active');
-            elements.diceGame.classList.remove('active');
-            elements.snakeGame.classList.remove('active');
-            elements.triviaGame.classList.remove('active');
-            elements.wheelGame.classList.remove('active');
-            
-            // Show selected game
-            switch(game) {
-                case 'memory':
-                    elements.memoryGame.classList.add('active');
-                    elements.memoryGame.scrollIntoView({ behavior: 'smooth' });
-                    break;
-                case 'dice':
-                    elements.diceGame.classList.add('active');
-                    elements.diceGame.scrollIntoView({ behavior: 'smooth' });
-                    break;
-                case 'snake':
-                    elements.snakeGame.classList.add('active');
-                    elements.snakeGame.scrollIntoView({ behavior: 'smooth' });
-                    break;
-                case 'trivia':
-                    elements.triviaGame.classList.add('active');
-                    elements.triviaGame.scrollIntoView({ behavior: 'smooth' });
-                    break;
-                case 'wheel':
-                    elements.wheelGame.classList.add('active');
-                    elements.wheelGame.scrollIntoView({ behavior: 'smooth' });
-                    break;
-                default:
-                    // Scroll to top of games tab when showing game cards
-                    document.getElementById('gamesTab').scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-        
-        // Add game earnings to balance or capital
-        function addGameEarnings(amount) {
-            if (userData.tradingActive) {
-                userData.tradingCapital += amount;
-                updateTradingInfo();
-            } else {
-                userData.balance += amount;
-            }
-            updateBalance();
-        }
-        
         // Update UI
-        function updateUI() {
+        async function updateUI() {
             elements.verifiedBadge.textContent = userData.verified ? '✅' : '❌';
             updateBalance();
             updateReferralInfo();
             updateTradingInfo();
             updatePaymentCircle();
+            updateSupportTickets();
+            await saveUserData(); // Save to localStorage and sync with backend
         }
         
         // Update balance display
         function updateBalance() {
-            elements.balance.textContent = userData.balance.toLocaleString();
-            elements.availableBalance.textContent = Math.max(0, userData.withdrawableProfit).toLocaleString();
+            elements.balance.textContent = userData.balance?.toLocaleString() || '0';
+            elements.availableBalance.textContent = Math.max(0, userData.withdrawableProfit || 0).toLocaleString();
         }
         
         // Update referral display
         function updateReferralInfo() {
-            elements.currentReferrals.textContent = userData.referrals;
-            elements.completedReferrals.textContent = userData.referrals;
-            elements.referralProgress.value = userData.referrals;
-            elements.referralEarnings.textContent = (userData.referrals * 5000).toLocaleString();
+            elements.currentReferrals.textContent = userData.referrals || 0;
+            elements.completedReferrals.textContent = userData.referrals || 0;
+            elements.referralProgress.value = userData.referrals || 0;
+            elements.referralEarnings.textContent = ((userData.referrals || 0) * 5000).toLocaleString();
             
-            if (userData.referrals >= 6 && userData.adsWatched >= 10) {
+            if ((userData.referrals || 0) >= 6 && (userData.adsWatched || 0) >= 20) {
                 userData.tradingActive = true;
                 userData.tradingCapital = 35000; // ₦5k signup + ₦30k from 6 referrals
-                elements.tradingStatus.innerHTML = 'AI Bot: <b>Active</b> (24h Profit: ₦' + userData.dailyProfit.toLocaleString() + ')';
-                elements.toggleTrading.textContent = 'Deactivate Trading';
-                elements.toggleTrading.disabled = false;
+                elements.tradingStatus.innerHTML = 'AI Bot: <b>Active</b> (24h Profit: ₦' + (userData.dailyProfit || 0).toLocaleString() + ')';
+                if (elements.toggleTrading) {
+                    elements.toggleTrading.textContent = 'Deactivate Trading';
+                    elements.toggleTrading.disabled = false;
+                }
             } else {
-                elements.tradingStatus.innerHTML = 'AI Bot: <b>Inactive</b> (Complete 6 referrals and 10 ads)';
-                elements.toggleTrading.textContent = 'Activate Trading';
-                elements.toggleTrading.disabled = true;
+                elements.tradingStatus.innerHTML = 'AI Bot: <b>Inactive</b> (Complete 6 referrals and 20 ads)';
+                if (elements.toggleTrading) {
+                    elements.toggleTrading.textContent = 'Activate Trading';
+                    elements.toggleTrading.disabled = true;
+                }
             }
         }
         
         // Update trading info
         function updateTradingInfo() {
-            elements.tradingCapital.textContent = 'Trading Capital: ₦' + userData.tradingCapital.toLocaleString();
-            elements.dailyProfit.textContent = 'Daily Profit: ₦' + userData.dailyProfit.toLocaleString();
-            elements.totalProfit.textContent = 'Total Profit: ₦' + userData.totalProfit.toLocaleString();
-            elements.withdrawableProfit.textContent = 'Withdrawable: ₦' + userData.withdrawableProfit.toLocaleString();
+            if (elements.tradingCapital) elements.tradingCapital.textContent = 'Trading Capital: ₦' + (userData.tradingCapital || 0).toLocaleString();
+            if (elements.dailyProfit) elements.dailyProfit.textContent = 'Daily Profit: ₦' + (userData.dailyProfit || 0).toLocaleString();
+            if (elements.totalProfit) elements.totalProfit.textContent = 'Total Profit: ₦' + (userData.totalProfit || 0).toLocaleString();
+            if (elements.withdrawableProfit) elements.withdrawableProfit.textContent = 'Withdrawable: ₦' + (userData.withdrawableProfit || 0).toLocaleString();
         }
         
         // Update payment circle info
         function updatePaymentCircle() {
-            elements.paidUsers.textContent = userData.paymentCircle.current.toLocaleString();
-            elements.paymentCircleProgress.value = userData.paymentCircle.current;
-            
-            if (userData.paymentCircle.current >= userData.paymentCircle.total) {
+            elements.paidUsers.textContent = (userData.paymentCircle?.current || 0).toLocaleString();
+            elements.paymentCircleProgress.value = userData.paymentCircle?.current || 0;
+
+            if ((userData.paymentCircle?.current || 0) >= 1000) {
                 showNotification('Payment circle complete! Admin has been notified to process payments.');
-                userData.paymentCircle.current = 0;
+                userData.paymentCircle.current = 0; // Reset the payment circle
             }
+        }
+        
+        // Update support tickets list
+        function updateSupportTickets() {
+            if (!elements.ticketList) return;
+            
+            elements.ticketList.innerHTML = '';
+            
+            if (!userData.supportTickets || userData.supportTickets.length === 0) {
+                elements.ticketList.innerHTML = '<p>No support tickets yet</p>';
+                return;
+            }
+            
+            userData.supportTickets.forEach(ticket => {
+                const ticketElement = document.createElement('div');
+                ticketElement.className = 'status-card';
+                ticketElement.style.marginBottom = '10px';
+                ticketElement.innerHTML = `
+                    <h4>${ticket.subject}</h4>
+                    <p><small>${new Date(ticket.timestamp).toLocaleString()}</small></p>
+                    <p>Status: ${ticket.status || 'Pending'}</p>
+                    ${ticket.response ? `<p>Response: ${ticket.response}</p>` : ''}
+                `;
+                elements.ticketList.appendChild(ticketElement);
+            });
         }
         
         // Show notification
         function showNotification(message) {
+            if (!elements.notification || !elements.notificationText) return;
+            
             elements.notificationText.textContent = message;
             elements.notification.classList.add('show');
             setTimeout(() => {
@@ -3454,14 +2108,14 @@ function shouldShowAd(game) {
         }
         
         // Simulate trading
-        function simulateTrading() {
+        async function simulateTrading() {
             if (userData.tradingActive) {
                 const dailyReturn = Math.random() * (0.5 - 0.2) + 0.2;
-                userData.dailyProfit = userData.tradingCapital * dailyReturn;
-                userData.totalProfit += userData.dailyProfit;
+                userData.dailyProfit = (userData.tradingCapital || 0) * dailyReturn;
+                userData.totalProfit = (userData.totalProfit || 0) + userData.dailyProfit;
                 
                 const userShare = userData.dailyProfit * 0.7;
-                userData.withdrawableProfit += userShare;
+                userData.withdrawableProfit = (userData.withdrawableProfit || 0) + userShare;
                 
                 updateBalance();
                 updateTradingInfo();
@@ -3472,66 +2126,78 @@ function shouldShowAd(game) {
                 }
                 
                 if (Math.random() > 0.8) {
-                    userData.paymentCircle.current += Math.floor(Math.random() * 50) + 10;
+                    userData.paymentCircle.current = (userData.paymentCircle?.current || 0) + Math.floor(Math.random() * 50) + 10;
                     updatePaymentCircle();
                 }
+                
+                // Save the updated data
+                await saveUserData();
             }
         }
         
         // Toggle FAQ answer visibility
         function toggleFaq(index) {
             const answer = document.getElementById(`faq${index}`);
-            answer.classList.toggle('show');
+            if (answer) {
+                answer.classList.toggle('show');
+            }
         }
         
         // Submit support ticket
-        function submitTicket() {
-            const subject = document.getElementById('ticketSubject').value;
-            const message = document.getElementById('ticketMessage').value;
+        async function submitTicket() {
+            const subject = elements.ticketSubject.value;
+            const message = elements.ticketMessage.value;
             
             if (!subject || !message) {
                 showNotification('Please fill all fields');
                 return;
             }
             
-            const ticketList = document.getElementById('ticketList');
-            ticketList.innerHTML = `<div class="status-card" style="margin-bottom: 10px;">
-                <h4>${subject}</h4>
-                <p><small>${new Date().toLocaleString()}</small></p>
-                <p>Status: Pending</p>
-            </div>` + ticketList.innerHTML;
+            // Add new ticket
+            if (!userData.supportTickets) userData.supportTickets = [];
+            userData.supportTickets.unshift({
+                subject,
+                message,
+                status: 'Pending',
+                timestamp: Date.now()
+            });
             
-            document.getElementById('ticketSubject').value = '';
-            document.getElementById('ticketMessage').value = '';
+            // Clear form
+            elements.ticketSubject.value = '';
+            elements.ticketMessage.value = '';
+            
+            // Update UI and save
+            updateSupportTickets();
             showNotification('Ticket submitted successfully!');
+            await saveUserData();
         }
         
         // Load announcements
-        function getAnnouncements() {
-            // In a real app, this would fetch from a server
-            announcements = [
-                {
-                    _id: "1",
-                    title: "🚨 LIMITED TIME OFFER",
-                    message: "HURRY! Refer 6 friends NOW to unlock FREE AI Trading and start earning ₦7,000-₦17,500 DAILY! ⏳ Only 47 spots left in this payment batch!",
-                    time: "Today, 10:15 AM",
-                    recipients: [
-                        { userId: tg.initDataUnsafe.user?.id || 'demo', read: false }
-                    ]
-                }
-            ];
-            unreadAnnouncements = 1;
+        async function getAnnouncements() {
+            announcements = await DataManager.getAnnouncements();
+            unreadAnnouncements = announcements.filter(a => 
+                a.recipients?.some(r => r.userId === DataManager.userId && !r.read)
+            ).length;
             
             // Render announcements
-            renderAnnouncement(announcements[0], false);
+            announcements.slice(0, 3).forEach(announcement => {
+                const isUnread = announcement.recipients?.some(r => 
+                    r.userId === DataManager.userId && !r.read
+                );
+                renderAnnouncement(announcement, isUnread);
+            });
             
             // Update badge
-            elements.newAnnouncementBadge.style.display = 'inline-block';
-            elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
+            if (elements.newAnnouncementBadge) {
+                elements.newAnnouncementBadge.style.display = unreadAnnouncements > 0 ? 'inline-block' : 'none';
+                elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
+            }
         }
         
         // Render announcement
         function renderAnnouncement(announcement, isNew) {
+            if (!elements.announcementList) return;
+            
             const announcementItem = document.createElement('div');
             announcementItem.className = `announcement-item ${isNew ? 'unread' : ''}`;
             announcementItem.innerHTML = `
@@ -3542,14 +2208,25 @@ function shouldShowAd(game) {
             
             // Add click handler to mark as read
             announcementItem.addEventListener('click', () => {
-                announcementItem.classList.remove('unread');
                 if (isNew) {
+                    // Mark as read in the data
+                    const recipient = announcement.recipients?.find(r => r.userId === DataManager.userId);
+                    if (recipient) recipient.read = true;
+                    
+                    // Update UI
+                    announcementItem.classList.remove('unread');
                     unreadAnnouncements--;
-                    if (unreadAnnouncements <= 0) {
-                        elements.newAnnouncementBadge.style.display = 'none';
-                    } else {
-                        elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
+                    
+                    if (elements.newAnnouncementBadge) {
+                        if (unreadAnnouncements <= 0) {
+                            elements.newAnnouncementBadge.style.display = 'none';
+                        } else {
+                            elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
+                        }
                     }
+                    
+                    // Save the updated announcements
+                    DataManager.saveAnnouncement(announcement);
                 }
             });
             
@@ -3558,6 +2235,8 @@ function shouldShowAd(game) {
         
         // Show announcement notification
         function showAnnouncementNotification(message) {
+            if (!elements.announcementPreview || !elements.announcementNotification) return;
+            
             elements.announcementPreview.textContent = message;
             elements.announcementNotification.classList.add('show');
             
@@ -3570,6 +2249,8 @@ function shouldShowAd(game) {
         
         // Handle announcement click
         function handleAnnouncementClick() {
+            if (!elements.announcementNotification || !elements.announcementSection) return;
+            
             elements.announcementNotification.classList.remove('show');
             clearTimeout(announcementTimeout);
             
@@ -3579,7 +2260,10 @@ function shouldShowAd(game) {
         }
         
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize data manager and load user data
+            userData = await DataManager.initialize();
+            
             // Initialize streak first
             initializeStreak();
             
@@ -3588,307 +2272,374 @@ function shouldShowAd(game) {
             startTestimonialRotation();
             setupTestimonialDots();
             
-            // Initialize games
-            initGames();
-            
-            // Demo data initialization
-            userData.verified = false;
-            userData.paymentCircle.current = 0;
-            userData.referrals = 0;
-            userData.adsWatched = 0;
-            
-            // Remove the lastLogin from userData since we're using localStorage now
-            delete userData.lastLogin;
-            delete userData.streak;
-            delete userData.streakBonus;
-            
             // Load announcements
-            getAnnouncements();
+            await getAnnouncements();
             
+            // Initialize UI
             updateUI();
             
             // Copy referral link functionality
-            elements.copyLink.addEventListener('click', function() {
-                const refLink = `https://t.me/aireftradersng_bot?startref=${tg.initDataUnsafe.user?.id || 'naija'}`;
-                navigator.clipboard.writeText(refLink).then(() => {
-                    showNotification('Referral link copied! Share with your Nigerian friends');
+            if (elements.copyLink) {
+                elements.copyLink.addEventListener('click', function() {
+                    const refLink = `https://t.me/aireftradersng_bot?startref=${DataManager.userId}`;
+                    navigator.clipboard.writeText(refLink).then(() => {
+                        showNotification('Referral link copied! Share with your Nigerian friends');
+                    });
                 });
-            });
-            
-            // Game card click handlers
-            elements.gameCards.forEach(card => {
-                card.addEventListener('click', () => {
-                    showGame(card.dataset.game);
-                });
-            });
-            
-            // Back to games buttons
-            elements.backToGames1.addEventListener('click', () => showGame(''));
-            elements.backToGames2.addEventListener('click', () => showGame(''));
-            elements.backToGames3.addEventListener('click', () => showGame(''));
-            elements.backToGames4.addEventListener('click', () => showGame(''));
-            elements.backToGames5.addEventListener('click', () => showGame(''));
-            
-            // Toggle trading
-            elements.toggleTrading.addEventListener('click', () => {
-                userData.tradingActive = !userData.tradingActive;
-                if (userData.tradingActive) {
-                    showSuccess('Trading Activated', 'AI trading is now active and generating profits!');
-                } else {
-                    showSuccess('Trading Deactivated', 'AI trading has been paused.');
-                }
-                updateReferralInfo();
-            });
+            }
             
             // Bank binding
-            elements.bankBindingBtn.addEventListener('click', () => {
-                elements.bankModal.classList.add('active');
-            });
-            
-            // Withdraw button
-            elements.withdrawBtn.addEventListener('click', () => {
-                elements.withdrawalModal.classList.add('active');
-                if (!userData.verified) {
-                    elements.verificationNotice.style.display = 'block';
-                    elements.withdrawalForm.style.display = 'none';
-                } else {
-                    elements.verificationNotice.style.display = 'none';
-                    elements.withdrawalForm.style.display = 'block';
-                }
-            });
-            
-            // Deposit button
-            elements.depositBtn.addEventListener('click', () => {
-                elements.depositModal.classList.add('active');
-            });
-            
-            // Close deposit modal
-            elements.closeDepositModal.addEventListener('click', () => {
-                elements.depositModal.classList.remove('active');
-            });
-            
-            // Learn more button in deposit modal
-            elements.learnMoreBtn.addEventListener('click', () => {
-                elements.depositModal.classList.remove('active');
-                // Switch to Info tab
-                document.querySelector('.tab[data-tab="info"]').click();
-                // Scroll to investment section
-                setTimeout(() => {
-                    document.querySelector('.investment-section').scrollIntoView({ behavior: 'smooth' });
-                }, 300);
-            });
-            
-            // Verify account from withdrawal modal
-            elements.verifyAccountBtn.addEventListener('click', () => {
-                elements.withdrawalModal.classList.remove('active');
-                elements.bankModal.classList.add('active');
-            });
-            
-            // Bank selection functionality
-            elements.bankName.addEventListener('change', function() {
-                if (this.value === 'other') {
-                    elements.otherBankName.classList.add('active');
-                    elements.bankSearch.classList.remove('active');
-                } else {
-                    elements.otherBankName.classList.remove('active');
-                }
-            });
-            
-            // Bank search functionality
-            elements.bankSearch.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                const options = elements.bankName.options;
-                
-                for (let i = 0; i < options.length; i++) {
-                    const option = options[i];
-                    if (option.text.toLowerCase().includes(searchTerm)) {
-                        option.style.display = '';
-                    } else {
-                        option.style.display = 'none';
-                    }
-                }
-            });
-            
-            // Show bank search when typing in select
-            elements.bankName.addEventListener('focus', function() {
-                elements.bankSearch.classList.add('active');
-            });
-            
-            // Confirm bank binding
-            elements.confirmBankBinding.addEventListener('click', () => {
-                let bankName = elements.bankName.value;
-                
-                if (bankName === 'other') {
-                    bankName = elements.otherBankName.value;
-                }
-                
-                const accountNumber = elements.accountNumber.value;
-                
-                if (!bankName || !accountNumber) {
-                    showNotification('Please fill all bank details');
-                    return;
-                }
-                
-                // Simulate bank verification
-                setTimeout(() => {
-                    userData.verified = true;
-                    userData.bankDetails = {
-                        bankName,
-                        accountNumber,
-                        accountName: "Demo User"
-                    };
-                    elements.accountName.value = "Demo User";
-                    elements.bankModal.classList.remove('active');
-                    showSuccess('Bank Verified', 'Your Nigerian bank account has been successfully verified!');
-                    updateUI();
-                }, 2000);
-            });
-            
-            // Cancel bank binding
-            elements.cancelBankBinding.addEventListener('click', () => {
-                elements.bankModal.classList.remove('active');
-            });
-            
-            // Confirm withdrawal
-            elements.confirmWithdrawal.addEventListener('click', () => {
-                const amount = parseInt(elements.withdrawalAmount.value);
-                
-                if (amount < 5000) {
-                    showNotification('Minimum withdrawal is ₦5,000');
-                    return;
-                }
-                
-                if (amount > userData.withdrawableProfit) {
-                    showNotification('Insufficient withdrawable balance');
-                    return;
-                }
-                
-                if (!userData.bankDetails) {
-                    showNotification('Bank details not found');
-                    return;
-                }
-                
-                userData.withdrawableProfit -= amount;
-                userData.paymentCircle.current++;
-                updateBalance();
-                updatePaymentCircle();
-                elements.withdrawalModal.classList.remove('active');
-                showSuccess('Withdrawal Requested', `Your withdrawal of ₦${amount.toLocaleString()} has been submitted to your ${userData.bankDetails.bankName} account.`);
-            });
-            
-            // Cancel withdrawal
-            elements.cancelWithdrawal.addEventListener('click', () => {
-                elements.withdrawalModal.classList.remove('active');
-            });
-            
-            // Close success modal
-            elements.closeSuccessModal.addEventListener('click', () => {
-                elements.successModal.classList.remove('active');
-            });
-            
-            // Submit ticket
-            document.getElementById('submitTicket').addEventListener('click', submitTicket);
-            
-            // Tab switching
-            elements.tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    elements.tabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    
-                    Object.values(elements.tabContents).forEach(content => {
-                        content.classList.remove('active');
-                    });
-                    
-                    const tabName = tab.dataset.tab;
-                    if (elements.tabContents[tabName]) {
-                        elements.tabContents[tabName].classList.add('active');
-                    }
-                    
-                    // When switching to games tab, show game cards by default
-                    if (tabName === 'games') {
-                        showGame('');
+            if (elements.bankBindingBtn) {
+                elements.bankBindingBtn.addEventListener('click', () => {
+                    if (elements.bankModal) {
+                        elements.bankModal.classList.add('active');
                     }
                 });
-            });
+            }
+            
+            // Withdraw button
+            if (elements.withdrawBtn) {
+                elements.withdrawBtn.addEventListener('click', () => {
+                    if (elements.withdrawalModal) {
+                        elements.withdrawalModal.classList.add('active');
+                        if (!userData.verified) {
+                            if (elements.verificationNotice) elements.verificationNotice.style.display = 'block';
+                            if (elements.withdrawalForm) elements.withdrawalForm.style.display = 'none';
+                        } else {
+                            if (elements.verificationNotice) elements.verificationNotice.style.display = 'none';
+                            if (elements.withdrawalForm) elements.withdrawalForm.style.display = 'block';
+                        }
+                    }
+                });
+            }
+            
+            // Deposit button
+            if (elements.depositBtn) {
+                elements.depositBtn.addEventListener('click', () => {
+                    if (elements.depositModal) {
+                        elements.depositModal.classList.add('active');
+                    }
+                });
+            }
+            
+            // Close deposit modal
+            if (elements.closeDepositModal) {
+                elements.closeDepositModal.addEventListener('click', () => {
+                    if (elements.depositModal) {
+                        elements.depositModal.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Learn more button in deposit modal
+            if (elements.learnMoreBtn) {
+                elements.learnMoreBtn.addEventListener('click', () => {
+                    if (elements.depositModal) {
+                        elements.depositModal.classList.remove('active');
+                    }
+                    // Switch to Info tab
+                    document.querySelector('.tab[data-tab="info"]').click();
+                    // Scroll to investment section
+                    setTimeout(() => {
+                        const investmentSection = document.querySelector('.investment-section');
+                        if (investmentSection) {
+                            investmentSection.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }, 300);
+                });
+            }
+            
+            // Verify account from withdrawal modal
+            if (elements.verifyAccountBtn) {
+                elements.verifyAccountBtn.addEventListener('click', () => {
+                    if (elements.withdrawalModal) elements.withdrawalModal.classList.remove('active');
+                    if (elements.bankModal) elements.bankModal.classList.add('active');
+                });
+            }
+            
+            // Bank selection functionality
+            if (elements.bankName) {
+                elements.bankName.addEventListener('change', function() {
+                    if (this.value === 'other') {
+                        if (elements.otherBankName) elements.otherBankName.classList.add('active');
+                        if (elements.bankSearch) elements.bankSearch.classList.remove('active');
+                    } else {
+                        if (elements.otherBankName) elements.otherBankName.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Bank search functionality
+            if (elements.bankSearch) {
+                elements.bankSearch.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const options = elements.bankName.options;
+                    
+                    for (let i = 0; i < options.length; i++) {
+                        const option = options[i];
+                        if (option.text.toLowerCase().includes(searchTerm)) {
+                            option.style.display = '';
+                        } else {
+                            option.style.display = 'none';
+                        }
+                    }
+                });
+            }
+            
+            // Show bank search when typing in select
+            if (elements.bankName) {
+                elements.bankName.addEventListener('focus', function() {
+                    if (elements.bankSearch) elements.bankSearch.classList.add('active');
+                });
+            }
+            
+            // Confirm bank binding
+            if (elements.confirmBankBinding) {
+                elements.confirmBankBinding.addEventListener('click', async () => {
+                    const bankName = elements.bankName.value === 'other' ? 
+                        elements.otherBankName.value : elements.bankName.value;
+                    const accountNumber = elements.accountNumber.value;
+
+                    if (!bankName || !accountNumber || accountNumber.length !== 10) {
+                        showNotification('Please provide valid bank details (10-digit account number)');
+                        return;
+                    }
+
+                    // Simulate bank verification fee and deposit
+                    setTimeout(async () => {
+                        userData.verified = true;
+                        userData.bankDetails = { bankName, accountNumber };
+                        userData.withdrawableProfit = (userData.withdrawableProfit || 0) + 1050; // Add ₦1,050 to withdrawable profit
+                        updateBalance();
+                        updateUI();
+
+                        if (elements.bankModal) elements.bankModal.classList.remove('active');
+                        showSuccess(
+                            'Bank Account Verified',
+                            '₦1,050 has been deposited into your withdrawable account. Your account is now verified and ready for payment in the next 1,000 payment circle.'
+                        );
+                        
+                        // Save the updated data
+                        await saveUserData();
+                    }, 1000);
+                });
+            }
+            
+            // Cancel bank binding
+            if (elements.cancelBankBinding) {
+                elements.cancelBankBinding.addEventListener('click', () => {
+                    if (elements.bankModal) elements.bankModal.classList.remove('active');
+                });
+            }
+            
+            // Confirm withdrawal
+            if (elements.confirmWithdrawal) {
+                elements.confirmWithdrawal.addEventListener('click', async () => {
+                    const amount = parseInt(elements.withdrawalAmount.value);
+
+                    if (isNaN(amount) || amount < 5000) {
+                        showNotification('Minimum withdrawal amount is ₦5,000.');
+                        return;
+                    }
+
+                    if (amount > (userData.withdrawableProfit || 0)) {
+                        showNotification('Insufficient withdrawable balance.');
+                        return;
+                    }
+
+                    if (!userData.bankDetails || !userData.verified) {
+                        showNotification('Please verify and bind your bank account before withdrawing.');
+                        return;
+                    }
+
+                    // Deduct the amount from withdrawable profit
+                    userData.withdrawableProfit = (userData.withdrawableProfit || 0) - amount;
+                    updateBalance();
+
+                    // Notify the user that the request has been submitted
+                    if (elements.withdrawalModal) elements.withdrawalModal.classList.remove('active');
+                    showSuccess(
+                        'Withdrawal Requested',
+                        `Your withdrawal request of ₦${amount.toLocaleString()} has been submitted for processing.`
+                    );
+                    
+                    // Save the updated data
+                    await saveUserData();
+                });
+            }
+            
+            // Cancel withdrawal
+            if (elements.cancelWithdrawal) {
+                elements.cancelWithdrawal.addEventListener('click', () => {
+                    if (elements.withdrawalModal) elements.withdrawalModal.classList.remove('active');
+                });
+            }
+            
+            // Close success modal
+            if (elements.closeSuccessModal) {
+                elements.closeSuccessModal.addEventListener('click', () => {
+                    if (elements.successModal) elements.successModal.classList.remove('active');
+                });
+            }
+            
+            // Submit ticket
+            if (elements.submitTicket) {
+                elements.submitTicket.addEventListener('click', submitTicket);
+            }
+            
+            // Allow submitting ticket with Enter key
+            if (elements.ticketMessage) {
+                elements.ticketMessage.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        submitTicket();
+                    }
+                });
+            }
+            
+            // Tab switching
+            if (elements.tabs) {
+                elements.tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        elements.tabs.forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                        
+                        Object.values(elements.tabContents).forEach(content => {
+                            if (content) content.classList.remove('active');
+                        });
+                        
+                        const tabName = tab.dataset.tab;
+                        if (elements.tabContents[tabName]) {
+                            elements.tabContents[tabName].classList.add('active');
+                        }
+                    });
+                });
+            }
             
             // Account number validation (Nigerian account numbers are typically 10 digits)
-            elements.accountNumber.addEventListener('input', function() {
-                if (this.value.length === 10) {
-                    // Simulate account name resolution
-                    elements.accountName.value = "Demo User";
-                } else {
-                    elements.accountName.value = "";
-                }
-            });
+            if (elements.accountNumber) {
+                elements.accountNumber.addEventListener('input', function() {
+                    if (this.value.length === 10) {
+                        // Simulate account name resolution
+                        if (elements.accountName) elements.accountName.value = "Verified Account";
+                    } else {
+                        if (elements.accountName) elements.accountName.value = "";
+                    }
+                });
+            }
             
             // Admin panel functionality
-            elements.adminPanelBtn.addEventListener('click', () => {
-                elements.adminAnnouncementModal.classList.add('active');
-            });
+            if (elements.adminPanelBtn) {
+                elements.adminPanelBtn.addEventListener('click', () => {
+                    if (elements.adminAnnouncementModal) elements.adminAnnouncementModal.classList.add('active');
+                });
+            }
             
-            elements.cancelAnnouncementBtn.addEventListener('click', () => {
-                elements.adminAnnouncementModal.classList.remove('active');
-            });
+            if (elements.cancelAnnouncementBtn) {
+                elements.cancelAnnouncementBtn.addEventListener('click', () => {
+                    if (elements.adminAnnouncementModal) elements.adminAnnouncementModal.classList.remove('active');
+                });
+            }
             
-            elements.sendAnnouncementBtn.addEventListener('click', () => {
-                const announcementText = elements.announcementText.value;
-                if (!announcementText) {
-                    showNotification('Please enter announcement text');
-                    return;
-                }
-                
-                // Add announcement to the list
-                const now = new Date();
-                const announcement = {
-                    _id: Date.now().toString(),
-                    title: 'Admin Announcement',
-                    message: announcementText,
-                    time: now.toLocaleString(),
-                    recipients: [
-                        { userId: tg.initDataUnsafe.user?.id || 'demo', read: false }
-                    ]
-                };
-                
-                // Render the new announcement
-                renderAnnouncement(announcement, false);
-                unreadAnnouncements++;
-                
-                // Show notification
-                showAnnouncementNotification(announcementText);
-                
-                // Show announcement section if hidden
-                elements.announcementSection.style.display = 'block';
-                
-                // Update badge
-                elements.newAnnouncementBadge.style.display = 'inline-block';
-                elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
-                
-                // Clear input and close modal
-                elements.announcementText.value = '';
-                elements.adminAnnouncementModal.classList.remove('active');
-            });
+            if (elements.sendAnnouncementBtn) {
+                elements.sendAnnouncementBtn.addEventListener('click', async () => {
+                    const announcementText = elements.announcementText.value;
+                    if (!announcementText) {
+                        showNotification('Please enter announcement text');
+                        return;
+                    }
+                    
+                    // Create new announcement
+                    const now = new Date();
+                    const announcement = {
+                        _id: Date.now().toString(),
+                        title: 'Admin Announcement',
+                        message: announcementText,
+                        time: now.toLocaleString(),
+                        recipients: [
+                            { userId: DataManager.userId, read: false }
+                        ]
+                    };
+                    
+                    // Save announcement
+                    await DataManager.saveAnnouncement(announcement);
+                    
+                    // Render the new announcement
+                    renderAnnouncement(announcement, true);
+                    unreadAnnouncements++;
+                    
+                    // Show notification
+                    showAnnouncementNotification(announcementText);
+                    
+                    // Show announcement section if hidden
+                    if (elements.announcementSection) elements.announcementSection.style.display = 'block';
+                    
+                    // Update badge
+                    if (elements.newAnnouncementBadge) {
+                        elements.newAnnouncementBadge.style.display = 'inline-block';
+                        elements.newAnnouncementBadge.textContent = unreadAnnouncements === 1 ? 'NEW' : `${unreadAnnouncements} NEW`;
+                    }
+                    
+                    // Clear input and close modal
+                    if (elements.announcementText) elements.announcementText.value = '';
+                    if (elements.adminAnnouncementModal) elements.adminAnnouncementModal.classList.remove('active');
+                });
+            }
             
-            elements.viewAllAnnouncementsBtn.addEventListener('click', () => {
-                elements.newAnnouncementBadge.style.display = 'none';
-            });
+            if (elements.viewAllAnnouncementsBtn) {
+                elements.viewAllAnnouncementsBtn.addEventListener('click', () => {
+                    if (elements.newAnnouncementBadge) elements.newAnnouncementBadge.style.display = 'none';
+                });
+            }
             
             // Announcement notification click handler
-            elements.announcementNotification.addEventListener('click', handleAnnouncementClick);
+            if (elements.announcementNotification) {
+                elements.announcementNotification.addEventListener('click', handleAnnouncementClick);
+            }
             
             // Close announcement button
-            elements.closeAnnouncementBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                clearTimeout(announcementTimeout);
-                elements.announcementNotification.classList.remove('show');
-            });
+            if (elements.closeAnnouncementBtn) {
+                elements.closeAnnouncementBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    clearTimeout(announcementTimeout);
+                    if (elements.announcementNotification) elements.announcementNotification.classList.remove('show');
+                });
+            }
             
             // Check if user is admin (for demo purposes, we'll simulate it)
-            if (tg.initDataUnsafe.user?.username === 'admin') {
+            if (elements.adminPanelBtn && tg?.initDataUnsafe?.user?.username === 'admin') {
                 elements.adminPanelBtn.style.display = 'block';
+            }
+            
+            // Trading button functionality - direct to trading.html
+            if (elements.tradingButton) {
+                elements.tradingButton.addEventListener('click', () => {
+                    window.location.href = 'trading.html';
+                });
+            }
+            
+            // Games button functionality - check ads status
+            if (elements.gamesButton) {
+                elements.gamesButton.addEventListener('click', () => {
+                    // Check if user has watched ads within the last 60 minutes
+                    const lastAdWatchTime = localStorage.getItem('lastAdWatchTime');
+                    const currentTime = new Date().getTime();
+                    const sixtyMinutesInMs = 60 * 60 * 1000;
+                    
+                    if (lastAdWatchTime && (currentTime - parseInt(lastAdWatchTime)) < sixtyMinutesInMs) {
+                        // User has watched ads within 60 minutes - allow access to games
+                        window.location.href = 'game.html';
+                    } else {
+                        // User hasn't watched ads or it's been more than 60 minutes - redirect to ads
+                        window.location.href = 'ads.html';
+                    }
+                });
             }
             
             // Simulate trading every 15 seconds for demo
             setInterval(simulateTrading, 15000);
+            
+            // Initialize support tickets display
+            updateSupportTickets();
         });
     </script>
 </body>
