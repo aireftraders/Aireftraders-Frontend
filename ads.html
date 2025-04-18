@@ -254,10 +254,10 @@
                 expiryTime: 0
             };
             
-            // Check if the reset period has passed
+            // Check if the 60-minute period has expired
             const now = Date.now();
             if (adData.expiryTime > 0 && now >= adData.expiryTime) {
-                // Reset the ad count
+                // Reset the ad count if expired
                 currentAdCount = 0;
                 localStorage.setItem('adAccessData', JSON.stringify({
                     adsWatched: 0,
@@ -369,25 +369,20 @@
             // Count the ad
             currentAdCount++;
             
+            // Set expiry time when completing all ads
+            const expiryTime = currentAdCount >= totalAds ? Date.now() + resetInterval : 0;
+            
+            localStorage.setItem('adAccessData', JSON.stringify({
+                adsWatched: currentAdCount,
+                accessGranted: currentAdCount >= totalAds,
+                expiryTime: expiryTime
+            }));
+            
             // Check if completed
             if (currentAdCount >= totalAds) {
-                // Set expiry time to 60 minutes from now
-                const expiryTime = Date.now() + resetInterval;
-                localStorage.setItem('adAccessData', JSON.stringify({
-                    adsWatched: currentAdCount,
-                    accessGranted: true,
-                    expiryTime: expiryTime
-                }));
                 grantAccessAndRedirect();
                 return;
             }
-            
-            // Update storage with current count
-            localStorage.setItem('adAccessData', JSON.stringify({
-                adsWatched: currentAdCount,
-                accessGranted: false,
-                expiryTime: 0
-            }));
             
             // Update display and load next ad
             updateProgressDisplay();
