@@ -1520,41 +1520,13 @@
     <button id="adminPanelBtn" style="display: none;" class="primary">Admin Panel</button>
     
     <script>
-        // ===== BACKEND API SIMULATION =====
-        // In a real app, this would be actual API calls to your backend
+        // ===== BACKEND API INTEGRATION =====
         class BackendAPI {
-            static BASE_URL = 'https://api.aireftraders.ng/v1';
+            static BASE_URL = 'https://aireftraders-backend.onrender.com/Api';
             
             static async getUserData(userId) {
-                // Simulate API call with localStorage fallback
                 try {
-                    // In a real app, this would be a fetch() call to your backend
-                    const response = await new Promise(resolve => {
-                        setTimeout(() => {
-                            const data = localStorage.getItem(`userData_${userId}`) || 
-                                         localStorage.getItem('userData') || 
-                                         JSON.stringify({
-                                            balance: 5000,
-                                            referrals: 0,
-                                            referralEarnings: 0,
-                                            adsWatched: 0,
-                                            tradingActive: false,
-                                            verified: false,
-                                            tradingCapital: 0,
-                                            dailyProfit: 0,
-                                            totalProfit: 0,
-                                            withdrawableProfit: 0,
-                                            bankDetails: null,
-                                            paymentCircle: { current: 0, total: 1000 },
-                                            supportTickets: []
-                                         });
-                            resolve({ 
-                                ok: true,
-                                json: () => Promise.resolve(JSON.parse(data))
-                            });
-                        }, 500);
-                    });
-                    
+                    const response = await fetch(`${this.BASE_URL}/users/${userId}`);
                     if (!response.ok) throw new Error('Failed to fetch user data');
                     return await response.json();
                 } catch (error) {
@@ -1562,7 +1534,7 @@
                     // Fallback to localStorage
                     const data = localStorage.getItem(`userData_${userId}`) || 
                                  localStorage.getItem('userData') || 
-                                 {
+                                 JSON.stringify({
                                     balance: 5000,
                                     referrals: 0,
                                     referralEarnings: 0,
@@ -1576,7 +1548,7 @@
                                     bankDetails: null,
                                     paymentCircle: { current: 0, total: 1000 },
                                     supportTickets: []
-                                 };
+                                 });
                     return typeof data === 'string' ? JSON.parse(data) : data;
                 }
             }
@@ -1588,11 +1560,12 @@
                 
                 // Then try to sync with backend
                 try {
-                    // In a real app, this would be a fetch() call to your backend
-                    const response = await new Promise(resolve => {
-                        setTimeout(() => {
-                            resolve({ ok: true });
-                        }, 300);
+                    const response = await fetch(`${this.BASE_URL}/users/${userId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
                     });
                     
                     if (!response.ok) throw new Error('Failed to save user data');
@@ -1612,14 +1585,12 @@
                 if (!localData) return;
                 
                 try {
-                    // In a real app, this would be a fetch() call to your backend
-                    const response = await new Promise(resolve => {
-                        setTimeout(() => {
-                            resolve({ 
-                                ok: true,
-                                json: () => Promise.resolve(JSON.parse(localData))
-                            });
-                        }, 500);
+                    const response = await fetch(`${this.BASE_URL}/users/${userId}/sync`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: localData
                     });
                     
                     if (!response.ok) throw new Error('Failed to sync with backend');
@@ -1632,26 +1603,7 @@
             
             static async getAnnouncements(userId) {
                 try {
-                    // In a real app, this would be a fetch() call to your backend
-                    const response = await new Promise(resolve => {
-                        setTimeout(() => {
-                            const announcements = localStorage.getItem('announcements') || 
-                                                 JSON.stringify([{
-                                                    _id: "1",
-                                                    title: "🚨 LIMITED TIME OFFER",
-                                                    message: "HURRY! Refer 6 friends NOW to unlock FREE AI Trading and start earning ₦7,000-₦17,500 DAILY! ⏳ Only 47 spots left in this payment batch!",
-                                                    time: "Today, 10:15 AM",
-                                                    recipients: [
-                                                        { userId: userId || 'demo', read: false }
-                                                    ]
-                                                }]);
-                            resolve({ 
-                                ok: true,
-                                json: () => Promise.resolve(JSON.parse(announcements))
-                            });
-                        }, 300);
-                    });
-                    
+                    const response = await fetch(`${this.BASE_URL}/announcements?userId=${userId}`);
                     if (!response.ok) throw new Error('Failed to fetch announcements');
                     return await response.json();
                 } catch (error) {
@@ -1679,11 +1631,13 @@
                     // Save to localStorage
                     localStorage.setItem('announcements', JSON.stringify(existing));
                     
-                    // In a real app, this would be a fetch() call to your backend
-                    const response = await new Promise(resolve => {
-                        setTimeout(() => {
-                            resolve({ ok: true });
-                        }, 300);
+                    // Send to backend
+                    const response = await fetch(`${this.BASE_URL}/announcements`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(announcement)
                     });
                     
                     if (!response.ok) throw new Error('Failed to save announcement');
@@ -2620,16 +2574,20 @@
             // Games button functionality - check ads status
             if (elements.gamesButton) {
                 elements.gamesButton.addEventListener('click', () => {
-                    // Check if user has watched ads within the last 60 minutes
-                    const lastAdWatchTime = localStorage.getItem('lastAdWatchTime');
-                    const currentTime = new Date().getTime();
-                    const sixtyMinutesInMs = 60 * 60 * 1000;
+                    // Check if user has watched 20 ads today
+                    const adsData = JSON.parse(localStorage.getItem('adsData')) || {
+                        count: 0,
+                        lastWatchDate: null
+                    };
                     
-                    if (lastAdWatchTime && (currentTime - parseInt(lastAdWatchTime)) < sixtyMinutesInMs) {
-                        // User has watched ads within 60 minutes - allow access to games
+                    const today = new Date().toDateString();
+                    const adsWatchedToday = adsData.lastWatchDate === today ? adsData.count : 0;
+                    
+                    if (adsWatchedToday >= 20) {
+                        // User has watched 20 ads today - allow access to games
                         window.location.href = 'game.html';
                     } else {
-                        // User hasn't watched ads or it's been more than 60 minutes - redirect to ads
+                        // User hasn't watched 20 ads today - redirect to ads
                         window.location.href = 'ads.html';
                     }
                 });
