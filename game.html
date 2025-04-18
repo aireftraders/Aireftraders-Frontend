@@ -751,22 +751,18 @@
             elements.balance.textContent = userData.balance.toLocaleString();
         }
         
-        // Add game earnings to balance - UPDATED to ensure consistency
-        function addGameEarnings(amount) {
-            // First update the userData object
-            userData.balance += amount;
-            
-            // Then save to localStorage
-            saveUserData();
-            
-            // Then update the UI
-            updateBalance();
-            
-            // Finally, try to sync with backend if online
-            if (isOnline) {
-                syncWithBackend();
-            }
-        }
+        // Try to load data from main app's storage format
+const mainAppData = localStorage.getItem('userData') || 
+                    localStorage.getItem(`userData_${localStorage.getItem('userId')}`);
+if (mainAppData) {
+    try {
+        const parsed = JSON.parse(mainAppData);
+        userData.balance = parsed.balance || userData.balance;
+        // Copy other relevant fields as needed
+    } catch(e) {
+        console.error("Error parsing main app data", e);
+    }
+}
         
         // Show game
         function showGame(game) {
