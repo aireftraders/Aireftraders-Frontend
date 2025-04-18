@@ -222,15 +222,28 @@
         let timer = null;
         let adStartTime = 0;
         let canCountAd = false;
+        let redirectTo = 'game.html'; // Default fallback
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            // Store referring page for redirect
-            const referrer = document.referrer;
-            if (referrer.includes('game.html')) {
-                localStorage.setItem('postAdRedirect', 'game.html');
-            } else if (referrer.includes('trading.html')) {
-                localStorage.setItem('postAdRedirect', 'trading.html');
+            // Get the referring page from URL parameter or localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            const source = urlParams.get('source');
+            
+            if (source === 'game' || source === 'trading') {
+                redirectTo = source + '.html';
+                localStorage.setItem('postAdRedirect', redirectTo);
+            } else {
+                // Fallback to checking localStorage or referrer
+                const storedRedirect = localStorage.getItem('postAdRedirect');
+                if (storedRedirect) {
+                    redirectTo = storedRedirect;
+                } else if (document.referrer.includes('game.html')) {
+                    redirectTo = 'game.html';
+                } else if (document.referrer.includes('trading.html')) {
+                    redirectTo = 'trading.html';
+                }
+                localStorage.setItem('postAdRedirect', redirectTo);
             }
 
             // Load current progress
@@ -361,7 +374,7 @@
 
         function grantAccessAndRedirect() {
             // Get redirect URL from localStorage
-            const redirectUrl = localStorage.getItem('postAdRedirect') || 'index.html';
+            const redirectUrl = localStorage.getItem('postAdRedirect') || 'game.html';
             
             // Clean up and redirect
             localStorage.removeItem('postAdRedirect');
