@@ -3,479 +3,471 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
+    <title>Complete Ads to Continue</title>
     <style>
+        :root {
+            --primary: #6C5CE7;
+            --primary-dark: #5649c0;
+            --success: #00B894;
+            --danger: #e74c3c;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            --transition: all 0.3s ease;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark);
+            line-height: 1.6;
         }
-        .header {
-            background-color: #007bff;
-            color: white;
-            padding: 10px;
+        
+        .ad-container {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 2.5rem;
+            width: 90%;
+            max-width: 900px;
+            margin: 2rem auto;
+            box-shadow: var(--box-shadow);
             text-align: center;
         }
-        .container {
-            padding: 20px;
+        
+        .ad-header {
+            margin-bottom: 1.5rem;
         }
-        .button {
-            display: inline-block;
-            margin: 10px 0;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            cursor: pointer;
+        
+        .ad-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem;
+            color: var(--dark);
+            background: linear-gradient(to right, var(--primary), #a55eea);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
-        .button:hover {
-            background-color: #0056b3;
+        
+        .ad-header p {
+            font-size: 1.1rem;
+            color: #6c757d;
+            margin: 0;
         }
-        .user-list {
-            margin-top: 20px;
-            border-collapse: collapse;
+        
+        #adFrameContainer {
             width: 100%;
+            min-height: 300px;
+            margin: 2rem auto;
+            border-radius: var(--border-radius);
+            background: var(--light);
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(0,0,0,0.08);
         }
-        .user-list th, .user-list td {
-            border: 1px solid #ddd;
-            padding: 8px;
+        
+        #adFrame {
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+            border: none;
         }
-        .user-list th {
-            background-color: #007bff;
+        
+        .progress-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+            gap: 0.5rem;
+        }
+        
+        .progress-step {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: var(--transition);
+            position: relative;
+        }
+        
+        .progress-step.active {
+            background: var(--primary);
             color: white;
-            text-align: left;
+            transform: scale(1.1);
+            box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.2);
         }
-        .user-list tr:nth-child(even) {
-            background-color: #f2f2f2;
+        
+        .progress-step.completed {
+            background: var(--success);
+            color: white;
         }
-        .user-list tr:hover {
-            background-color: #ddd;
+        
+        .progress-step.completed::after {
+            content: '✓';
+            position: absolute;
         }
-        .action-button {
-            padding: 5px 10px;
-            margin: 0 5px;
-            background-color: #007bff;
+        
+        #timerDisplay {
+            margin: 1.5rem 0;
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #495057;
+        }
+        
+        #timerCount {
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .watch-ad-btn {
+            background: var(--primary);
             color: white;
             border: none;
-            border-radius: 4px;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
+            margin-top: 1rem;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
         }
-        .action-button:hover {
-            background-color: #0056b3;
+        
+        .watch-ad-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
         }
-        .threshold-container {
-            margin-top: 20px;
+        
+        .watch-ad-btn:active {
+            transform: translateY(0);
         }
-        .threshold-input {
-            width: 60px;
-            padding: 5px;
-            margin-right: 10px;
-        }
-        .bulk-approve-button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .bulk-approve-button:hover {
-            background-color: #218838;
-        }
-        .announcement-container {
-            margin-top: 20px;
-        }
-        .announcement-input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        .announcement-list {
-            margin-top: 10px;
-            list-style-type: none;
-            padding: 0;
-        }
-        .announcement-item {
-            background-color: #f8f9fa;
-            padding: 10px;
-            margin-bottom: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        
+        .ad-status {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-        }
-        .delete-announcement-button {
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-        .delete-announcement-button:hover {
-            background-color: #c82333;
-        }
-        .support-container {
-            margin-top: 20px;
-        }
-        .support-list {
-            margin-top: 10px;
-            list-style-type: none;
-            padding: 0;
-        }
-        .support-item {
-            background-color: #f8f9fa;
-            padding: 10px;
-            margin-bottom: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .respond-support-button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-        .respond-support-button:hover {
-            background-color: #0056b3;
-        }
-        .notification-container {
-            margin-top: 20px;
-        }
-        .notification-input {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            color: #6c757d;
         }
-        .page-edit-container {
-            margin-top: 20px;
+        
+        .access-denied {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--danger);
         }
-        .page-edit-button {
-            margin: 5px 0;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+        
+        .access-denied h3 {
+            color: var(--danger);
+            margin-top: 0;
+            font-size: 1.3rem;
         }
-        .page-edit-button:hover {
-            background-color: #0056b3;
+        
+        .time-remaining {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--dark);
         }
-        .credentials-container {
-            margin-top: 20px;
-        }
-        .credentials-input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
+        
+        .time-remaining span {
+            color: var(--primary);
+            font-weight: 700;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Admin Panel</h1>
+    <div class="ad-container" id="mainContainer">
+        <div class="ad-header">
+            <h2>Complete Ads to Continue</h2>
+            <p id="adPurpose">Watch ads to unlock access</p>
+        </div>
+        
+        <div class="ad-status">
+            <span>Progress: <span id="completedCount">0</span>/20</span>
+            <span>Estimated time: <span id="estimatedTime">5 minutes</span></span>
+        </div>
+        
+        <div class="progress-container" id="progressSteps"></div>
+        
+        <div id="adFrameContainer">
+            <!-- Ad will be loaded here -->
+        </div>
+        
+        <div id="timerDisplay">Ad completes in <span id="timerCount">15</span> seconds</div>
+        
+        <button class="watch-ad-btn" id="watchAdBtn">Watch Ad</button>
     </div>
-    <div class="container">
-        <h2>Welcome, Admin</h2>
-        <a href="#" class="button" onclick="startCampaign()">Start Campaign</a>
-        <a href="#" class="button" onclick="approveWithdrawals()">Approve Withdrawals</a>
-        <a href="#" class="button" onclick="logout()">Logout</a>
-        <h3>User Management</h3>
-        <table class="user-list">
-            <thead>
-                <tr>
-                    <th>User ID</th>
-                    <th>Username</th>
-                    <th>Role</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="userTable">
-                <!-- User rows will be dynamically populated -->
-            </tbody>
-        </table>
-        <div class="threshold-container">
-            <h3>Payment Threshold</h3>
-            <label for="thresholdInput">Set Threshold for Qualified Users:</label>
-            <input type="number" id="thresholdInput" class="threshold-input" value="1000" min="1">
-            <button class="button" onclick="updateThreshold()">Update Threshold</button>
-        </div>
-        <div class="bulk-approve-container">
-            <h3>Pending Withdrawals</h3>
-            <button class="bulk-approve-button" onclick="bulkApproveWithdrawals()">Bulk Approve Withdrawals</button>
-            <button class="bulk-approve-button" style="background-color: #dc3545;" onclick="bulkRejectWithdrawals()">Bulk Reject Withdrawals</button>
-            <ul id="pendingWithdrawalsList" class="support-list">
-                <!-- Individual pending withdrawal requests will be dynamically populated -->
-            </ul>
-        </div>
-        <div class="announcement-container">
-            <h3>Announcements</h3>
-            <textarea id="announcementInput" class="announcement-input" placeholder="Write an announcement..."></textarea>
-            <button class="button" onclick="makeAnnouncement()">Make Announcement</button>
-            <ul id="announcementList" class="announcement-list">
-                <!-- Announcements will be dynamically populated -->
-            </ul>
-        </div>
-        <div class="support-container">
-            <h3>User Support Requests</h3>
-            <ul id="supportList" class="support-list">
-                <!-- Support requests will be dynamically populated -->
-            </ul>
-        </div>
-        <div class="notification-container">
-            <h3>Send Notification</h3>
-            <textarea id="notificationInput" class="notification-input" placeholder="Write a notification message..."></textarea>
-            <button class="button" onclick="sendNotification()">Send Notification</button>
-        </div>
-        <div class="page-edit-container">
-            <h3>Manage Pages</h3>
-            <button class="page-edit-button" onclick="editPage('info')">Edit Info Page</button>
-            <button class="page-edit-button" onclick="editPage('faq')">Edit FAQ Page</button>
-        </div>
-        <div class="credentials-container">
-            <h3>Update Login Credentials</h3>
-            <label for="usernameInput">Username:</label>
-            <input type="text" id="usernameInput" class="credentials-input" placeholder="Enter new username">
-            <label for="passwordInput">Password:</label>
-            <input type="password" id="passwordInput" class="credentials-input" placeholder="Enter new password">
-            <button class="button" onclick="updateCredentials()">Update Credentials</button>
-        </div>
-    </div>
+
     <script>
-        // Check if the user is authenticated and has passed 2FA
-        if (!sessionStorage.getItem('isAdmin') || !sessionStorage.getItem('is2FAAuthenticated')) {
-            window.location.href = 'login.html'; // Redirect to login if not authenticated
+        // Configuration
+        const totalAds = 20;
+        const minAdDuration = 15000; // 15 seconds per ad
+        const accessCooldown = 60 * 60 * 1000; // 60 minutes in milliseconds
+        let currentAdCount = 0;
+        let timer = null;
+        let adStartTime = 0;
+        let canCountAd = false;
+        let accessDenied = false;
+        let cooldownInterval = null;
+        let redirectTo = 'game.html'; // Default fallback
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if we should block access first
+            checkAccessStatus();
+            
+            // Only setup page if access is not denied
+            if (!accessDenied) {
+                setupPage();
+            }
+        });
+
+        function checkAccessStatus() {
+            // Get ads data from localStorage
+            const adsData = JSON.parse(localStorage.getItem('adsData')) || {
+                adsWatched: 0,
+                lastAdWatchTime: null,
+                adsRequired: 20
+            };
+            
+            // Check if access is on cooldown
+            if (adsData.lastAdWatchTime && 
+                (Date.now() - adsData.lastAdWatchTime) < accessCooldown && 
+                adsData.adsWatched >= totalAds) {
+                accessDenied = true;
+                showAccessDenied(adsData.lastAdWatchTime + accessCooldown);
+                return true;
+            }
+            
+            return false;
         }
 
-        function startCampaign() {
-            alert('Campaign started successfully!');
-            // TODO: Implement logic to start a campaign
-        }
-
-        function approveWithdrawals() {
-            alert('Withdrawals approved successfully!');
-            // TODO: Implement logic to approve withdrawals
-        }
-
-        function logout() {
-            sessionStorage.removeItem('isAdmin');
-            window.location.href = 'login.html'; // Redirect to login page
-        }
-
-        // Mock user data
-        const users = [
-            { id: 1, username: 'user1', role: 'Admin' },
-            { id: 2, username: 'user2', role: 'User' },
-            { id: 3, username: 'user3', role: 'Moderator' }
-        ];
-
-        // Populate user table
-        function populateUserTable() {
-            const userTable = document.getElementById('userTable');
-            userTable.innerHTML = '';
-            users.forEach(user => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${user.id}</td>
-                    <td>${user.username}</td>
-                    <td>${user.role}</td>
-                    <td>
-                        <button class="action-button" onclick="manageRole(${user.id})">Manage Role</button>
-                        <button class="action-button" onclick="deleteUser(${user.id})">Delete</button>
-                    </td>
-                `;
-                userTable.appendChild(row);
+        function showAccessDenied(expiryTime) {
+            const mainContainer = document.getElementById('mainContainer');
+            mainContainer.innerHTML = `
+                <div class="ad-header">
+                    <h2>Ads Limit Reached</h2>
+                    <p>You've completed your daily ads</p>
+                </div>
+                
+                <div class="access-denied">
+                    <h3>Access Temporarily Unavailable</h3>
+                    <p>You've watched 20 ads. Please try again later.</p>
+                    <div class="time-remaining">Time remaining: <span id="cooldownTimer"></span></div>
+                </div>
+                
+                <button class="watch-ad-btn" id="returnBtn">Return to Dashboard</button>
+            `;
+            
+            // Start cooldown timer
+            updateCooldownTimer(expiryTime);
+            cooldownInterval = setInterval(() => updateCooldownTimer(expiryTime), 1000);
+            
+            // Setup return button
+            document.getElementById('returnBtn').addEventListener('click', () => {
+                clearInterval(cooldownInterval);
+                window.location.href = 'index.html';
             });
         }
 
-        // Manage user role
-        function manageRole(userId) {
-            const user = users.find(u => u.id === userId);
-            const newRole = prompt(`Enter new role for ${user.username}:`, user.role);
-            if (newRole) {
-                user.role = newRole;
-                alert(`Role updated to ${newRole} for ${user.username}`);
-                populateUserTable();
+        function updateCooldownTimer(expiryTime) {
+            const remaining = expiryTime - Date.now();
+            if (remaining <= 0) {
+                clearInterval(cooldownInterval);
+                window.location.reload();
+                return;
             }
+            
+            const minutes = Math.floor(remaining / (1000 * 60));
+            const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+            
+            document.getElementById('cooldownTimer').textContent = 
+                `${minutes}m ${seconds}s`;
         }
 
-        // Delete user
-        function deleteUser(userId) {
-            const userIndex = users.findIndex(u => u.id === userId);
-            if (userIndex !== -1) {
-                const confirmed = confirm(`Are you sure you want to delete ${users[userIndex].username}?`);
-                if (confirmed) {
-                    users.splice(userIndex, 1);
-                    alert('User deleted successfully!');
-                    populateUserTable();
+        function setupPage() {
+            // Get the referring page from URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const source = urlParams.get('source');
+            
+            if (source === 'game' || source === 'trading') {
+                redirectTo = source + '.html';
+            }
+
+            // Load current progress from localStorage
+            const adsData = JSON.parse(localStorage.getItem('adsData')) || {
+                adsWatched: 0,
+                lastAdWatchTime: null,
+                adsRequired: 20
+            };
+            
+            // Ensure we don't exceed the limit
+            currentAdCount = Math.min(adsData.adsWatched, totalAds);
+            
+            // Immediately redirect if already completed
+            if (currentAdCount >= totalAds && !accessDenied) {
+                grantAccessAndRedirect();
+                return;
+            }
+            
+            updateProgressDisplay();
+            
+            // Load first ad
+            loadAd();
+            
+            // Setup button handler
+            document.getElementById('watchAdBtn').addEventListener('click', handleAdWatch);
+        }
+
+        function updateProgressDisplay() {
+            const remaining = Math.max(0, totalAds - currentAdCount);
+            const estimatedMinutes = Math.ceil((remaining * minAdDuration) / 60000);
+            
+            document.getElementById('adPurpose').textContent = 
+                remaining > 0 ? `Watch ${remaining} more ads to continue` : 'All ads completed!';
+            document.getElementById('completedCount').textContent = currentAdCount;
+            document.getElementById('estimatedTime').textContent = 
+                estimatedMinutes > 1 ? `${estimatedMinutes} minutes` : 'less than a minute';
+            
+            const container = document.getElementById('progressSteps');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < totalAds; i++) {
+                const step = document.createElement('div');
+                step.className = 'progress-step';
+                step.textContent = i + 1;
+                if (i < currentAdCount) {
+                    step.classList.add('completed');
+                    step.textContent = '';
                 }
+                if (i === currentAdCount && currentAdCount < totalAds) {
+                    step.classList.add('active');
+                }
+                container.appendChild(step);
             }
         }
 
-        let paymentThreshold = 1000; // Default threshold for qualified users
+        function loadAd() {
+            canCountAd = false;
+            adStartTime = Date.now();
+            
+            // Clear previous ad
+            const adContainer = document.getElementById('adFrameContainer');
+            adContainer.innerHTML = '';
+            
+            // Load new ad (your Adsterra code)
+            const adScript1 = document.createElement('script');
+            adScript1.type = 'text/javascript';
+            adScript1.innerHTML = `
+                atOptions = {
+                    'key' : '8a1d6d42d6addf614a0b20c144270316',
+                    'format' : 'iframe',
+                    'height' : 250,
+                    'width' : 300,
+                    'params' : {}
+                };
+            `;
 
-        // Update the payment threshold
-        function updateThreshold() {
-            const newThreshold = parseInt(document.getElementById('thresholdInput').value, 10);
-            if (newThreshold > 0) {
-                paymentThreshold = newThreshold;
-                alert(`Payment threshold updated to ${paymentThreshold} qualified users.`);
-            } else {
-                alert('Please enter a valid threshold value.');
+            const adScript2 = document.createElement('script');
+            adScript2.type = 'text/javascript';
+            adScript2.src = '//innumerablemakeupreligious.com/8a1d6d42d6addf614a0b20c144270316/invoke.js';
+
+            adContainer.appendChild(adScript1);
+            adContainer.appendChild(adScript2);
+            
+            // Start timer
+            startTimer();
+        }
+
+        function startTimer() {
+            let seconds = 15;
+            updateTimerDisplay(seconds);
+            
+            clearInterval(timer);
+            timer = setInterval(() => {
+                seconds--;
+                updateTimerDisplay(seconds);
+                
+                if (seconds <= 0) {
+                    clearInterval(timer);
+                    canCountAd = true;
+                    document.getElementById('watchAdBtn').textContent = "Continue";
+                    document.getElementById('watchAdBtn').style.backgroundColor = 'var(--success)';
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay(seconds) {
+            document.getElementById('timerCount').textContent = seconds;
+            document.getElementById('timerCount').style.color = seconds <= 5 ? 'var(--danger)' : 'var(--primary)';
+        }
+
+        function handleAdWatch() {
+            if (!canCountAd) {
+                const elapsed = Date.now() - adStartTime;
+                const remaining = Math.ceil((minAdDuration - elapsed) / 1000);
+                alert(`Please watch the ad for ${remaining} more seconds before continuing.`);
+                return;
             }
-        }
-
-        // Bulk approve pending withdrawal requests
-        function bulkApproveWithdrawals() {
-            const confirmed = confirm('Are you sure you want to approve all pending withdrawal requests?');
-            if (confirmed) {
-                alert('All pending withdrawal requests have been approved successfully!');
-                // TODO: Implement logic to process bulk approval of withdrawals
+            
+            // Count the ad
+            currentAdCount++;
+            
+            // Update ads data in localStorage
+            const adsData = JSON.parse(localStorage.getItem('adsData')) || {
+                adsWatched: 0,
+                lastAdWatchTime: null,
+                adsRequired: 20
+            };
+            
+            // Update ad data
+            adsData.adsWatched = currentAdCount;
+            adsData.lastAdWatchTime = Date.now();
+            
+            // Save to localStorage
+            localStorage.setItem('adsData', JSON.stringify(adsData));
+            
+            // Also update the main user data to ensure sync with index.html
+            const userData = JSON.parse(localStorage.getItem('userData')) || {};
+            userData.adsWatched = currentAdCount;
+            localStorage.setItem('userData', JSON.stringify(userData));
+            
+            // Check if completed
+            if (currentAdCount >= totalAds) {
+                grantAccessAndRedirect();
+                return;
             }
+            
+            // Update display and load next ad
+            updateProgressDisplay();
+            document.getElementById('watchAdBtn').textContent = "Watch Ad";
+            document.getElementById('watchAdBtn').style.backgroundColor = 'var(--primary)';
+            loadAd();
         }
 
-        // Bulk reject pending withdrawal requests
-        function bulkRejectWithdrawals() {
-            const confirmed = confirm('Are you sure you want to reject all pending withdrawal requests?');
-            if (confirmed) {
-                alert('All pending withdrawal requests have been rejected successfully!');
-                // TODO: Implement logic to process bulk rejection of withdrawals
-            }
+        function grantAccessAndRedirect() {
+            // Get redirect URL
+            const redirectUrl = redirectTo || 'index.html';
+            
+            // Immediately redirect
+            window.location.href = redirectUrl;
         }
-
-        // Mock pending withdrawal requests
-        const pendingWithdrawals = [
-            { id: 1, username: 'user1', amount: 100 },
-            { id: 2, username: 'user2', amount: 200 },
-            { id: 3, username: 'user3', amount: 150 }
-        ];
-
-        // Mock support requests
-        const supportRequests = [
-            { id: 1, username: 'user1', message: 'I need help with my account.' },
-            { id: 2, username: 'user2', message: 'How do I reset my password?' },
-            { id: 3, username: 'user3', message: 'I have a payment issue.' }
-        ];
-
-        // Populate pending withdrawal requests
-        function populatePendingWithdrawals() {
-            const list = document.getElementById('pendingWithdrawalsList');
-            list.innerHTML = '';
-            pendingWithdrawals.forEach(request => {
-                const listItem = document.createElement('li');
-                listItem.className = 'support-item';
-                listItem.innerHTML = `
-                    <span>${request.username} requested $${request.amount}</span>
-                    <div>
-                        <button class="respond-support-button" onclick="approveRequest(${request.id})">Approve</button>
-                        <button class="respond-support-button" style="background-color: #dc3545;" onclick="rejectRequest(${request.id})">Reject</button>
-                    </div>
-                `;
-                list.appendChild(listItem);
-            });
-        }
-
-        // Approve individual withdrawal request
-        function approveRequest(requestId) {
-            const index = pendingWithdrawals.findIndex(req => req.id === requestId);
-            if (index !== -1) {
-                alert(`Withdrawal request from ${pendingWithdrawals[index].username} approved.`);
-                pendingWithdrawals.splice(index, 1);
-                populatePendingWithdrawals();
-            }
-        }
-
-        // Reject individual withdrawal request
-        function rejectRequest(requestId) {
-            const index = pendingWithdrawals.findIndex(req => req.id === requestId);
-            if (index !== -1) {
-                alert(`Withdrawal request from ${pendingWithdrawals[index].username} rejected.`);
-                pendingWithdrawals.splice(index, 1);
-                populatePendingWithdrawals();
-            }
-        }
-
-        // Populate support requests
-        function populateSupportRequests() {
-            const list = document.getElementById('supportList');
-            list.innerHTML = '';
-            supportRequests.forEach(request => {
-                const listItem = document.createElement('li');
-                listItem.className = 'support-item';
-                listItem.innerHTML = `
-                    <span>${request.username}: ${request.message}</span>
-                    <button class="respond-support-button" onclick="respondSupport(${request.id})">Respond</button>
-                `;
-                list.appendChild(listItem);
-            });
-        }
-
-        // Respond to support request
-        function respondSupport(requestId) {
-            const request = supportRequests.find(req => req.id === requestId);
-            alert(`Responding to support request from ${request.username}: ${request.message}`);
-            // TODO: Implement logic to respond to support request
-        }
-
-        // Trigger a notification
-        function sendNotification() {
-            const notificationInput = document.getElementById('notificationInput');
-            const notificationMessage = notificationInput.value.trim();
-            if (notificationMessage) {
-                alert(`Notification sent: "${notificationMessage}"`);
-                notificationInput.value = '';
-                // TODO: Implement logic to send the notification to users
-            } else {
-                alert('Please write a notification message before sending.');
-            }
-        }
-
-        // Edit Info or FAQ page
-        function editPage(page) {
-            const pageUrl = `${page}.html`;
-            const confirmed = confirm(`Do you want to edit the ${page.toUpperCase()} page?`);
-            if (confirmed) {
-                window.location.href = `edit-${page}.html`; // Redirect to the page editor
-            }
-        }
-
-        // Update default login credentials
-        function updateCredentials() {
-            const username = document.getElementById('usernameInput').value.trim();
-            const password = document.getElementById('passwordInput').value.trim();
-            if (username && password) {
-                localStorage.setItem('adminUsername', username);
-                localStorage.setItem('adminPassword', password);
-                alert('Login credentials updated successfully!');
-            } else {
-                alert('Both username and password are required.');
-            }
-        }
-
-        // Load default credentials on page load (mock)
-        const defaultUsername = localStorage.getItem('adminUsername') || 'admin';
-        const defaultPassword = localStorage.getItem('adminPassword') || 'password';
-        console.log(`Default credentials: Username - ${defaultUsername}, Password - ${defaultPassword}`);
-
-        // Initialize the admin panel
-        function initAdminPanel() {
-            populateUserTable();
-            populatePendingWithdrawals();
-            populateSupportRequests();
-        }
-
-        // Call the initialization function when the page loads
-        window.onload = initAdminPanel;
     </script>
 </body>
 </html>
