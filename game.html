@@ -423,17 +423,19 @@
                 height: 250px;
             }
         }
+
+        .nav-bar a {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <nav style="background: var(--primary); color: white; padding: 10px; text-align: center;">
-        <a href="index.html" style="color: white; text-decoration: none; font-weight: bold;">🏠 Dashboard</a>
+    <nav>
+        <div class="nav-bar">
+            <a href="index.html">Dashboard</a>
+            <a href="game.html">Games</a>
+        </div>
     </nav>
-
-    <div id="cooldownTimer" style="text-align: center; margin: 20px 0; font-size: 18px; font-weight: bold;">
-        Cooldown: <span id="timer">60:00</span>
-    </div>
-
     <div class="container">
         <div class="app-bar">
             <h1>AI REF-TRADERS Games</h1>
@@ -599,88 +601,29 @@
     <audio id="coinLandSound" src="https://assets.mixkit.co/sfx/preview/mixkit-metal-hit-impact-2065.mp3" preload="auto"></audio>
     
     <script>
-        // Timer for 60 minutes cooldown with persistence
-        function startCooldownTimer(duration, display) {
-            const storedStartTime = localStorage.getItem('cooldownStartTime');
-            let startTime = storedStartTime ? new Date(storedStartTime) : new Date();
-
-            if (!storedStartTime) {
-                localStorage.setItem('cooldownStartTime', startTime);
-            }
-
-            const interval = setInterval(() => {
-                const now = new Date();
-                const elapsed = Math.floor((now - startTime) / 1000);
-                const remaining = duration - elapsed;
-
-                if (remaining <= 0) {
-                    clearInterval(interval);
-                    localStorage.removeItem('cooldownStartTime');
-                    display.textContent = "Cooldown Over";
-                    return;
-                }
-
-                const minutes = Math.floor(remaining / 60);
-                const seconds = remaining % 60;
-                display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
+        // API Configuration
+        const API_BASE_URL = 'https://your-api-endpoint.com/api';
+        const USER_ID = localStorage.getItem('userId') || `user_${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Initialize user ID if not set
+        if (!localStorage.getItem('userId')) {
+            localStorage.setItem('userId', USER_ID);
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const cooldownDuration = 60 * 60; // 60 minutes in seconds
-            const display = document.querySelector('#timer');
-            startCooldownTimer(cooldownDuration, display);
-        });
-
-        // Get user ID from Telegram or use localStorage
-        const tg = window.Telegram?.WebApp;
-        const userId = tg?.initDataUnsafe?.user?.id || localStorage.getItem('userId') || `user_${Math.random().toString(36).substr(2, 9)}`;
-        localStorage.setItem('userId', userId);
-
-        // Load user data from index.html's storage
-        function loadUserData() {
-            // Try to get data from index.html's storage location
-            const savedData = localStorage.getItem(`userData_${userId}`) || 
-                             localStorage.getItem('userData');
-            
-            if (savedData) {
-                try {
-                    return JSON.parse(savedData);
-                } catch (e) {
-                    console.error('Error parsing saved data:', e);
-                }
-            }
-            
-            // Default data if nothing found
-            return {
-                balance: 5000,
-                games: {
-                    memory: { attempts: 10, wins: 0, earnings: 0 },
-                    dice: { attempts: 10, wins: 0, earnings: 0 },
-                    snake: { attempts: 10, score: 0, earnings: 0 },
-                    trivia: { attempts: 10, correct: 0, earnings: 0 },
-                    wheel: { attempts: 10, wins: 0, earnings: 0 }
-                }
-            };
-        }
-
-        // Save user data to index.html's storage location
-        function saveUserData(data) {
-            localStorage.setItem(`userData_${userId}`, JSON.stringify(data));
-            localStorage.setItem('userData', JSON.stringify(data));
-            
-            // Also update the parent window if we're in an iframe
-            if (window.parent !== window) {
-                window.parent.postMessage({
-                    type: 'updateUserData',
-                    data: data
-                }, '*');
-            }
-        }
-
+        
         // User data with default values
-        let userData = loadUserData();
-
+        let userData = {
+            balance: 5000, // Starting balance
+            games: {
+                memory: { attempts: 10, wins: 0, earnings: 0 },
+                dice: { attempts: 10, wins: 0, earnings: 0 },
+                snake: { attempts: 10, score: 0, earnings: 0 },
+                trivia: { attempts: 10, correct: 0, earnings: 0 },
+                wheel: { attempts: 10, wins: 0, earnings: 0 }
+            },
+            lastSync: null,
+            pendingSync: false
+        };
+        
         // Check online status
         let isOnline = navigator.onLine;
         
@@ -704,6 +647,103 @@
         };
         
         // ========================
+        // DATA PERSISTENCE FUNCTIONS
+        // ========================
+        
+        // Load data from localStorage
+        function loadUserData() {
+            const savedData = localStorage.getItem('userGameData');
+            if (savedData) {
+                try {
+                    const parsedData = JSON.parse(savedData);
+                    // Merge with default data to ensure all properties exist
+                    userData = {
+                        ...userData,
+                        ...parsedData,
+                        games: {
+                            ...userData.games,
+                            ...(parsedData.games || {})
+                        }
+                    };
+                } catch (e) {
+                    console.error('Error parsing saved data:', e);
+                }
+            }
+            updateUI();
+        }
+        
+        // Save data to localStorage
+        function saveUserData() {
+            localStorage.setItem('userGameData', JSON.stringify(userData));
+        }
+        
+        // Sync data with backend
+        async function syncWithBackend() {
+            if (!isOnline) {
+                elements.syncStatus.textContent = 'Offline - Changes saved locally';
+                elements.syncStatus.className = 'sync-status offline';
+                return;
+            }
+            
+            elements.syncStatus.textContent = 'Syncing with server...';
+            elements.syncStatus.className = 'sync-status';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/sync`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
+                    },
+                    body: JSON.stringify({
+                        userId: USER_ID,
+                        data: userData
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Sync failed');
+                
+                const result = await response.json();
+                userData.lastSync = new Date().toISOString();
+                saveUserData();
+                
+                elements.syncStatus.textContent = 'Synced just now';
+                elements.syncStatus.className = 'sync-status online';
+                
+                // Check if server has newer data
+                if (result.data && new Date(result.data.lastSync) > new Date(userData.lastSync || 0)) {
+                    userData = {
+                        ...userData,
+                        ...result.data,
+                        games: {
+                            ...userData.games,
+                            ...(result.data.games || {})
+                        }
+                    };
+                    saveUserData();
+                    updateUI();
+                    showNotification('Synced latest data from server');
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Sync error:', error);
+                elements.syncStatus.textContent = 'Sync failed - Working offline';
+                elements.syncStatus.className = 'sync-status offline';
+                return false;
+            }
+        }
+        
+        // Periodic sync (every 2 minutes)
+        function startSyncInterval() {
+            setInterval(() => {
+                if (isOnline) {
+                    syncWithBackend();
+                }
+            }, 120000); // 2 minutes
+        }
+        
+        // ========================
         // GAME MANAGEMENT FUNCTIONS
         // ========================
         
@@ -721,23 +761,15 @@
             elements.balance.textContent = userData.balance.toLocaleString();
         }
         
-        // Add game earnings to balance - UPDATED to sync with index.html
+        // Add game earnings to balance
         function addGameEarnings(amount) {
-            // Update the balance
             userData.balance += amount;
-            
-            // Save to index.html's storage location
-            saveUserData(userData);
-            
-            // Update the UI
             updateBalance();
+            saveUserData();
             
-            // Notify parent window if in iframe
-            if (window.parent !== window) {
-                window.parent.postMessage({
-                    type: 'updateBalance',
-                    amount: amount
-                }, '*');
+            // Try to sync with backend
+            if (isOnline) {
+                syncWithBackend();
             }
         }
         
@@ -778,9 +810,8 @@
             }
         }
         
-        // Update UI with loaded data - UPDATED to ensure all elements are refreshed
+        // Update UI with loaded data
         function updateUI() {
-            // Update main balance
             updateBalance();
             
             // Update memory game stats
@@ -813,7 +844,7 @@
         // GAME IMPLEMENTATIONS
         // ========================
         
-        // Memory Game - UPDATED to ensure proper state management
+        // Memory Game
         const memoryGame = {
             fruits: ['🍎', '🍌', '🍒', '🍓', '🍊', '🍋', '🍐', '🍇'],
             values: [],
@@ -885,8 +916,8 @@
                 const [card1, card2] = this.flippedCards;
                 
                 userData.games.memory.attempts--;
-                saveUserData(userData);
                 updateUI();
+                saveUserData();
                 
                 if (card1.dataset.value === card2.dataset.value) {
                     card1.classList.add('matched');
@@ -895,6 +926,7 @@
                     
                     userData.games.memory.wins++;
                     userData.games.memory.earnings += 800;
+                    updateUI();
                     addGameEarnings(800);
                     document.getElementById('winSound').play();
                     
@@ -924,7 +956,7 @@
             }
         };
 
-        // Dice Game - UPDATED to ensure proper state management
+        // Dice Game
         const diceGame = {
             lastRoll: null,
             
@@ -939,8 +971,8 @@
                 }
                 
                 userData.games.dice.attempts--;
-                saveUserData(userData);
                 updateUI();
+                saveUserData();
                 document.getElementById('clickSound').play();
                 
                 const roll = Math.floor(Math.random() * 6) + 1;
@@ -959,6 +991,7 @@
                             showNotification('🎲 You won ₦800!');
                             userData.games.dice.wins++;
                             userData.games.dice.earnings += 800;
+                            updateUI();
                             addGameEarnings(800);
                             document.getElementById('winSound').play();
                         } else {
@@ -974,7 +1007,7 @@
             }
         };
 
-        // Snake Game - UPDATED to ensure proper state management
+        // Snake Game
         const snakeGame = {
             canvas: null,
             ctx: null,
@@ -1108,8 +1141,9 @@
                 // Check if snake ate food
                 if (head.x === this.food.x && head.y === this.food.y) {
                     userData.games.snake.score++;
-                    userData.games.snake.earnings += 800;
+                    updateUI();
                     addGameEarnings(800);
+                    userData.games.snake.earnings += 800;
                     document.getElementById('winSound').play();
                     this.placeFood();
                     
@@ -1198,8 +1232,8 @@
                 clearInterval(this.gameInterval);
                 this.gameStarted = false;
                 userData.games.snake.attempts--;
-                saveUserData(userData);
                 updateUI();
+                saveUserData();
                 document.getElementById('loseSound').play();
                 
                 document.getElementById('startSnakeBtn').style.display = 'block';
@@ -1213,7 +1247,7 @@
             }
         };
 
-        // Trivia Game - UPDATED to ensure proper state management
+        // Trivia Game
         const triviaGame = {
             questions: [
                 // Nigeria General Knowledge (20)
@@ -1368,8 +1402,8 @@
                 }
                 
                 userData.games.trivia.attempts--;
-                saveUserData(userData);
                 updateUI();
+                saveUserData();
                 document.getElementById('clickSound').play();
                 
                 const question = this.questions[this.currentQuestion];
@@ -1379,6 +1413,7 @@
                     options[selectedOption-1].classList.add('correct');
                     userData.games.trivia.correct++;
                     userData.games.trivia.earnings += 800;
+                    updateUI();
                     addGameEarnings(800);
                     showNotification('✅ Correct! You earned ₦800');
                     document.getElementById('winSound').play();
@@ -1403,7 +1438,7 @@
             }
         };
 
-        // Wheel Spin Game - UPDATED to ensure proper state management
+        // Wheel Spin Game
         const wheelGame = {
             spinning: false,
             wheel: null,
@@ -1449,8 +1484,8 @@
                 if (this.spinning) return;
                 
                 userData.games.wheel.attempts--;
-                saveUserData(userData);
                 updateUI();
+                saveUserData();
                 document.getElementById('clickSound').play();
                 
                 this.spinning = true;
@@ -1486,6 +1521,7 @@
                     if (prize > 0) {
                         userData.games.wheel.wins++;
                         userData.games.wheel.earnings += prize;
+                        updateUI();
                         addGameEarnings(prize);
                         document.getElementById('winSound').play();
                         showNotification(`🎡 You won ₦${prize}!`);
@@ -1540,6 +1576,9 @@
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
+            // Load saved data
+            loadUserData();
+            
             // Initialize games
             initGames();
             
@@ -1548,6 +1587,7 @@
                 isOnline = true;
                 elements.syncStatus.textContent = 'Online - Syncing...';
                 elements.syncStatus.className = 'sync-status';
+                syncWithBackend();
             });
             
             window.addEventListener('offline', () => {
@@ -1558,12 +1598,14 @@
             
             // Initial sync check
             if (isOnline) {
-                elements.syncStatus.textContent = 'Online';
-                elements.syncStatus.className = 'sync-status online';
+                syncWithBackend();
             } else {
                 elements.syncStatus.textContent = 'Offline - Changes saved locally';
                 elements.syncStatus.className = 'sync-status offline';
             }
+            
+            // Start periodic sync
+            startSyncInterval();
             
             // Game card click handlers
             elements.gameCards.forEach(card => {
@@ -1578,10 +1620,71 @@
             elements.backToGames3.addEventListener('click', () => showGame(''));
             elements.backToGames4.addEventListener('click', () => showGame(''));
             elements.backToGames5.addEventListener('click', () => showGame(''));
-            
-            // Update UI with loaded data
-            updateUI();
         });
+
+        // Timer for 60 minutes access
+        const ACCESS_DURATION = 60 * 60 * 1000; // 60 minutes in milliseconds
+        const ACCESS_START_TIME_KEY = 'gameAccessStartTime';
+
+        // Check access duration
+        function checkAccessDuration() {
+            const accessStartTime = localStorage.getItem(ACCESS_START_TIME_KEY);
+            const currentTime = Date.now();
+
+            if (accessStartTime && currentTime - accessStartTime >= ACCESS_DURATION) {
+                // Reset game attempts
+                userData.games.memory.attempts = 10;
+                userData.games.dice.attempts = 10;
+                userData.games.snake.attempts = 10;
+                userData.games.trivia.attempts = 10;
+                userData.games.wheel.attempts = 10;
+                saveUserData();
+
+                // Redirect to ads.html
+                window.location.href = 'ads.html';
+            }
+        }
+
+        // Start access timer if not already started
+        if (!localStorage.getItem(ACCESS_START_TIME_KEY)) {
+            localStorage.setItem(ACCESS_START_TIME_KEY, Date.now());
+        }
+
+        // Periodically check access duration
+        setInterval(checkAccessDuration, 1000);
+
+        // Function to sync balance with dashboard
+        function syncBalanceWithDashboard() {
+            const balanceElement = document.getElementById('balance');
+            const dashboardBalanceElement = document.getElementById('dashboardBalance'); // Assuming dashboard.html has an element with this ID
+
+            if (balanceElement && dashboardBalanceElement) {
+                const currentBalance = parseFloat(balanceElement.textContent.replace(/[^0-9.-]+/g, ''));
+                const dashboardBalance = parseFloat(dashboardBalanceElement.textContent.replace(/[^0-9.-]+/g, ''));
+
+                if (currentBalance !== dashboardBalance) {
+                    dashboardBalanceElement.textContent = currentBalance.toLocaleString();
+                }
+            }
+        }
+
+        // Function to add earnings to balance in real-time
+        function addEarningsToBalance(amount) {
+            const balanceElement = document.getElementById('balance');
+
+            if (balanceElement) {
+                let currentBalance = parseFloat(balanceElement.textContent.replace(/[^0-9.-]+/g, ''));
+                currentBalance += amount;
+                balanceElement.textContent = currentBalance.toLocaleString();
+
+                // Sync with dashboard
+                syncBalanceWithDashboard();
+            }
+        }
+
+        // Example usage: Call addEarningsToBalance(800) whenever a user earns money in the game
+        // Periodically sync balance with dashboard
+        setInterval(syncBalanceWithDashboard, 1000);
     </script>
 </body>
 </html>
