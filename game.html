@@ -714,6 +714,7 @@
                 case 'memory':
                     elements.memoryGame.classList.add('active');
                     elements.memoryGame.scrollIntoView({ behavior: 'smooth' });
+                    memoryGame.init();
                     break;
                 case 'dice':
                     elements.diceGame.classList.add('active');
@@ -726,6 +727,7 @@
                 case 'trivia':
                     elements.triviaGame.classList.add('active');
                     elements.triviaGame.scrollIntoView({ behavior: 'smooth' });
+                    triviaGame.loadQuestion();
                     break;
                 case 'wheel':
                     elements.wheelGame.classList.add('active');
