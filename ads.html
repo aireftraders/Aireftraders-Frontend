@@ -252,48 +252,6 @@
         let cooldownInterval = null;
         let redirectTo = 'game.html'; // Default fallback
 
-        // Get ad data from localStorage (persistent tracking)
-        function getAdData() {
-            const adData = JSON.parse(localStorage.getItem('adAccessData')) || {
-                adsWatched: 0,
-                accessGranted: false,
-                expiryTime: 0,
-                lastAdWatchTime: 0
-            };
-            return adData;
-        }
-
-        // Save ad data to localStorage (persistent tracking)
-        function saveAdData(adData) {
-            localStorage.setItem('adAccessData', JSON.stringify(adData));
-        }
-
-        // Get user data from localStorage (shared with index.html)
-        function getUserData() {
-            const userData = JSON.parse(localStorage.getItem('userData')) || {
-                balance: 5000,
-                referrals: 0,
-                referralEarnings: 0,
-                adsWatched: 0,
-                tradingActive: false,
-                verified: false,
-                tradingCapital: 0,
-                dailyProfit: 0,
-                totalProfit: 0,
-                withdrawableProfit: 0,
-                bankDetails: null,
-                paymentCircle: { current: 0, total: 1000 },
-                supportTickets: [],
-                gameEarnings: 0
-            };
-            return userData;
-        }
-
-        // Save user data to localStorage (shared with index.html)
-        function saveUserData(userData) {
-            localStorage.setItem('userData', JSON.stringify(userData));
-        }
-
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             // Check if we should block access first
@@ -372,6 +330,67 @@
                 `${minutes}m ${seconds}s`;
         }
 
+        // Get ad-specific data (persistent tracking)
+        function getAdData() {
+            const adData = JSON.parse(localStorage.getItem('adAccessData')) || {
+                adsWatched: 0,
+                accessGranted: false,
+                expiryTime: 0,
+                lastAdWatchTime: 0
+            };
+            return adData;
+        }
+
+        // Save ad-specific data (persistent tracking)
+        function saveAdData(adData) {
+            localStorage.setItem('adAccessData', JSON.stringify(adData));
+        }
+
+        // Get user data (shared with index.html)
+        function getUserData() {
+            const userData = JSON.parse(localStorage.getItem('userData')) || {
+                balance: 5000,
+                referrals: 0,
+                referralEarnings: 0,
+                adsWatched: 0,
+                tradingActive: false,
+                verified: false,
+                tradingCapital: 0,
+                dailyProfit: 0,
+                totalProfit: 0,
+                withdrawableProfit: 0,
+                bankDetails: null,
+                paymentCircle: { current: 0, total: 1000 },
+                supportTickets: [],
+                gameEarnings: 0
+            };
+            return userData;
+        }
+
+        // Save user data (shared with index.html)
+        function saveUserData(userData) {
+            localStorage.setItem('userData', JSON.stringify(userData));
+        }
+
+        // Force sync with dashboard
+        function syncWithDashboard() {
+            const adData = getAdData();
+            const userData = getUserData();
+            
+            // Ensure both systems have the same count
+            if (userData.adsWatched !== adData.adsWatched) {
+                userData.adsWatched = adData.adsWatched;
+                saveUserData(userData);
+            }
+            
+            // Check if trading should be activated
+            if (userData.adsWatched >= 20 && userData.referrals >= 6) {
+                userData.tradingActive = true;
+                userData.tradingCapital = 35000; // ₦5k signup + ₦30k from 6 referrals
+                saveUserData(userData);
+            }
+        }
+
         function setupPage() {
             // Get the referring page from URL parameter or localStorage
             const urlParams = new URLSearchParams(window.location.search);
@@ -396,6 +415,9 @@
             // Load current progress from persistent ad data
             const adData = getAdData();
             currentAdCount = Math.min(adData.adsWatched || 0, totalAds);
+            
+            // Force sync with dashboard data
+            syncWithDashboard();
             
             // Immediately redirect if already completed
             if (currentAdCount >= totalAds) {
@@ -506,33 +528,29 @@
             // Count the ad
             currentAdCount++;
             
-            // Update both ad tracking and user data
+            // Update both tracking systems
             const adData = getAdData();
             adData.adsWatched = currentAdCount;
             adData.lastAdWatchTime = Date.now();
+            saveAdData(adData);
             
-            // Also update the shared user data for the dashboard
             const userData = getUserData();
             userData.adsWatched = currentAdCount;
+            
+            // Check if trading should be activated
+            if (userData.adsWatched >= 20 && userData.referrals >= 6) {
+                userData.tradingActive = true;
+                userData.tradingCapital = 35000; // ₦5k signup + ₦30k from 6 referrals
+            }
+            
+            saveUserData(userData);
             
             // Check if completed
             if (currentAdCount >= totalAds) {
                 adData.accessGranted = true;
                 adData.expiryTime = Date.now() + accessCooldown;
+                saveAdData(adData);
                 
-                // Also update trading status in user data if requirements met
-                if (userData.referrals >= 6) {
-                    userData.tradingActive = true;
-                    userData.tradingCapital = 35000; // ₦5k signup + ₦30k from 6 referrals
-                }
-            }
-            
-            // Save all data
-            saveAdData(adData);
-            saveUserData(userData);
-            
-            // Check if completed
-            if (currentAdCount >= totalAds) {
                 grantAccessAndRedirect();
                 return;
             }
