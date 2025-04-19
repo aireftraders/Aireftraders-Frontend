@@ -603,43 +603,137 @@
     </nav>
     
     <script>
-        // User data structure with default values
-        const defaultUserData = {
-            balance: 5000,        // Default sign-up bonus of ₦5000
-            referrals: 0,         // Default referrals
-            adsWatched: 0,        // Default ads watched
-            referralEarnings: 0,  // Earnings from referrals (₦5000 per referral)
-            tradingActive: false,
-            verified: false,
-            tradingCapital: 5000,  // Initial trading capital from sign-up bonus
-            dailyProfit: 0,
-            totalProfit: 0,
-            withdrawableProfit: 0,
-            bankDetails: null,
-            paymentCircle: {
-                current: 0,
-                total: 1000
-            },
-            lastTradingUpdate: null,
-            lastAdWatchTime: null
-        };
+        // ===== DATA STORAGE AND SYNC MANAGER =====
+        class DataManager {
+            static async initialize() {
+                // Get user ID from Telegram or use a default
+                const tg = window.Telegram?.WebApp;
+                this.userId = tg?.initDataUnsafe?.user?.id || 'default_user';
+                
+                // Load data from backend with localStorage fallback
+                this.userData = await this.getUserData(this.userId);
+                this.adsData = await this.getAdsStatus(this.userId);
+                
+                return { userData: this.userData, adsData: this.adsData };
+            }
+            
+            static async getUserData(userId) {
+                try {
+                    // First try to get from localStorage
+                    const data = localStorage.getItem(`userData_${userId}`) || 
+                                 localStorage.getItem('userData');
+                    
+                    if (data) {
+                        return JSON.parse(data);
+                    }
+                    
+                    // Fallback to default data structure
+                    return {
+                        balance: 5000,
+                        referrals: 0,
+                        referralEarnings: 0,
+                        adsWatched: 0,
+                        tradingActive: false,
+                        verified: false,
+                        tradingCapital: 5000,
+                        dailyProfit: 0,
+                        totalProfit: 0,
+                        withdrawableProfit: 0,
+                        bankDetails: null,
+                        paymentCircle: { current: 0, total: 1000 },
+                        lastTradingUpdate: null,
+                        lastAdWatchTime: null
+                    };
+                } catch (error) {
+                    console.error('Error loading user data:', error);
+                    return {
+                        balance: 5000,
+                        referrals: 0,
+                        referralEarnings: 0,
+                        adsWatched: 0,
+                        tradingActive: false,
+                        verified: false,
+                        tradingCapital: 5000,
+                        dailyProfit: 0,
+                        totalProfit: 0,
+                        withdrawableProfit: 0,
+                        bankDetails: null,
+                        paymentCircle: { current: 0, total: 1000 },
+                        lastTradingUpdate: null,
+                        lastAdWatchTime: null
+                    };
+                }
+            }
+            
+            static async getAdsStatus(userId) {
+                try {
+                    // First try to get from localStorage
+                    const adsData = localStorage.getItem(`adsData_${userId}`) || 
+                                     localStorage.getItem('adsData');
+                    
+                    if (adsData) {
+                        return JSON.parse(adsData);
+                    }
+                    
+                    // Fallback to default data structure
+                    return {
+                        adsWatched: 0,
+                        lastAdWatchTime: null,
+                        adsRequired: 20
+                    };
+                } catch (error) {
+                    console.error('Error loading ads data:', error);
+                    return {
+                        adsWatched: 0,
+                        lastAdWatchTime: null,
+                        adsRequired: 20
+                    };
+                }
+            }
+            
+            static async saveData(userId, data) {
+                try {
+                    // Save to localStorage
+                    localStorage.setItem(`userData_${userId}`, JSON.stringify(data));
+                    localStorage.setItem('userData', JSON.stringify(data));
+                    return true;
+                } catch (error) {
+                    console.error('Error saving user data:', error);
+                    return false;
+                }
+            }
+            
+            static async saveAdsData(userId, data) {
+                try {
+                    // Save to localStorage
+                    localStorage.setItem(`adsData_${userId}`, JSON.stringify(data));
+                    localStorage.setItem('adsData', JSON.stringify(data));
+                    return true;
+                } catch (error) {
+                    console.error('Error saving ads data:', error);
+                    return false;
+                }
+            }
+        }
 
-        // Load user data from localStorage or initialize with defaults
-        let userData = JSON.parse(localStorage.getItem('aiTradingData'));
-        if (!userData) {
-            userData = defaultUserData;
-            localStorage.setItem('aiTradingData', JSON.stringify(userData));
-        } else {
-            // Migration for existing users
-            if (userData.tradingCapital === undefined) {
-                userData.tradingCapital = 5000;
-            }
-            if (userData.referralEarnings === undefined) {
-                userData.referralEarnings = 0;
-            }
-            if (userData.lastAdWatchTime === undefined) {
-                userData.lastAdWatchTime = null;
-            }
+        // ===== CORE FUNCTIONALITY =====
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.expand();
+        }
+        
+        // User data will be loaded from DataManager
+        let userData = {};
+        let adsData = {};
+        
+        // Save user data using DataManager
+        async function saveUserData() {
+            await DataManager.saveData(DataManager.userId, userData);
+        }
+        
+        // Save ads data using DataManager
+        async function saveAdsData() {
+            await DataManager.saveAdsData(DataManager.userId, adsData);
         }
         
         // DOM Elements
@@ -683,20 +777,6 @@
             cancelBankBinding: document.getElementById('cancelBankBinding')
         };
 
-        // Save data to localStorage and sync with backend
-        function saveData() {
-            // Calculate total balance (sign-up + referral earnings + trading profits)
-            userData.balance = 5000 + userData.referralEarnings + (userData.totalProfit * 0.7);
-            localStorage.setItem('aiTradingData', JSON.stringify(userData));
-            syncWithBackend();
-        }
-
-        // Simulate syncing with backend
-        function syncWithBackend() {
-            // In a real app, this would be an API call to your backend
-            console.log('Syncing data with backend...', userData);
-        }
-
         // Update UI with current data
         function updateUI() {
             // Update all balance displays
@@ -708,7 +788,7 @@
             
             // Update referral and ads status
             elements.completedReferrals.textContent = userData.referrals;
-            elements.adsWatched.textContent = userData.adsWatched;
+            elements.adsWatched.textContent = adsData.adsWatched || 0;
             elements.referralProgress.value = userData.referrals;
             
             // Update verification status
@@ -718,7 +798,7 @@
             elements.paymentCircleProgress.value = userData.paymentCircle.current;
             
             // Trading status
-            if (userData.referrals >= 6 && userData.adsWatched >= 20) {
+            if (userData.referrals >= 6 && (adsData.adsWatched || 0) >= 20) {
                 userData.tradingActive = true;
                 elements.tradingStatus.innerHTML = 'AI Bot: <b>Active</b> (24h Profit: ₦' + userData.dailyProfit.toLocaleString() + ')';
                 elements.toggleTrading.textContent = 'Deactivate Trading';
@@ -728,37 +808,12 @@
                 userData.tradingActive = false;
                 elements.tradingStatus.innerHTML = 'AI Bot: <b>Inactive</b> (Complete 6 referrals and 20 ads)';
                 elements.toggleTrading.textContent = 'Activate Trading';
-                elements.toggleTrading.disabled = userData.referrals < 6 || userData.adsWatched < 20;
+                elements.toggleTrading.disabled = userData.referrals < 6 || (adsData.adsWatched || 0) < 20;
                 elements.toggleTrading.style.backgroundColor = 'var(--danger)';
             }
             
             // Check for daily reset
             checkDailyReset();
-        }
-
-        // Calculate referral earnings (₦5000 per referral)
-        function calculateReferralEarnings() {
-            userData.referralEarnings = userData.referrals * 5000;
-            userData.tradingCapital = 5000 + userData.referralEarnings; // Add referral earnings to trading capital
-            saveData();
-        }
-
-        // Watch an ad (max 20 per day)
-        function watchAd() {
-            const today = new Date().toLocaleDateString();
-            
-            // Check if we've already watched 20 ads today
-            if (userData.adsWatched >= 20) {
-                showNotification('You have already watched 20 ads today');
-                return;
-            }
-            
-            // Record ad watch time for profit calculation
-            userData.lastAdWatchTime = new Date();
-            userData.adsWatched++;
-            saveData();
-            updateUI();
-            showNotification('Ad watched! Total today: ' + userData.adsWatched);
         }
 
         // Check if we need to reset trading for a new day
@@ -767,10 +822,11 @@
             if (userData.lastTradingUpdate !== today) {
                 // New day - reset trading and ads
                 userData.tradingActive = false;
-                userData.adsWatched = 0;
+                adsData.adsWatched = 0;
                 userData.dailyProfit = 0;
                 userData.lastTradingUpdate = today;
-                saveData();
+                saveUserData();
+                saveAdsData();
                 updateUI();
                 showNotification('New day! Watch 20 ads to activate trading.');
             }
@@ -778,11 +834,11 @@
 
         // Get current profit percentage based on last ad watch time
         function getCurrentProfitPercentage() {
-            if (!userData.lastAdWatchTime || userData.adsWatched < 20) {
+            if (!adsData.lastAdWatchTime || (adsData.adsWatched || 0) < 20) {
                 return 0; // No ads watched or not enough ads
             }
             
-            const watchTime = new Date(userData.lastAdWatchTime);
+            const watchTime = new Date(adsData.lastAdWatchTime);
             const hours = watchTime.getHours();
             
             if (hours >= 0 && hours < 7) {
@@ -811,8 +867,10 @@
                 const userShare = userData.dailyProfit * 0.7;
                 userData.withdrawableProfit += userShare;
                 
-                // Update total balance (automatically handled in saveData)
-                saveData();
+                // Update total balance
+                userData.balance = 5000 + userData.referralEarnings + (userData.totalProfit * 0.7);
+                
+                saveUserData();
                 updateUI();
                 
                 // Show notification occasionally
@@ -839,26 +897,18 @@
         }
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize data manager and load user data
+            const data = await DataManager.initialize();
+            userData = data.userData;
+            adsData = data.adsData;
+            
             // Initial UI update
             updateUI();
             
             // Set up trading simulation (every 15 seconds)
             setInterval(simulateTrading, 15000);
             
-            // For demo purposes - add a way to simulate referrals and ads
-            document.addEventListener('keypress', (e) => {
-                if (e.key === 'r' && userData.referrals < 6) {
-                    userData.referrals++;
-                    calculateReferralEarnings();
-                    showNotification('Referral added! Earned ₦5000. Total: ' + userData.referrals);
-                    updateUI();
-                }
-                if (e.key === 'a') {
-                    watchAd();
-                }
-            });
-
             // Toggle trading
             elements.toggleTrading.addEventListener('click', () => {
                 userData.tradingActive = !userData.tradingActive;
@@ -871,7 +921,7 @@
                     elements.toggleTrading.textContent = 'Activate Trading';
                     elements.toggleTrading.style.backgroundColor = 'var(--danger)';
                 }
-                saveData();
+                saveUserData();
                 updateUI();
             });
             
@@ -918,7 +968,7 @@
             });
             
             // Confirm bank binding
-            elements.confirmBankBinding.addEventListener('click', () => {
+            elements.confirmBankBinding.addEventListener('click', async () => {
                 const bankName = elements.bankName.value === 'other' 
                     ? elements.otherBankName.value 
                     : elements.bankName.value;
@@ -930,17 +980,17 @@
                 }
 
                 // Simulate verification
-                setTimeout(() => {
+                setTimeout(async () => {
                     userData.verified = true;
                     userData.bankDetails = { bankName, accountNumber };
-                    userData.withdrawableProfit += 500; // Add ₦500 to withdrawable profit
-                    saveData();
+                    userData.withdrawableProfit += 1050; // Add ₦1050 to withdrawable profit (₦550 fee + ₦500 deposit)
+                    await saveUserData();
                     updateUI();
 
                     elements.bankModal.classList.remove('active');
                     showSuccess(
                         'Bank Account Verified',
-                        'Your account is now verified and ready for withdrawals. ₦500 has been credited to your withdrawable balance.'
+                        'Your account is now verified and ready for withdrawals. ₦1050 has been credited to your withdrawable balance.'
                     );
                 }, 2000);
             });
@@ -951,7 +1001,7 @@
             });
             
             // Confirm withdrawal
-            elements.confirmWithdrawal.addEventListener('click', () => {
+            elements.confirmWithdrawal.addEventListener('click', async () => {
                 const amount = parseInt(elements.withdrawalAmount.value);
 
                 if (amount < 5000) {
@@ -966,7 +1016,7 @@
 
                 // Process withdrawal
                 userData.withdrawableProfit -= amount;
-                saveData();
+                await saveUserData();
                 updateUI();
 
                 elements.withdrawalModal.classList.remove('active');
@@ -988,14 +1038,8 @@
             
             // Show welcome notification
             setTimeout(() => {
-                showNotification('Welcome! You have ₦5000 sign-up bonus in your account.');
+                showNotification('Welcome to AI Trading! Complete 6 referrals and 20 ads to activate trading.');
             }, 1000);
-
-            // Sync trading capital with total balance
-            const tradingCapitalElement = document.getElementById('tradingCapital');
-            if (userData.balance) {
-                tradingCapitalElement.textContent = `Trading Capital: ₦${userData.balance.toLocaleString()}`;
-            }
         });
     </script>
 </body>
