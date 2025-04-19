@@ -480,6 +480,14 @@
             // Save to localStorage
             localStorage.setItem('adsData', JSON.stringify(adsData));
             
+            // Also update the main user data to ensure sync
+            const userData = JSON.parse(localStorage.getItem('userData')) || {};
+            if (!userData.adsWatched) {
+                userData.adsWatched = 0;
+            }
+            userData.adsWatched = currentAdCount;
+            localStorage.setItem('userData', JSON.stringify(userData));
+            
             // Check if completed
             if (currentAdCount >= totalAds) {
                 grantAccessAndRedirect();
