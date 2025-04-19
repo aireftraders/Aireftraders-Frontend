@@ -252,32 +252,6 @@
         let cooldownInterval = null;
         let redirectTo = 'game.html'; // Default fallback
 
-        // Get user data from localStorage (shared with index.html)
-        function getUserData() {
-            const userData = JSON.parse(localStorage.getItem('userData')) || {
-                balance: 5000,
-                referrals: 0,
-                referralEarnings: 0,
-                adsWatched: 0,
-                tradingActive: false,
-                verified: false,
-                tradingCapital: 0,
-                dailyProfit: 0,
-                totalProfit: 0,
-                withdrawableProfit: 0,
-                bankDetails: null,
-                paymentCircle: { current: 0, total: 1000 },
-                supportTickets: [],
-                gameEarnings: 0
-            };
-            return userData;
-        }
-
-        // Save user data to localStorage (shared with index.html)
-        function saveUserData(userData) {
-            localStorage.setItem('userData', JSON.stringify(userData));
-        }
-
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             // Check if we should block access first
@@ -290,12 +264,19 @@
         });
 
         function checkAccessStatus() {
-            const userData = getUserData();
+            // Get ads data from the same storage system as index.html
+            const adsData = JSON.parse(localStorage.getItem('adsData')) || {
+                adsWatched: 0,
+                lastAdWatchTime: null,
+                adsRequired: 20
+            };
             
-            // Check if access is on cooldown (using the same system as index.html)
-            if (userData.adsWatched >= totalAds) {
+            // Check if access is on cooldown
+            if (adsData.lastAdWatchTime && 
+                (Date.now() - adsData.lastAdWatchTime) < accessCooldown && 
+                adsData.adsWatched >= totalAds) {
                 accessDenied = true;
-                showAccessDenied(Date.now() + accessCooldown, redirectTo);
+                showAccessDenied(adsData.lastAdWatchTime + accessCooldown, adsData.lastRedirect || redirectTo);
                 return true;
             }
             
@@ -366,12 +347,18 @@
                 localStorage.setItem('postAdRedirect', redirectTo);
             }
 
-            // Load current progress from shared user data
-            const userData = getUserData();
-            currentAdCount = Math.min(userData.adsWatched || 0, totalAds);
+            // Load current progress from the same storage as index.html
+            const adsData = JSON.parse(localStorage.getItem('adsData')) || {
+                adsWatched: 0,
+                lastAdWatchTime: null,
+                adsRequired: 20
+            };
+            
+            // Ensure we don't exceed the limit
+            currentAdCount = Math.min(adsData.adsWatched, totalAds);
             
             // Immediately redirect if already completed
-            if (currentAdCount >= totalAds) {
+            if (currentAdCount >= totalAds && !accessDenied) {
                 grantAccessAndRedirect();
                 return;
             }
@@ -479,10 +466,19 @@
             // Count the ad
             currentAdCount++;
             
-            // Update the shared user data
-            const userData = getUserData();
-            userData.adsWatched = currentAdCount;
-            saveUserData(userData);
+            // Update ads data in the same format as index.html expects
+            const adsData = JSON.parse(localStorage.getItem('adsData')) || {
+                adsWatched: 0,
+                lastAdWatchTime: null,
+                adsRequired: 20
+            };
+            
+            // Update ad data
+            adsData.adsWatched = currentAdCount;
+            adsData.lastAdWatchTime = Date.now();
+            
+            // Save to localStorage
+            localStorage.setItem('adsData', JSON.stringify(adsData));
             
             // Check if completed
             if (currentAdCount >= totalAds) {
@@ -501,7 +497,7 @@
             // Get redirect URL
             const redirectUrl = localStorage.getItem('postAdRedirect') || 'game.html';
             
-            // Immediately redirect - no chance to continue watching ads
+            // Immediately redirect
             window.location.href = redirectUrl;
         }
     </script>
