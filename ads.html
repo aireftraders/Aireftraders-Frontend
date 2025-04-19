@@ -190,6 +190,31 @@
             font-weight: 700;
         }
         
+        .go-to-games-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+            transition: var(--transition);
+            z-index: 1000;
+        }
+        
+        .go-to-games-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
+        }
+        
         @media (max-width: 768px) {
             .ad-container {
                 padding: 1.5rem;
@@ -239,6 +264,8 @@
         <button class="watch-ad-btn" id="watchAdBtn">Watch Ad</button>
     </div>
 
+    <div class="go-to-games-btn" id="goToGamesBtn" style="display: none;">→</div>
+
     <script>
         // Configuration
         const totalAds = 20;
@@ -250,7 +277,7 @@
         let canCountAd = false;
         let accessDenied = false;
         let cooldownInterval = null;
-        let redirectTo = 'game.html'; // Default fallback
+        let redirectTo = 'games.html'; // Default to games.html
 
         // Get user data from localStorage (shared with index.html)
         function getUserData() {
@@ -303,6 +330,23 @@
             if (!accessDenied) {
                 setupPage();
             }
+            
+            // Setup go to games button
+            document.getElementById('goToGamesBtn').addEventListener('click', () => {
+                window.location.href = 'games.html';
+            });
+
+            // Add "Go to games" text under the arrow direction
+            const goToGamesText = document.createElement('div');
+            goToGamesText.textContent = "Go to games";
+            goToGamesText.style.position = "fixed";
+            goToGamesText.style.bottom = "80px";
+            goToGamesText.style.right = "20px";
+            goToGamesText.style.color = "var(--primary)";
+            goToGamesText.style.fontSize = "1rem";
+            goToGamesText.style.fontWeight = "600";
+            goToGamesText.style.textAlign = "center";
+            document.body.appendChild(goToGamesText);
         });
 
         function checkAccessStatus() {
@@ -345,6 +389,9 @@
                 
                 <button class="watch-ad-btn" id="returnBtn">Return to Previous Page</button>
             `;
+            
+            // Show the go to games button
+            document.getElementById('goToGamesBtn').style.display = 'flex';
             
             // Start cooldown timer
             updateCooldownTimer(expiryTime);
@@ -396,7 +443,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const source = urlParams.get('source');
             
-            if (source === 'game' || source === 'trading') {
+            if (source === 'games' || source === 'trading') {
                 redirectTo = source + '.html';
                 localStorage.setItem('postAdRedirect', redirectTo);
             } else {
@@ -404,8 +451,8 @@
                 const storedRedirect = localStorage.getItem('postAdRedirect');
                 if (storedRedirect) {
                     redirectTo = storedRedirect;
-                } else if (document.referrer.includes('game.html')) {
-                    redirectTo = 'game.html';
+                } else if (document.referrer.includes('games.html')) {
+                    redirectTo = 'games.html';
                 } else if (document.referrer.includes('trading.html')) {
                     redirectTo = 'trading.html';
                 }
@@ -564,50 +611,11 @@
 
         function grantAccessAndRedirect() {
             // Get redirect URL
-            const redirectUrl = localStorage.getItem('postAdRedirect') || 'game.html';
+            const redirectUrl = localStorage.getItem('postAdRedirect') || 'games.html';
             
             // Immediately redirect - no chance to continue watching ads
             window.location.href = redirectUrl;
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const adsWatched = parseInt(localStorage.getItem('adsWatched') || '0');
-            const targetAds = 20;
-            const redirectTarget = localStorage.getItem('redirectTarget');
-
-            if (adsWatched >= targetAds) {
-                // Redirect to the target page if ads have been watched
-                if (redirectTarget) {
-                    localStorage.removeItem('redirectTarget');
-                    window.location.href = redirectTarget;
-                }
-            } else {
-                // Show a button to go to games if access is closed
-                const goToGamesButton = document.createElement('button');
-                goToGamesButton.textContent = 'Go to Games';
-                goToGamesButton.classList.add('primary');
-                goToGamesButton.addEventListener('click', () => {
-                    localStorage.setItem('redirectTarget', 'game.html');
-                    window.location.href = 'ads.html';
-                });
-                document.body.appendChild(goToGamesButton);
-            }
-
-            // Simulate watching ads
-            const watchAdButton = document.getElementById('watchAdButton');
-            if (watchAdButton) {
-                watchAdButton.addEventListener('click', () => {
-                    const updatedAdsWatched = adsWatched + 1;
-                    localStorage.setItem('adsWatched', updatedAdsWatched);
-                    if (updatedAdsWatched >= targetAds && redirectTarget) {
-                        localStorage.removeItem('redirectTarget');
-                        window.location.href = redirectTarget;
-                    } else {
-                        alert(`You have watched ${updatedAdsWatched}/${targetAds} ads.`);
-                    }
-                });
-            }
-        });
     </script>
 </body>
 </html>
