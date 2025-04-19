@@ -944,17 +944,21 @@
             canPlay: false,
             
             init: function() {
+                // Ensure attempts are initialized correctly
+                if (userData.games.memory.attempts === undefined || userData.games.memory.attempts <= 0) {
+                    userData.games.memory.attempts = 10; // Reset to 10 attempts if undefined or exhausted
+                }
+                updateUI(); // Update the UI to reflect the correct attempts
+
                 document.getElementById('gameBoard').innerHTML = '';
                 this.matchedPairs = 0;
                 this.flippedCards = [];
-                
                 this.values = [];
                 this.fruits.forEach(fruit => {
                     this.values.push(fruit, fruit);
                 });
-                
+
                 const shuffled = [...this.values].sort(() => 0.5 - Math.random());
-                
                 shuffled.forEach((value, index) => {
                     const card = document.createElement('div');
                     card.className = 'card';
@@ -962,24 +966,24 @@
                     card.dataset.index = index;
                     card.textContent = '?';
                     card.style.fontSize = '30px';
-                    
+
                     card.addEventListener('click', () => {
-                        if (this.canPlay && userData.games.memory.attempts > 0 && 
-                            !card.classList.contains('flipped') && !card.classList.contains('matched') && 
+                        if (this.canPlay && userData.games.memory.attempts > 0 &&
+                            !card.classList.contains('flipped') && !card.classList.contains('matched') &&
                             this.flippedCards.length < 2) {
                             this.flipCard(card);
                         }
                     });
-                    
+
                     document.getElementById('gameBoard').appendChild(card);
                 });
-                
+
                 const cards = document.querySelectorAll('.card');
                 cards.forEach(card => {
                     card.classList.add('flipped');
                     card.textContent = card.dataset.value;
                 });
-                
+
                 setTimeout(() => {
                     cards.forEach(card => {
                         card.classList.remove('flipped');
