@@ -591,54 +591,18 @@
     <audio id="coinLandSound" src="https://assets.mixkit.co/sfx/preview/mixkit-metal-hit-impact-2065.mp3" preload="auto"></audio>
     
     <script>
-        // ========================
-        // DATA MANAGEMENT
-        // ========================
+        // API Configuration
+        const API_BASE_URL = 'https://your-api-endpoint.com/api';
+        const USER_ID = localStorage.getItem('userId') || `user_${Math.random().toString(36).substr(2, 9)}`;
         
-        // Load balance from parent window if in iframe, or localStorage otherwise
-        function getCurrentBalance() {
-            try {
-                // Try to get balance from parent window (if we're in an iframe)
-                if (window.parent && window.parent.userData) {
-                    return window.parent.userData.balance || 5000;
-                }
-                
-                // Try to get balance from localStorage
-                const savedData = localStorage.getItem('userGameData');
-                if (savedData) {
-                    const parsedData = JSON.parse(savedData);
-                    return parsedData.balance || 5000;
-                }
-            } catch (e) {
-                console.log('Could not access parent window data:', e);
-            }
-            
-            // Default balance
-            return 5000;
-        }
-        
-        // Update balance in parent window if in iframe, or localStorage otherwise
-        function updateCurrentBalance(newBalance) {
-            try {
-                // Try to update balance in parent window (if we're in an iframe)
-                if (window.parent && window.parent.updateGameEarnings) {
-                    window.parent.updateGameEarnings(newBalance);
-                    return;
-                }
-                
-                // Fallback to localStorage
-                const savedData = localStorage.getItem('userGameData') || '{}';
-                const userData = JSON.parse(savedData);
-                userData.balance = newBalance;
-                localStorage.setItem('userGameData', JSON.stringify(userData));
-            } catch (e) {
-                console.log('Could not update parent window balance:', e);
-            }
+        // Initialize user ID if not set
+        if (!localStorage.getItem('userId')) {
+            localStorage.setItem('userId', USER_ID);
         }
         
         // User data with default values
         let userData = {
-            balance: getCurrentBalance(),
+            balance: 5000, // Starting balance
             games: {
                 memory: { attempts: 10, wins: 0, earnings: 0 },
                 dice: { attempts: 10, wins: 0, earnings: 0 },
@@ -691,9 +655,6 @@
                             ...(parsedData.games || {})
                         }
                     };
-                    
-                    // Ensure balance is synced with parent window
-                    userData.balance = getCurrentBalance();
                 } catch (e) {
                     console.error('Error parsing saved data:', e);
                 }
@@ -718,15 +679,41 @@
             elements.syncStatus.className = 'sync-status';
             
             try {
-                // In a real app, this would sync with your backend
-                // For now, we'll just simulate a successful sync
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                const response = await fetch(`${API_BASE_URL}/sync`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
+                    },
+                    body: JSON.stringify({
+                        userId: USER_ID,
+                        data: userData
+                    })
+                });
                 
+                if (!response.ok) throw new Error('Sync failed');
+                
+                const result = await response.json();
                 userData.lastSync = new Date().toISOString();
                 saveUserData();
                 
                 elements.syncStatus.textContent = 'Synced just now';
                 elements.syncStatus.className = 'sync-status online';
+                
+                // Check if server has newer data
+                if (result.data && new Date(result.data.lastSync) > new Date(userData.lastSync || 0)) {
+                    userData = {
+                        ...userData,
+                        ...result.data,
+                        games: {
+                            ...userData.games,
+                            ...(result.data.games || {})
+                        }
+                    };
+                    saveUserData();
+                    updateUI();
+                    showNotification('Synced latest data from server');
+                }
                 
                 return true;
             } catch (error) {
@@ -764,21 +751,13 @@
             elements.balance.textContent = userData.balance.toLocaleString();
         }
         
-        // Add game earnings to balance - UPDATED to sync with parent window
+        // Add game earnings to balance
         function addGameEarnings(amount) {
-            // Update local balance
             userData.balance += amount;
-            
-            // Update the balance in parent window or localStorage
-            updateCurrentBalance(userData.balance);
-            
-            // Save to localStorage
+            updateBalance();
             saveUserData();
             
-            // Update the UI
-            updateBalance();
-            
-            // Try to sync with backend if online
+            // Try to sync with backend
             if (isOnline) {
                 syncWithBackend();
             }
@@ -798,7 +777,6 @@
                 case 'memory':
                     elements.memoryGame.classList.add('active');
                     elements.memoryGame.scrollIntoView({ behavior: 'smooth' });
-                    memoryGame.init();
                     break;
                 case 'dice':
                     elements.diceGame.classList.add('active');
@@ -811,7 +789,6 @@
                 case 'trivia':
                     elements.triviaGame.classList.add('active');
                     elements.triviaGame.scrollIntoView({ behavior: 'smooth' });
-                    triviaGame.init();
                     break;
                 case 'wheel':
                     elements.wheelGame.classList.add('active');
@@ -825,7 +802,6 @@
         
         // Update UI with loaded data
         function updateUI() {
-            // Update main balance
             updateBalance();
             
             // Update memory game stats
@@ -854,94 +830,6 @@
             document.getElementById('wheelEarnings').textContent = userData.games.wheel.earnings;
         }
         
-        // ========================
-        // COOLDOWN TIMER MANAGEMENT
-        // ========================
-
-        // Start free access timer when redirected from ads.html
-        function startFreeAccessTimer() {
-            const freeAccessEnd = Date.now() + 60 * 60 * 1000; // 60 minutes from now
-            localStorage.setItem('freeAccessEnd', freeAccessEnd);
-            updateFreeAccessUI();
-
-            // Redirect to dashboard after 60 minutes
-            setTimeout(() => {
-                window.location.href = 'index.html';
-                startCooldownTimer();
-            }, 60 * 60 * 1000);
-        }
-
-        // Start cooldown timer after free access ends
-        function startCooldownTimer() {
-            const cooldownEnd = Date.now() + 60 * 60 * 1000; // 60 minutes from now
-            localStorage.setItem('cooldownEnd', cooldownEnd);
-            updateCooldownUI();
-        }
-
-        // Update free access timer UI
-        function updateFreeAccessUI() {
-            const freeAccessEnd = parseInt(localStorage.getItem('freeAccessEnd'), 10);
-            const timerElement = document.getElementById('freeAccessTimer');
-
-            if (!freeAccessEnd || Date.now() >= freeAccessEnd) {
-                // Free access expired
-                localStorage.removeItem('freeAccessEnd');
-                if (timerElement) timerElement.textContent = '';
-                return;
-            }
-
-            // Calculate remaining time
-            const remainingTime = freeAccessEnd - Date.now();
-            const minutes = Math.floor(remainingTime / 60000);
-            const seconds = Math.floor((remainingTime % 60000) / 1000);
-
-            // Update timer display
-            if (timerElement) {
-                timerElement.textContent = `${minutes}m ${seconds}s`;
-            }
-
-            // Update every second
-            setTimeout(updateFreeAccessUI, 1000);
-        }
-
-        // Update cooldown timer UI
-        function updateCooldownUI() {
-            const cooldownEnd = parseInt(localStorage.getItem('cooldownEnd'), 10);
-            const timerElement = document.getElementById('cooldownTimer');
-
-            if (!cooldownEnd || Date.now() >= cooldownEnd) {
-                // Cooldown expired
-                localStorage.removeItem('cooldownEnd');
-                if (timerElement) timerElement.textContent = '';
-                return;
-            }
-
-            // Calculate remaining time
-            const remainingTime = cooldownEnd - Date.now();
-            const minutes = Math.floor(remainingTime / 60000);
-            const seconds = Math.floor((remainingTime % 60000) / 1000);
-
-            // Update timer display
-            if (timerElement) {
-                timerElement.textContent = `${minutes}m ${seconds}s`;
-            }
-
-            // Update every second
-            setTimeout(updateCooldownUI, 1000);
-        }
-
-        // Initialize timers on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            const freeAccessEnd = localStorage.getItem('freeAccessEnd');
-            const cooldownEnd = localStorage.getItem('cooldownEnd');
-
-            if (freeAccessEnd && Date.now() < parseInt(freeAccessEnd, 10)) {
-                updateFreeAccessUI();
-            } else if (cooldownEnd && Date.now() < parseInt(cooldownEnd, 10)) {
-                updateCooldownUI();
-            }
-        });
-
         // ========================
         // GAME IMPLEMENTATIONS
         // ========================
@@ -1018,8 +906,8 @@
                 const [card1, card2] = this.flippedCards;
                 
                 userData.games.memory.attempts--;
-                saveUserData();
                 updateUI();
+                saveUserData();
                 
                 if (card1.dataset.value === card2.dataset.value) {
                     card1.classList.add('matched');
@@ -1028,6 +916,7 @@
                     
                     userData.games.memory.wins++;
                     userData.games.memory.earnings += 800;
+                    updateUI();
                     addGameEarnings(800);
                     document.getElementById('winSound').play();
                     
@@ -1072,8 +961,8 @@
                 }
                 
                 userData.games.dice.attempts--;
-                saveUserData();
                 updateUI();
+                saveUserData();
                 document.getElementById('clickSound').play();
                 
                 const roll = Math.floor(Math.random() * 6) + 1;
@@ -1092,6 +981,7 @@
                             showNotification('🎲 You won ₦800!');
                             userData.games.dice.wins++;
                             userData.games.dice.earnings += 800;
+                            updateUI();
                             addGameEarnings(800);
                             document.getElementById('winSound').play();
                         } else {
@@ -1241,8 +1131,9 @@
                 // Check if snake ate food
                 if (head.x === this.food.x && head.y === this.food.y) {
                     userData.games.snake.score++;
-                    userData.games.snake.earnings += 800;
+                    updateUI();
                     addGameEarnings(800);
+                    userData.games.snake.earnings += 800;
                     document.getElementById('winSound').play();
                     this.placeFood();
                     
@@ -1331,8 +1222,8 @@
                 clearInterval(this.gameInterval);
                 this.gameStarted = false;
                 userData.games.snake.attempts--;
-                saveUserData();
                 updateUI();
+                saveUserData();
                 document.getElementById('loseSound').play();
                 
                 document.getElementById('startSnakeBtn').style.display = 'block';
@@ -1501,8 +1392,8 @@
                 }
                 
                 userData.games.trivia.attempts--;
-                saveUserData();
                 updateUI();
+                saveUserData();
                 document.getElementById('clickSound').play();
                 
                 const question = this.questions[this.currentQuestion];
@@ -1512,6 +1403,7 @@
                     options[selectedOption-1].classList.add('correct');
                     userData.games.trivia.correct++;
                     userData.games.trivia.earnings += 800;
+                    updateUI();
                     addGameEarnings(800);
                     showNotification('✅ Correct! You earned ₦800');
                     document.getElementById('winSound').play();
@@ -1582,8 +1474,8 @@
                 if (this.spinning) return;
                 
                 userData.games.wheel.attempts--;
-                saveUserData();
                 updateUI();
+                saveUserData();
                 document.getElementById('clickSound').play();
                 
                 this.spinning = true;
@@ -1619,6 +1511,7 @@
                     if (prize > 0) {
                         userData.games.wheel.wins++;
                         userData.games.wheel.earnings += prize;
+                        updateUI();
                         addGameEarnings(prize);
                         document.getElementById('winSound').play();
                         showNotification(`🎡 You won ₦${prize}!`);
