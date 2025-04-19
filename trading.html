@@ -408,7 +408,7 @@
         <div class="app-bar">
             <h1>AI REF-TRADERS <span class="nigeria-badge">AI TRADING</span></h1>
             <div class="user-chip">
-                <span>📊 ₦<span id="balance">0</span></span>
+                <span>📊 ₦<span id="balance">800</span></span>
                 <span id="verifiedBadge">❌</span>
             </div>
         </div>
@@ -422,7 +422,7 @@
         
         <div class="status-card">
             <h3>📊 Trading Dashboard</h3>
-            <p id="tradingCapital">Trading Capital: ₦0</p>
+            <p id="tradingCapital">Trading Capital: ₦800</p>
             <p id="dailyProfit">Daily Profit: ₦0</p>
             <p id="totalProfit">Total Profit: ₦0</p>
             <p id="withdrawableProfit">Withdrawable: ₦0</p>
@@ -603,209 +603,25 @@
     </nav>
     
     <script>
-        // ===== BACKEND API INTEGRATION =====
-        class BackendAPI {
-            static BASE_URL = 'https://aireftraders-backend.onrender.com/Api';
-            
-            static async getUserData(userId) {
-                try {
-                    const response = await fetch(`${this.BASE_URL}/users/${userId}`);
-                    if (!response.ok) throw new Error('Failed to fetch user data');
-                    return await response.json();
-                } catch (error) {
-                    console.error('API Error:', error);
-                    // Fallback to localStorage
-                    const data = localStorage.getItem(`userData_${userId}`) || 
-                                 localStorage.getItem('userData') || 
-                                 JSON.stringify({
-                                    balance: 5000,
-                                    referrals: 0,
-                                    referralEarnings: 0,
-                                    adsWatched: 0,
-                                    tradingActive: false,
-                                    verified: false,
-                                    tradingCapital: 0,
-                                    dailyProfit: 0,
-                                    totalProfit: 0,
-                                    withdrawableProfit: 0,
-                                    bankDetails: null,
-                                    paymentCircle: { current: 0, total: 1000 },
-                                    supportTickets: [],
-                                    gameEarnings: 0
-                                 });
-                    return typeof data === 'string' ? JSON.parse(data) : data;
-                }
-            }
-            
-            static async saveUserData(userId, data) {
-                // First save to localStorage for immediate access
-                localStorage.setItem(`userData_${userId}`, JSON.stringify(data));
-                localStorage.setItem('userData', JSON.stringify(data));
-                
-                // Then try to sync with backend
-                try {
-                    const response = await fetch(`${this.BASE_URL}/users/${userId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    
-                    if (!response.ok) throw new Error('Failed to save user data');
-                    return true;
-                } catch (error) {
-                    console.error('API Error:', error);
-                    // Data is already saved to localStorage, so we can continue
-                    return false;
-                }
-            }
-            
-            static async syncWithBackend(userId) {
-                // Get data from localStorage
-                const localData = localStorage.getItem(`userData_${userId}`) || 
-                                  localStorage.getItem('userData');
-                
-                if (!localData) return;
-                
-                try {
-                    const response = await fetch(`${this.BASE_URL}/users/${userId}/sync`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: localData
-                    });
-                    
-                    if (!response.ok) throw new Error('Failed to sync with backend');
-                    return await response.json();
-                } catch (error) {
-                    console.error('Sync Error:', error);
-                    return JSON.parse(localData);
-                }
-            }
-            
-            static async getAdsStatus(userId) {
-                try {
-                    const response = await fetch(`${this.BASE_URL}/ads/status?userId=${userId}`);
-                    if (!response.ok) throw new Error('Failed to fetch ads status');
-                    return await response.json();
-                } catch (error) {
-                    console.error('API Error:', error);
-                    // Fallback to localStorage
-                    const adsData = localStorage.getItem(`adsData_${userId}`) || 
-                                     localStorage.getItem('adsData') || 
-                                     JSON.stringify({
-                                        adsWatched: 0,
-                                        lastAdWatchTime: null,
-                                        adsRequired: 20
-                                     });
-                    return typeof adsData === 'string' ? JSON.parse(adsData) : adsData;
-                }
-            }
-            
-            static async saveAdsStatus(userId, data) {
-                try {
-                    // Save to localStorage first
-                    localStorage.setItem(`adsData_${userId}`, JSON.stringify(data));
-                    localStorage.setItem('adsData', JSON.stringify(data));
-                    
-                    const response = await fetch(`${this.BASE_URL}/ads/status`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ userId, ...data })
-                    });
-                    
-                    if (!response.ok) throw new Error('Failed to save ads status');
-                    return true;
-                } catch (error) {
-                    console.error('API Error:', error);
-                    return false;
-                }
-            }
-        }
+        // Initialize with the values from the screenshot
+        let userData = {
+            balance: 800,
+            tradingCapital: 800,
+            dailyProfit: 0,
+            totalProfit: 0,
+            withdrawableProfit: 0,
+            referrals: 0,
+            verified: false,
+            tradingActive: false,
+            paymentCircle: { current: 0, total: 1000 }
+        };
 
-        // ===== DATA STORAGE AND SYNC MANAGER =====
-        class DataManager {
-            static async initialize() {
-                // Get user ID from Telegram or use a default
-                const tg = window.Telegram?.WebApp;
-                this.userId = tg?.initDataUnsafe?.user?.id || 'default_user';
-                
-                // Load data from backend with localStorage fallback
-                this.userData = await BackendAPI.getUserData(this.userId);
-                this.adsData = await BackendAPI.getAdsStatus(this.userId);
-                
-                // Initialize sync interval
-                setInterval(() => this.syncWithBackend(), 30000); // Sync every 30 seconds
-                
-                return { userData: this.userData, adsData: this.adsData };
-            }
-            
-            static async syncWithBackend() {
-                try {
-                    const updatedData = await BackendAPI.syncWithBackend(this.userId);
-                    if (updatedData) {
-                        this.userData = updatedData;
-                        localStorage.setItem(`userData_${this.userId}`, JSON.stringify(updatedData));
-                        localStorage.setItem('userData', JSON.stringify(updatedData));
-                    }
-                    
-                    const updatedAdsData = await BackendAPI.getAdsStatus(this.userId);
-                    if (updatedAdsData) {
-                        this.adsData = updatedAdsData;
-                        localStorage.setItem(`adsData_${this.userId}`, JSON.stringify(updatedAdsData));
-                        localStorage.setItem('adsData', JSON.stringify(updatedAdsData));
-                    }
-                    
-                    return { userData: this.userData, adsData: this.adsData };
-                } catch (error) {
-                    console.error('Sync failed:', error);
-                    return { userData: this.userData, adsData: this.adsData };
-                }
-            }
-            
-            static async saveData() {
-                try {
-                    await BackendAPI.saveUserData(this.userId, this.userData);
-                    localStorage.setItem(`userData_${this.userId}`, JSON.stringify(this.userData));
-                    localStorage.setItem('userData', JSON.stringify(this.userData));
-                    return true;
-                } catch (error) {
-                    console.error('Save failed:', error);
-                    return false;
-                }
-            }
-            
-            static async saveAdsData() {
-                try {
-                    await BackendAPI.saveAdsStatus(this.userId, this.adsData);
-                    localStorage.setItem(`adsData_${this.userId}`, JSON.stringify(this.adsData));
-                    localStorage.setItem('adsData', JSON.stringify(this.adsData));
-                    return true;
-                } catch (error) {
-                    console.error('Save ads failed:', error);
-                    return false;
-                }
-            }
-        }
+        let adsData = {
+            adsWatched: 0,
+            lastAdWatchTime: null,
+            adsRequired: 20
+        };
 
-        // User data will be loaded from DataManager
-        let userData = {};
-        let adsData = {};
-        
-        // Save user data using DataManager
-        async function saveUserData() {
-            await DataManager.saveData();
-        }
-        
-        // Save ads data using DataManager
-        async function saveAdsData() {
-            await DataManager.saveAdsData();
-        }
-        
         // DOM Elements
         const elements = {
             balance: document.getElementById('balance'),
@@ -849,28 +665,28 @@
 
         // Update UI with current data
         function updateUI() {
-            // Update all balance displays
-            elements.balance.textContent = userData.balance?.toLocaleString() || '0';
-            elements.tradingCapital.textContent = 'Trading Capital: ₦' + (userData.tradingCapital || 0).toLocaleString();
-            elements.dailyProfit.textContent = 'Daily Profit: ₦' + (userData.dailyProfit || 0).toLocaleString();
-            elements.totalProfit.textContent = 'Total Profit: ₦' + (userData.totalProfit || 0).toLocaleString();
-            elements.withdrawableProfit.textContent = 'Withdrawable: ₦' + (userData.withdrawableProfit || 0).toLocaleString();
+            // Update all balance displays to show the same amount (800)
+            elements.balance.textContent = userData.balance.toLocaleString();
+            elements.tradingCapital.textContent = 'Trading Capital: ₦' + userData.tradingCapital.toLocaleString();
+            elements.dailyProfit.textContent = 'Daily Profit: ₦' + userData.dailyProfit.toLocaleString();
+            elements.totalProfit.textContent = 'Total Profit: ₦' + userData.totalProfit.toLocaleString();
+            elements.withdrawableProfit.textContent = 'Withdrawable: ₦' + userData.withdrawableProfit.toLocaleString();
             
             // Update referral and ads status
-            elements.completedReferrals.textContent = userData.referrals || 0;
-            elements.adsWatched.textContent = adsData.adsWatched || 0;
-            elements.referralProgress.value = userData.referrals || 0;
+            elements.completedReferrals.textContent = userData.referrals;
+            elements.adsWatched.textContent = adsData.adsWatched;
+            elements.referralProgress.value = userData.referrals;
             
             // Update verification status
             elements.verifiedBadge.textContent = userData.verified ? '✅' : '❌';
-            elements.availableBalance.textContent = Math.max(0, userData.withdrawableProfit || 0).toLocaleString();
-            elements.paidUsers.textContent = (userData.paymentCircle?.current || 0).toLocaleString();
-            elements.paymentCircleProgress.value = userData.paymentCircle?.current || 0;
+            elements.availableBalance.textContent = Math.max(0, userData.withdrawableProfit).toLocaleString();
+            elements.paidUsers.textContent = userData.paymentCircle.current.toLocaleString();
+            elements.paymentCircleProgress.value = userData.paymentCircle.current;
             
             // Trading status
-            if ((userData.referrals || 0) >= 6 && (adsData.adsWatched || 0) >= 20) {
+            if (userData.referrals >= 6 && adsData.adsWatched >= 20) {
                 userData.tradingActive = true;
-                elements.tradingStatus.innerHTML = 'AI Bot: <b>Active</b> (24h Profit: ₦' + (userData.dailyProfit || 0).toLocaleString() + ')';
+                elements.tradingStatus.innerHTML = 'AI Bot: <b>Active</b> (24h Profit: ₦' + userData.dailyProfit.toLocaleString() + ')';
                 elements.toggleTrading.textContent = 'Deactivate Trading';
                 elements.toggleTrading.disabled = false;
                 elements.toggleTrading.style.backgroundColor = 'var(--success)';
@@ -878,73 +694,8 @@
                 userData.tradingActive = false;
                 elements.tradingStatus.innerHTML = 'AI Bot: <b>Inactive</b> (Complete 6 referrals and 20 ads)';
                 elements.toggleTrading.textContent = 'Activate Trading';
-                elements.toggleTrading.disabled = (userData.referrals || 0) < 6 || (adsData.adsWatched || 0) < 20;
+                elements.toggleTrading.disabled = userData.referrals < 6 || adsData.adsWatched < 20;
                 elements.toggleTrading.style.backgroundColor = 'var(--danger)';
-            }
-            
-            // Check for daily reset
-            checkDailyReset();
-        }
-
-        // Check if we need to reset trading for a new day
-        function checkDailyReset() {
-            const today = new Date().toLocaleDateString();
-            if (userData.lastTradingUpdate !== today) {
-                // New day - reset trading and ads
-                userData.tradingActive = false;
-                adsData.adsWatched = 0;
-                userData.dailyProfit = 0;
-                userData.lastTradingUpdate = today;
-                saveUserData();
-                saveAdsData();
-                updateUI();
-                showNotification('New day! Watch 20 ads to activate trading.');
-            }
-        }
-
-        // Get current profit percentage based on last ad watch time
-        function getCurrentProfitPercentage() {
-            if (!adsData.lastAdWatchTime || (adsData.adsWatched || 0) < 20) {
-                return 0; // No ads watched or not enough ads
-            }
-            
-            const watchTime = new Date(adsData.lastAdWatchTime);
-            const hours = watchTime.getHours();
-            
-            if (hours >= 0 && hours < 7) {
-                // Early morning bonus (35-50%)
-                return Math.random() * 0.15 + 0.35;
-            } else if (hours >= 7 && hours < 16) {
-                // Daytime rate (21-34%)
-                return Math.random() * 0.13 + 0.21;
-            } else {
-                // Evening rate (20% flat)
-                return 0.20;
-            }
-        }
-
-        // Simulate trading profits
-        function simulateTrading() {
-            if (userData.tradingActive && (userData.tradingCapital || 0) > 0) {
-                // Get current profit percentage based on ad watch time
-                const dailyReturn = getCurrentProfitPercentage();
-                
-                // Calculate profits based on trading capital
-                userData.dailyProfit = (userData.tradingCapital || 0) * dailyReturn;
-                userData.totalProfit = (userData.totalProfit || 0) + userData.dailyProfit;
-                
-                // Distribute profits (70% to user)
-                const userShare = userData.dailyProfit * 0.7;
-                userData.withdrawableProfit = (userData.withdrawableProfit || 0) + userShare;
-                
-                // Update total balance (automatically handled in saveData)
-                saveUserData();
-                updateUI();
-                
-                // Show notification occasionally
-                if (Math.random() > 0.5) {
-                    showNotification('💸 Profit earned: ₦' + Math.floor(userShare).toLocaleString());
-                }
             }
         }
 
@@ -965,17 +716,9 @@
         }
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Initialize data manager and load user data
-            const data = await DataManager.initialize();
-            userData = data.userData;
-            adsData = data.adsData;
-            
+        document.addEventListener('DOMContentLoaded', () => {
             // Initial UI update
             updateUI();
-            
-            // Set up trading simulation (every 15 seconds)
-            setInterval(simulateTrading, 15000);
             
             // Toggle trading
             elements.toggleTrading.addEventListener('click', () => {
@@ -989,7 +732,6 @@
                     elements.toggleTrading.textContent = 'Activate Trading';
                     elements.toggleTrading.style.backgroundColor = 'var(--danger)';
                 }
-                saveUserData();
                 updateUI();
             });
             
@@ -1036,7 +778,7 @@
             });
             
             // Confirm bank binding
-            elements.confirmBankBinding.addEventListener('click', async () => {
+            elements.confirmBankBinding.addEventListener('click', () => {
                 const bankName = elements.bankName.value === 'other' 
                     ? elements.otherBankName.value 
                     : elements.bankName.value;
@@ -1048,11 +790,9 @@
                 }
 
                 // Simulate verification
-                setTimeout(async () => {
+                setTimeout(() => {
                     userData.verified = true;
-                    userData.bankDetails = { bankName, accountNumber };
-                    userData.withdrawableProfit = (userData.withdrawableProfit || 0) + 500; // Add ₦500 to withdrawable profit
-                    await saveUserData();
+                    userData.withdrawableProfit += 500; // Add ₦500 to withdrawable profit
                     updateUI();
 
                     elements.bankModal.classList.remove('active');
@@ -1069,7 +809,7 @@
             });
             
             // Confirm withdrawal
-            elements.confirmWithdrawal.addEventListener('click', async () => {
+            elements.confirmWithdrawal.addEventListener('click', () => {
                 const amount = parseInt(elements.withdrawalAmount.value);
 
                 if (amount < 5000) {
@@ -1077,14 +817,13 @@
                     return;
                 }
 
-                if (amount > (userData.withdrawableProfit || 0)) {
+                if (amount > userData.withdrawableProfit) {
                     showNotification('Insufficient withdrawable balance');
                     return;
                 }
 
                 // Process withdrawal
-                userData.withdrawableProfit = (userData.withdrawableProfit || 0) - amount;
-                await saveUserData();
+                userData.withdrawableProfit -= amount;
                 updateUI();
 
                 elements.withdrawalModal.classList.remove('active');
