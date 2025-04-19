@@ -837,14 +837,13 @@
             const gameBalance = parseFloat(elements.balance.textContent.replace(/[^0-9.-]+/g, ''));
             const dashboardBalance = parseFloat(localStorage.getItem('dashboardBalance') || '0');
 
-            // Update balance if different
+            // Update balances if different
             if (gameBalance !== dashboardBalance) {
                 elements.balance.textContent = dashboardBalance.toLocaleString();
+                localStorage.setItem('gameBalance', dashboardBalance);
+            } else {
+                localStorage.setItem('dashboardBalance', gameBalance);
             }
-
-            // Save game balance to localStorage
-            localStorage.setItem('gameBalance', gameBalance);
-            localStorage.setItem('dashboardBalance', gameBalance);
         }
 
         // Listen for changes in localStorage to update balance live
@@ -864,17 +863,14 @@
                 balanceElement.textContent = currentBalance.toLocaleString();
 
                 // Sync with index.html
-                syncBalanceWithIndex();
+                localStorage.setItem('dashboardBalance', currentBalance);
+                localStorage.setItem('gameBalance', currentBalance);
             }
         }
 
         // Periodically sync balance with index.html
         setInterval(() => {
-            if (isOnline) {
-                syncBalanceWithIndex();
-            } else {
-                updateSyncStatus();
-            }
+            syncBalanceWithIndex();
         }, 1000);
 
         // Show game
@@ -1728,6 +1724,17 @@
             elements.backToGames3.addEventListener('click', () => showGame(''));
             elements.backToGames4.addEventListener('click', () => showGame(''));
             elements.backToGames5.addEventListener('click', () => showGame(''));
+            
+            // Sync balance with index.html
+            syncBalanceWithIndex();
+
+            window.addEventListener('online', () => {
+                syncBalanceWithIndex();
+            });
+
+            window.addEventListener('offline', () => {
+                syncBalanceWithIndex();
+            });
         });
     </script>
 </body>
