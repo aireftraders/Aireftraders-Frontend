@@ -332,9 +332,12 @@
             }
             
             // Setup go to games button
-            document.getElementById('goToGamesBtn').addEventListener('click', () => {
-                window.location.href = 'games.html';
-            });
+            const goToGamesBtn = document.getElementById('goToGamesBtn');
+            if (goToGamesBtn) {
+                goToGamesBtn.addEventListener('click', () => {
+                    window.location.href = 'game.html';
+                });
+            }
 
             // Add "Go to games" text under the arrow direction
             const goToGamesText = document.createElement('div');
@@ -398,10 +401,13 @@
             cooldownInterval = setInterval(() => updateCooldownTimer(expiryTime), 1000);
             
             // Setup return button
-            document.getElementById('returnBtn').addEventListener('click', () => {
-                clearInterval(cooldownInterval);
-                window.location.href = redirectUrl;
-            });
+            const returnBtn = document.getElementById('returnBtn');
+            if (returnBtn) {
+                returnBtn.addEventListener('click', () => {
+                    const referrer = document.referrer || 'index.html'; // Default to index.html if no referrer
+                    window.location.href = referrer;
+                });
+            }
         }
 
         function updateCooldownTimer(expiryTime) {
