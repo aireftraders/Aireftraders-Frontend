@@ -165,34 +165,34 @@
             color: #6c757d;
         }
         
-        .access-denied {
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: rgba(231, 76, 60, 0.1);
-            border-radius: var(--border-radius);
-            border-left: 4px solid var(--danger);
-        }
-        
-        .access-denied h3 {
-            color: var(--danger);
-            margin-top: 0;
-            font-size: 1.3rem;
-        }
-        
-        .time-remaining {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        .time-remaining span {
-            color: var(--primary);
-            font-weight: 700;
+        @media (max-width: 768px) {
+            .ad-container {
+                padding: 1.5rem;
+                width: 95%;
+            }
+            
+            .ad-header h2 {
+                font-size: 1.5rem;
+            }
+            
+            .ad-header p {
+                font-size: 1rem;
+            }
+            
+            #adFrameContainer, #adFrame {
+                min-height: 250px;
+            }
+            
+            .progress-step {
+                width: 2rem;
+                height: 2rem;
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="ad-container" id="mainContainer">
+    <div class="ad-container">
         <div class="ad-header">
             <h2>Complete Ads to Continue</h2>
             <p id="adPurpose">Watch ads to unlock access</p>
@@ -218,112 +218,54 @@
         // Configuration
         const totalAds = 20;
         const minAdDuration = 15000; // 15 seconds per ad
-        const accessCooldown = 60 * 60 * 1000; // 60 minutes in milliseconds
+        const resetInterval = 60 * 60 * 1000; // 60 minutes in milliseconds
         let currentAdCount = 0;
         let timer = null;
         let adStartTime = 0;
         let canCountAd = false;
-        let accessDenied = false;
-        let cooldownInterval = null;
         let redirectTo = 'game.html'; // Default fallback
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            // Check if we should block access first
-            checkAccessStatus();
-            
-            // Only setup page if access is not denied
-            if (!accessDenied) {
-                setupPage();
-            }
-        });
-
-        function checkAccessStatus() {
-            // Get ads data from localStorage
-            const adsData = JSON.parse(localStorage.getItem('adsData')) || {
-                adsWatched: 0,
-                lastAdWatchTime: null,
-                adsRequired: 20
-            };
-            
-            // Check if access is on cooldown
-            if (adsData.lastAdWatchTime && 
-                (Date.now() - adsData.lastAdWatchTime) < accessCooldown && 
-                adsData.adsWatched >= totalAds) {
-                accessDenied = true;
-                showAccessDenied(adsData.lastAdWatchTime + accessCooldown);
-                return true;
-            }
-            
-            return false;
-        }
-
-        function showAccessDenied(expiryTime) {
-            const mainContainer = document.getElementById('mainContainer');
-            mainContainer.innerHTML = `
-                <div class="ad-header">
-                    <h2>Ads Limit Reached</h2>
-                    <p>You've completed your daily ads</p>
-                </div>
-                
-                <div class="access-denied">
-                    <h3>Access Temporarily Unavailable</h3>
-                    <p>You've watched 20 ads. Please try again later.</p>
-                    <div class="time-remaining">Time remaining: <span id="cooldownTimer"></span></div>
-                </div>
-                
-                <button class="watch-ad-btn" id="returnBtn">Return to Dashboard</button>
-            `;
-            
-            // Start cooldown timer
-            updateCooldownTimer(expiryTime);
-            cooldownInterval = setInterval(() => updateCooldownTimer(expiryTime), 1000);
-            
-            // Setup return button
-            document.getElementById('returnBtn').addEventListener('click', () => {
-                clearInterval(cooldownInterval);
-                window.location.href = 'index.html';
-            });
-        }
-
-        function updateCooldownTimer(expiryTime) {
-            const remaining = expiryTime - Date.now();
-            if (remaining <= 0) {
-                clearInterval(cooldownInterval);
-                window.location.reload();
-                return;
-            }
-            
-            const minutes = Math.floor(remaining / (1000 * 60));
-            const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-            
-            document.getElementById('cooldownTimer').textContent = 
-                `${minutes}m ${seconds}s`;
-        }
-
-        function setupPage() {
-            // Get the referring page from URL parameter
+            // Get the referring page from URL parameter or localStorage
             const urlParams = new URLSearchParams(window.location.search);
             const source = urlParams.get('source');
             
             if (source === 'game' || source === 'trading') {
                 redirectTo = source + '.html';
+                localStorage.setItem('postAdRedirect', redirectTo);
+            } else {
+                // Fallback to checking localStorage or referrer
+                const storedRedirect = localStorage.getItem('postAdRedirect');
+                if (storedRedirect) {
+                    redirectTo = storedRedirect;
+                } else if (document.referrer.includes('game.html')) {
+                    redirectTo = 'game.html';
+                } else if (document.referrer.includes('trading.html')) {
+                    redirectTo = 'trading.html';
+                }
+                localStorage.setItem('postAdRedirect', redirectTo);
             }
 
-            // Load current progress from localStorage
-            const adsData = JSON.parse(localStorage.getItem('adsData')) || {
+            // Load current progress
+            const adData = JSON.parse(localStorage.getItem('adAccessData')) || {
                 adsWatched: 0,
-                lastAdWatchTime: null,
-                adsRequired: 20
+                accessGranted: false,
+                expiryTime: 0
             };
             
-            // Ensure we don't exceed the limit
-            currentAdCount = Math.min(adsData.adsWatched, totalAds);
-            
-            // Immediately redirect if already completed
-            if (currentAdCount >= totalAds && !accessDenied) {
-                grantAccessAndRedirect();
-                return;
+            // Check if the reset period has passed
+            const now = Date.now();
+            if (adData.expiryTime > 0 && now >= adData.expiryTime) {
+                // Reset the ad count
+                currentAdCount = 0;
+                localStorage.setItem('adAccessData', JSON.stringify({
+                    adsWatched: 0,
+                    accessGranted: false,
+                    expiryTime: 0
+                }));
+            } else {
+                currentAdCount = adData.adsWatched;
             }
             
             updateProgressDisplay();
@@ -333,10 +275,10 @@
             
             // Setup button handler
             document.getElementById('watchAdBtn').addEventListener('click', handleAdWatch);
-        }
+        });
 
         function updateProgressDisplay() {
-            const remaining = Math.max(0, totalAds - currentAdCount);
+            const remaining = totalAds - currentAdCount;
             const estimatedMinutes = Math.ceil((remaining * minAdDuration) / 60000);
             
             document.getElementById('adPurpose').textContent = 
@@ -356,9 +298,7 @@
                     step.classList.add('completed');
                     step.textContent = '';
                 }
-                if (i === currentAdCount && currentAdCount < totalAds) {
-                    step.classList.add('active');
-                }
+                if (i === currentAdCount) step.classList.add('active');
                 container.appendChild(step);
             }
         }
@@ -429,30 +369,25 @@
             // Count the ad
             currentAdCount++;
             
-            // Update ads data in localStorage
-            const adsData = JSON.parse(localStorage.getItem('adsData')) || {
-                adsWatched: 0,
-                lastAdWatchTime: null,
-                adsRequired: 20
-            };
-            
-            // Update ad data
-            adsData.adsWatched = currentAdCount;
-            adsData.lastAdWatchTime = Date.now();
-            
-            // Save to localStorage
-            localStorage.setItem('adsData', JSON.stringify(adsData));
-            
-            // Also update the main user data to ensure sync with index.html
-            const userData = JSON.parse(localStorage.getItem('userData')) || {};
-            userData.adsWatched = currentAdCount;
-            localStorage.setItem('userData', JSON.stringify(userData));
-            
             // Check if completed
             if (currentAdCount >= totalAds) {
+                // Set expiry time to 60 minutes from now
+                const expiryTime = Date.now() + resetInterval;
+                localStorage.setItem('adAccessData', JSON.stringify({
+                    adsWatched: currentAdCount,
+                    accessGranted: true,
+                    expiryTime: expiryTime
+                }));
                 grantAccessAndRedirect();
                 return;
             }
+            
+            // Update storage with current count
+            localStorage.setItem('adAccessData', JSON.stringify({
+                adsWatched: currentAdCount,
+                accessGranted: false,
+                expiryTime: 0
+            }));
             
             // Update display and load next ad
             updateProgressDisplay();
@@ -462,11 +397,12 @@
         }
 
         function grantAccessAndRedirect() {
-            // Get redirect URL
-            const redirectUrl = redirectTo || 'index.html';
+            // Get redirect URL from localStorage
+            const redirectUrl = localStorage.getItem('postAdRedirect') || 'game.html';
             
-            // Immediately redirect
-            window.location.href = redirectUrl;
+            // Clean up and redirect
+            localStorage.removeItem('postAdRedirect');
+            window.location.href = redirectUrl + '?ads_completed=true';
         }
     </script>
 </body>
