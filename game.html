@@ -622,7 +622,10 @@
             try {
                 // Try to update balance in parent window (if we're in an iframe)
                 if (window.parent && window.parent.updateGameEarnings) {
-                    window.parent.updateGameEarnings(newBalance);
+                    const earnings = newBalance - getCurrentBalance();
+                    if (earnings > 0) {
+                        window.parent.updateGameEarnings(earnings);
+                    }
                     return;
                 }
                 
@@ -854,94 +857,6 @@
             document.getElementById('wheelEarnings').textContent = userData.games.wheel.earnings;
         }
         
-        // ========================
-        // COOLDOWN TIMER MANAGEMENT
-        // ========================
-
-        // Start free access timer when redirected from ads.html
-        function startFreeAccessTimer() {
-            const freeAccessEnd = Date.now() + 60 * 60 * 1000; // 60 minutes from now
-            localStorage.setItem('freeAccessEnd', freeAccessEnd);
-            updateFreeAccessUI();
-
-            // Redirect to dashboard after 60 minutes
-            setTimeout(() => {
-                window.location.href = 'index.html';
-                startCooldownTimer();
-            }, 60 * 60 * 1000);
-        }
-
-        // Start cooldown timer after free access ends
-        function startCooldownTimer() {
-            const cooldownEnd = Date.now() + 60 * 60 * 1000; // 60 minutes from now
-            localStorage.setItem('cooldownEnd', cooldownEnd);
-            updateCooldownUI();
-        }
-
-        // Update free access timer UI
-        function updateFreeAccessUI() {
-            const freeAccessEnd = parseInt(localStorage.getItem('freeAccessEnd'), 10);
-            const timerElement = document.getElementById('freeAccessTimer');
-
-            if (!freeAccessEnd || Date.now() >= freeAccessEnd) {
-                // Free access expired
-                localStorage.removeItem('freeAccessEnd');
-                if (timerElement) timerElement.textContent = '';
-                return;
-            }
-
-            // Calculate remaining time
-            const remainingTime = freeAccessEnd - Date.now();
-            const minutes = Math.floor(remainingTime / 60000);
-            const seconds = Math.floor((remainingTime % 60000) / 1000);
-
-            // Update timer display
-            if (timerElement) {
-                timerElement.textContent = `${minutes}m ${seconds}s`;
-            }
-
-            // Update every second
-            setTimeout(updateFreeAccessUI, 1000);
-        }
-
-        // Update cooldown timer UI
-        function updateCooldownUI() {
-            const cooldownEnd = parseInt(localStorage.getItem('cooldownEnd'), 10);
-            const timerElement = document.getElementById('cooldownTimer');
-
-            if (!cooldownEnd || Date.now() >= cooldownEnd) {
-                // Cooldown expired
-                localStorage.removeItem('cooldownEnd');
-                if (timerElement) timerElement.textContent = '';
-                return;
-            }
-
-            // Calculate remaining time
-            const remainingTime = cooldownEnd - Date.now();
-            const minutes = Math.floor(remainingTime / 60000);
-            const seconds = Math.floor((remainingTime % 60000) / 1000);
-
-            // Update timer display
-            if (timerElement) {
-                timerElement.textContent = `${minutes}m ${seconds}s`;
-            }
-
-            // Update every second
-            setTimeout(updateCooldownUI, 1000);
-        }
-
-        // Initialize timers on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            const freeAccessEnd = localStorage.getItem('freeAccessEnd');
-            const cooldownEnd = localStorage.getItem('cooldownEnd');
-
-            if (freeAccessEnd && Date.now() < parseInt(freeAccessEnd, 10)) {
-                updateFreeAccessUI();
-            } else if (cooldownEnd && Date.now() < parseInt(cooldownEnd, 10)) {
-                updateCooldownUI();
-            }
-        });
-
         // ========================
         // GAME IMPLEMENTATIONS
         // ========================
