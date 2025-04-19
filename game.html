@@ -599,22 +599,30 @@
     <audio id="coinLandSound" src="https://assets.mixkit.co/sfx/preview/mixkit-metal-hit-impact-2065.mp3" preload="auto"></audio>
     
     <script>
-        // Timer for 60 minutes cooldown
+        // Timer for 60 minutes cooldown with persistence
         function startCooldownTimer(duration, display) {
-            let timer = duration, minutes, seconds;
+            const storedStartTime = localStorage.getItem('cooldownStartTime');
+            let startTime = storedStartTime ? new Date(storedStartTime) : new Date();
+
+            if (!storedStartTime) {
+                localStorage.setItem('cooldownStartTime', startTime);
+            }
+
             const interval = setInterval(() => {
-                minutes = parseInt(timer / 60, 10);
-                seconds = parseInt(timer % 60, 10);
+                const now = new Date();
+                const elapsed = Math.floor((now - startTime) / 1000);
+                const remaining = duration - elapsed;
 
-                minutes = minutes < 10 ? "0" + minutes : minutes;
-                seconds = seconds < 10 ? "0" + seconds : seconds;
-
-                display.textContent = minutes + ":" + seconds;
-
-                if (--timer < 0) {
+                if (remaining <= 0) {
                     clearInterval(interval);
+                    localStorage.removeItem('cooldownStartTime');
                     display.textContent = "Cooldown Over";
+                    return;
                 }
+
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             }, 1000);
         }
 
