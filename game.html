@@ -712,47 +712,15 @@
         // Check connection to index.html
         function checkIndexConnection() {
             try {
-                // Try to access a variable or function from index.html
-                if (typeof window.parent !== 'undefined' && window.parent !== window) {
-                    // We're in an iframe or similar context
-                    isConnectedToIndex = true;
-                    updateSyncStatus();
-                    return true;
-                }
-                
-                // Check if we can access localStorage items set by index.html
                 if (localStorage.getItem('dashboardConnected')) {
                     isConnectedToIndex = true;
                     updateSyncStatus();
                     return true;
                 }
-                
-                // Check if we can communicate with index.html via postMessage
-                if (window.opener || window.parent !== window) {
-                    // Send a ping message
-                    const pingMessage = { type: 'ping', from: 'game.html' };
-                    
-                    if (window.opener) {
-                        window.opener.postMessage(pingMessage, '*');
-                    } else {
-                        window.parent.postMessage(pingMessage, '*');
-                    }
-                    
-                    // Set up listener for response
-                    window.addEventListener('message', function handler(event) {
-                        if (event.data.type === 'pong' && event.data.from === 'index.html') {
-                            isConnectedToIndex = true;
-                            updateSyncStatus();
-                            window.removeEventListener('message', handler);
-                        }
-                    });
-                    
-                    return true;
-                }
             } catch (e) {
-                console.log('Connection check error:', e);
+                console.error('Connection check error:', e);
             }
-            
+
             isConnectedToIndex = false;
             updateSyncStatus();
             return false;
@@ -864,6 +832,51 @@
             }
         }
         
+        // Sync balance with index.html
+        function syncBalanceWithIndex() {
+            const gameBalance = parseFloat(elements.balance.textContent.replace(/[^0-9.-]+/g, ''));
+            const dashboardBalance = parseFloat(localStorage.getItem('dashboardBalance') || '0');
+
+            // Update balance if different
+            if (gameBalance !== dashboardBalance) {
+                elements.balance.textContent = dashboardBalance.toLocaleString();
+            }
+
+            // Save game balance to localStorage
+            localStorage.setItem('gameBalance', gameBalance);
+            localStorage.setItem('dashboardBalance', gameBalance);
+        }
+
+        // Listen for changes in localStorage to update balance live
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'dashboardBalance') {
+                const updatedBalance = parseFloat(event.newValue || '0');
+                elements.balance.textContent = updatedBalance.toLocaleString();
+            }
+        });
+
+        // Function to add earnings to balance
+        function addEarningsToBalance(amount) {
+            const balanceElement = document.getElementById('balance');
+            if (balanceElement) {
+                let currentBalance = parseFloat(balanceElement.textContent.replace(/[^0-9.-]+/g, ''));
+                currentBalance += amount;
+                balanceElement.textContent = currentBalance.toLocaleString();
+
+                // Sync with index.html
+                syncBalanceWithIndex();
+            }
+        }
+
+        // Periodically sync balance with index.html
+        setInterval(() => {
+            if (isOnline) {
+                syncBalanceWithIndex();
+            } else {
+                updateSyncStatus();
+            }
+        }, 1000);
+
         // Show game
         function showGame(game) {
             // Hide all game containers
@@ -1716,45 +1729,6 @@
             elements.backToGames4.addEventListener('click', () => showGame(''));
             elements.backToGames5.addEventListener('click', () => showGame(''));
         });
-
-        // Sync balance with index.html
-        function syncBalanceWithIndex() {
-            const gameBalance = parseFloat(elements.balance.textContent.replace(/[^0-9.-]+/g, ''));
-            const dashboardBalance = parseFloat(localStorage.getItem('dashboardBalance') || '0');
-
-            // Update balance if different
-            if (gameBalance !== dashboardBalance) {
-                elements.balance.textContent = dashboardBalance.toLocaleString();
-            }
-
-            // Save game balance to localStorage
-            localStorage.setItem('gameBalance', gameBalance);
-            localStorage.setItem('dashboardBalance', gameBalance);
-        }
-
-        // Listen for changes in localStorage to update balance live
-        window.addEventListener('storage', (event) => {
-            if (event.key === 'dashboardBalance') {
-                const updatedBalance = parseFloat(event.newValue || '0');
-                elements.balance.textContent = updatedBalance.toLocaleString();
-            }
-        });
-
-        // Function to add earnings to balance
-        function addEarningsToBalance(amount) {
-            const balanceElement = document.getElementById('balance');
-            if (balanceElement) {
-                let currentBalance = parseFloat(balanceElement.textContent.replace(/[^0-9.-]+/g, ''));
-                currentBalance += amount;
-                balanceElement.textContent = currentBalance.toLocaleString();
-
-                // Sync with index.html
-                syncBalanceWithIndex();
-            }
-        }
-
-        // Periodically sync balance with index.html
-        setInterval(syncBalanceWithIndex, 1000);
     </script>
 </body>
 </html>
