@@ -415,7 +415,7 @@
         
         <div class="status-card accent">
             <h3>🚀 Trading Status</h3>
-            <p id="tradingStatus">AI Bot: <b>Inactive</b></p>
+            <p id="tradingStatus">AI Bot: <b>Inactive</b> (Complete 6 referrals and 20 ads)</p>
             <progress id="referralProgress" value="0" max="6"></progress>
             <small><span id="completedReferrals">0</span>/6 Referrals • <span id="adsWatched">0</span>/20 Ads</small>
         </div>
@@ -603,24 +603,44 @@
     </nav>
     
     <script>
-        // Initialize with the values from the screenshot
-        let userData = {
-            balance: 800,
-            tradingCapital: 800,
-            dailyProfit: 0,
-            totalProfit: 0,
-            withdrawableProfit: 0,
-            referrals: 0,
-            verified: false,
-            tradingActive: false,
-            paymentCircle: { current: 0, total: 1000 }
-        };
+        // Load user data from localStorage (same key as index.html)
+        function loadUserData() {
+            const tg = window.Telegram?.WebApp;
+            const userId = tg?.initDataUnsafe?.user?.id || 'default_user';
+            const data = localStorage.getItem(`userData_${userId}`) || localStorage.getItem('userData');
+            
+            if (data) {
+                return JSON.parse(data);
+            } else {
+                // Default data structure matching index.html
+                return {
+                    balance: 800,  // Set to 800 to match your screenshot
+                    referrals: 0,
+                    referralEarnings: 0,
+                    adsWatched: 0,
+                    tradingActive: false,
+                    verified: false,
+                    tradingCapital: 800,  // Set to match balance
+                    dailyProfit: 0,
+                    totalProfit: 0,
+                    withdrawableProfit: 0,
+                    bankDetails: null,
+                    paymentCircle: { current: 0, total: 1000 },
+                    supportTickets: [],
+                    gameEarnings: 0,
+                    lastTradingUpdate: null,
+                    lastAdWatchTime: null
+                };
+            }
+        }
 
-        let adsData = {
-            adsWatched: 0,
-            lastAdWatchTime: null,
-            adsRequired: 20
-        };
+        // Save user data to localStorage (same key as index.html)
+        function saveUserData(userData) {
+            const tg = window.Telegram?.WebApp;
+            const userId = tg?.initDataUnsafe?.user?.id || 'default_user';
+            localStorage.setItem(`userData_${userId}`, JSON.stringify(userData));
+            localStorage.setItem('userData', JSON.stringify(userData));
+        }
 
         // DOM Elements
         const elements = {
@@ -663,9 +683,15 @@
             cancelBankBinding: document.getElementById('cancelBankBinding')
         };
 
+        // Load user data
+        let userData = loadUserData();
+
         // Update UI with current data
         function updateUI() {
-            // Update all balance displays to show the same amount (800)
+            // Ensure balance and trading capital are always the same
+            userData.tradingCapital = userData.balance;
+            
+            // Update all displays
             elements.balance.textContent = userData.balance.toLocaleString();
             elements.tradingCapital.textContent = 'Trading Capital: ₦' + userData.tradingCapital.toLocaleString();
             elements.dailyProfit.textContent = 'Daily Profit: ₦' + userData.dailyProfit.toLocaleString();
@@ -674,7 +700,7 @@
             
             // Update referral and ads status
             elements.completedReferrals.textContent = userData.referrals;
-            elements.adsWatched.textContent = adsData.adsWatched;
+            elements.adsWatched.textContent = userData.adsWatched;
             elements.referralProgress.value = userData.referrals;
             
             // Update verification status
@@ -684,7 +710,7 @@
             elements.paymentCircleProgress.value = userData.paymentCircle.current;
             
             // Trading status
-            if (userData.referrals >= 6 && adsData.adsWatched >= 20) {
+            if (userData.referrals >= 6 && userData.adsWatched >= 20) {
                 userData.tradingActive = true;
                 elements.tradingStatus.innerHTML = 'AI Bot: <b>Active</b> (24h Profit: ₦' + userData.dailyProfit.toLocaleString() + ')';
                 elements.toggleTrading.textContent = 'Deactivate Trading';
@@ -694,8 +720,74 @@
                 userData.tradingActive = false;
                 elements.tradingStatus.innerHTML = 'AI Bot: <b>Inactive</b> (Complete 6 referrals and 20 ads)';
                 elements.toggleTrading.textContent = 'Activate Trading';
-                elements.toggleTrading.disabled = userData.referrals < 6 || adsData.adsWatched < 20;
+                elements.toggleTrading.disabled = userData.referrals < 6 || userData.adsWatched < 20;
                 elements.toggleTrading.style.backgroundColor = 'var(--danger)';
+            }
+            
+            // Check for daily reset
+            checkDailyReset();
+        }
+
+        // Check if we need to reset trading for a new day
+        function checkDailyReset() {
+            const today = new Date().toLocaleDateString();
+            if (userData.lastTradingUpdate !== today) {
+                // New day - reset trading and ads
+                userData.tradingActive = false;
+                userData.adsWatched = 0;
+                userData.dailyProfit = 0;
+                userData.lastTradingUpdate = today;
+                saveUserData(userData);
+                updateUI();
+                showNotification('New day! Watch 20 ads to activate trading.');
+            }
+        }
+
+        // Get current profit percentage based on last ad watch time
+        function getCurrentProfitPercentage() {
+            if (!userData.lastAdWatchTime || userData.adsWatched < 20) {
+                return 0; // No ads watched or not enough ads
+            }
+            
+            const watchTime = new Date(userData.lastAdWatchTime);
+            const hours = watchTime.getHours();
+            
+            if (hours >= 0 && hours < 7) {
+                // Early morning bonus (35-50%)
+                return Math.random() * 0.15 + 0.35;
+            } else if (hours >= 7 && hours < 16) {
+                // Daytime rate (21-34%)
+                return Math.random() * 0.13 + 0.21;
+            } else {
+                // Evening rate (20% flat)
+                return 0.20;
+            }
+        }
+
+        // Simulate trading profits
+        function simulateTrading() {
+            if (userData.tradingActive && userData.tradingCapital > 0) {
+                // Get current profit percentage based on ad watch time
+                const dailyReturn = getCurrentProfitPercentage();
+                
+                // Calculate profits based on trading capital
+                userData.dailyProfit = userData.tradingCapital * dailyReturn;
+                userData.totalProfit += userData.dailyProfit;
+                
+                // Distribute profits (70% to user)
+                const userShare = userData.dailyProfit * 0.7;
+                userData.withdrawableProfit += userShare;
+                
+                // Update total balance to match trading capital
+                userData.balance = userData.tradingCapital;
+                
+                saveUserData(userData);
+                updateUI();
+                
+                // Show notification occasionally
+                if (Math.random() > 0.5) {
+                    showNotification('💸 Profit earned: ₦' + Math.floor(userShare).toLocaleString());
+                }
             }
         }
 
@@ -720,6 +812,9 @@
             // Initial UI update
             updateUI();
             
+            // Set up trading simulation (every 15 seconds)
+            setInterval(simulateTrading, 15000);
+            
             // Toggle trading
             elements.toggleTrading.addEventListener('click', () => {
                 userData.tradingActive = !userData.tradingActive;
@@ -732,6 +827,7 @@
                     elements.toggleTrading.textContent = 'Activate Trading';
                     elements.toggleTrading.style.backgroundColor = 'var(--danger)';
                 }
+                saveUserData(userData);
                 updateUI();
             });
             
@@ -792,7 +888,11 @@
                 // Simulate verification
                 setTimeout(() => {
                     userData.verified = true;
+                    userData.bankDetails = { bankName, accountNumber };
                     userData.withdrawableProfit += 500; // Add ₦500 to withdrawable profit
+                    userData.balance += 500;
+                    userData.tradingCapital = userData.balance; // Keep them in sync
+                    saveUserData(userData);
                     updateUI();
 
                     elements.bankModal.classList.remove('active');
@@ -824,6 +924,7 @@
 
                 // Process withdrawal
                 userData.withdrawableProfit -= amount;
+                saveUserData(userData);
                 updateUI();
 
                 elements.withdrawalModal.classList.remove('active');
@@ -848,6 +949,25 @@
                 showNotification('Welcome to AI Trading!');
             }, 1000);
         });
+
+        // Make the updateTradingEarnings function available globally
+        window.updateTradingEarnings = function(amount) {
+            if (!userData.totalProfit) {
+                userData.totalProfit = 0;
+            }
+            
+            // Calculate user's share (70%)
+            const userShare = amount * 0.7;
+            userData.totalProfit += amount;
+            userData.withdrawableProfit = (userData.withdrawableProfit || 0) + userShare;
+            userData.balance = userData.tradingCapital; // Keep balance and trading capital in sync
+            
+            // Update UI and save data
+            updateUI();
+            saveUserData(userData);
+            
+            showNotification(`💰 Trading profit: ₦${userShare.toLocaleString()} added to your balance`);
+        };
     </script>
 </body>
 </html>
