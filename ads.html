@@ -569,6 +569,45 @@
             // Immediately redirect - no chance to continue watching ads
             window.location.href = redirectUrl;
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const adsWatched = parseInt(localStorage.getItem('adsWatched') || '0');
+            const targetAds = 20;
+            const redirectTarget = localStorage.getItem('redirectTarget');
+
+            if (adsWatched >= targetAds) {
+                // Redirect to the target page if ads have been watched
+                if (redirectTarget) {
+                    localStorage.removeItem('redirectTarget');
+                    window.location.href = redirectTarget;
+                }
+            } else {
+                // Show a button to go to games if access is closed
+                const goToGamesButton = document.createElement('button');
+                goToGamesButton.textContent = 'Go to Games';
+                goToGamesButton.classList.add('primary');
+                goToGamesButton.addEventListener('click', () => {
+                    localStorage.setItem('redirectTarget', 'game.html');
+                    window.location.href = 'ads.html';
+                });
+                document.body.appendChild(goToGamesButton);
+            }
+
+            // Simulate watching ads
+            const watchAdButton = document.getElementById('watchAdButton');
+            if (watchAdButton) {
+                watchAdButton.addEventListener('click', () => {
+                    const updatedAdsWatched = adsWatched + 1;
+                    localStorage.setItem('adsWatched', updatedAdsWatched);
+                    if (updatedAdsWatched >= targetAds && redirectTarget) {
+                        localStorage.removeItem('redirectTarget');
+                        window.location.href = redirectTarget;
+                    } else {
+                        alert(`You have watched ${updatedAdsWatched}/${targetAds} ads.`);
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
