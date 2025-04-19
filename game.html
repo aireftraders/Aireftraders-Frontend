@@ -707,15 +707,14 @@
         // Save data to localStorage
         function saveUserData() {
             localStorage.setItem('userGameData', JSON.stringify(userData));
-            
-            // Also sync with dashboard if it exists
+            // Also sync with dashboard if available
             syncWithDashboard();
         }
         
         // Check connection to index.html
         function checkIndexConnection() {
             try {
-                // Check if we're in an iframe or similar context
+                // Try to access a variable or function from index.html
                 if (typeof window.parent !== 'undefined' && window.parent !== window) {
                     // We're in an iframe or similar context
                     isConnectedToIndex = true;
@@ -775,6 +774,33 @@
             }
         }
         
+        // Sync data with dashboard
+        function syncWithDashboard() {
+            // Update dashboard balance if available
+            if (window.parent && window.parent.updateBalance) {
+                window.parent.updateBalance(userData.balance);
+            }
+            
+            // Update dashboard via localStorage
+            localStorage.setItem('gameBalance', userData.balance);
+            
+            // Update dashboard via postMessage if in iframe
+            if (window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'balanceUpdate',
+                    balance: userData.balance
+                }, '*');
+            }
+            
+            // If opened from dashboard, update opener
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'balanceUpdate',
+                    balance: userData.balance
+                }, '*');
+            }
+        }
+        
         // Sync data with backend
         async function syncWithBackend() {
             if (!isOnline) {
@@ -828,23 +854,6 @@
             }
         }
         
-        // Sync with dashboard
-        function syncWithDashboard() {
-            // Check if we're in an iframe or similar context
-            if (typeof window.parent !== 'undefined' && window.parent !== window) {
-                // Send data to parent (dashboard)
-                window.parent.postMessage({
-                    type: 'balanceUpdate',
-                    balance: userData.balance,
-                    games: userData.games
-                }, '*');
-            }
-            
-            // Also update localStorage for dashboard to read
-            localStorage.setItem('dashboardBalance', userData.balance);
-            localStorage.setItem('dashboardGameData', JSON.stringify(userData.games));
-        }
-        
         // Periodic sync (every 2 minutes)
         function startSyncInterval() {
             setInterval(() => {
@@ -870,6 +879,8 @@
         // Update balance display
         function updateBalance() {
             elements.balance.textContent = userData.balance.toLocaleString();
+            // Also update dashboard balance
+            syncWithDashboard();
         }
         
         // Add game earnings to balance
@@ -1039,9 +1050,3 @@
                     userData.games.memory.earnings += 800;
                     updateUI();
                     addGameEarnings(800);
-                    document.getElementById('winSound').play();
-                    
-                    if (this.matchedPairs === 8) {
-                        showNotification('🎉 You won ₦6,400!');
-                        setTimeout(() => {
-                            this
