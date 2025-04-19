@@ -252,6 +252,48 @@
         let cooldownInterval = null;
         let redirectTo = 'game.html'; // Default fallback
 
+        // Get user data from localStorage (shared with index.html)
+        function getUserData() {
+            const userData = JSON.parse(localStorage.getItem('userData')) || {
+                balance: 5000,
+                referrals: 0,
+                referralEarnings: 0,
+                adsWatched: 0,
+                tradingActive: false,
+                verified: false,
+                tradingCapital: 0,
+                dailyProfit: 0,
+                totalProfit: 0,
+                withdrawableProfit: 0,
+                bankDetails: null,
+                paymentCircle: { current: 0, total: 1000 },
+                supportTickets: [],
+                gameEarnings: 0
+            };
+            return userData;
+        }
+
+        // Save user data to localStorage (shared with index.html)
+        function saveUserData(userData) {
+            localStorage.setItem('userData', JSON.stringify(userData));
+        }
+
+        // Get ad-specific data (persistent tracking)
+        function getAdData() {
+            const adData = JSON.parse(localStorage.getItem('adAccessData')) || {
+                adsWatched: 0,
+                accessGranted: false,
+                expiryTime: 0,
+                lastAdWatchTime: 0
+            };
+            return adData;
+        }
+
+        // Save ad-specific data (persistent tracking)
+        function saveAdData(adData) {
+            localStorage.setItem('adAccessData', JSON.stringify(adData));
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             // Check if we should block access first
@@ -328,48 +370,6 @@
             
             document.getElementById('cooldownTimer').textContent = 
                 `${minutes}m ${seconds}s`;
-        }
-
-        // Get ad-specific data (persistent tracking)
-        function getAdData() {
-            const adData = JSON.parse(localStorage.getItem('adAccessData')) || {
-                adsWatched: 0,
-                accessGranted: false,
-                expiryTime: 0,
-                lastAdWatchTime: 0
-            };
-            return adData;
-        }
-
-        // Save ad-specific data (persistent tracking)
-        function saveAdData(adData) {
-            localStorage.setItem('adAccessData', JSON.stringify(adData));
-        }
-
-        // Get user data (shared with index.html)
-        function getUserData() {
-            const userData = JSON.parse(localStorage.getItem('userData')) || {
-                balance: 5000,
-                referrals: 0,
-                referralEarnings: 0,
-                adsWatched: 0,
-                tradingActive: false,
-                verified: false,
-                tradingCapital: 0,
-                dailyProfit: 0,
-                totalProfit: 0,
-                withdrawableProfit: 0,
-                bankDetails: null,
-                paymentCircle: { current: 0, total: 1000 },
-                supportTickets: [],
-                gameEarnings: 0
-            };
-            return userData;
-        }
-
-        // Save user data (shared with index.html)
-        function saveUserData(userData) {
-            localStorage.setItem('userData', JSON.stringify(userData));
         }
 
         // Force sync with dashboard
