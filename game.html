@@ -834,16 +834,11 @@
         
         // Sync balance with index.html
         function syncBalanceWithIndex() {
-            const gameBalance = parseFloat(elements.balance.textContent.replace(/[^0-9.-]+/g, ''));
             const dashboardBalance = parseFloat(localStorage.getItem('dashboardBalance') || '0');
+            elements.balance.textContent = dashboardBalance.toLocaleString();
 
-            // Update balances if different
-            if (gameBalance !== dashboardBalance) {
-                elements.balance.textContent = dashboardBalance.toLocaleString();
-                localStorage.setItem('gameBalance', dashboardBalance);
-            } else {
-                localStorage.setItem('dashboardBalance', gameBalance);
-            }
+            // Ensure game balance matches dashboard balance
+            localStorage.setItem('gameBalance', dashboardBalance);
         }
 
         // Listen for changes in localStorage to update balance live
@@ -856,22 +851,17 @@
 
         // Function to add earnings to balance
         function addEarningsToBalance(amount) {
-            const balanceElement = document.getElementById('balance');
-            if (balanceElement) {
-                let currentBalance = parseFloat(balanceElement.textContent.replace(/[^0-9.-]+/g, ''));
-                currentBalance += amount;
-                balanceElement.textContent = currentBalance.toLocaleString();
+            const dashboardBalance = parseFloat(localStorage.getItem('dashboardBalance') || '0');
+            const newBalance = dashboardBalance + amount;
 
-                // Sync with index.html
-                localStorage.setItem('dashboardBalance', currentBalance);
-                localStorage.setItem('gameBalance', currentBalance);
-            }
+            // Update balances in localStorage and UI
+            localStorage.setItem('dashboardBalance', newBalance);
+            localStorage.setItem('gameBalance', newBalance);
+            elements.balance.textContent = newBalance.toLocaleString();
         }
 
         // Periodically sync balance with index.html
-        setInterval(() => {
-            syncBalanceWithIndex();
-        }, 1000);
+        setInterval(syncBalanceWithIndex, 1000);
 
         // Show game
         function showGame(game) {
