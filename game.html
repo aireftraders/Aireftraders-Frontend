@@ -408,6 +408,11 @@
             color: white;
         }
         
+        .sync-status.connected {
+            background: var(--primary);
+            color: white;
+        }
+        
         /* Navigation Styles */
         .nav-bar {
             background-color: var(--primary);
@@ -705,6 +710,13 @@
         
         // Sync data with backend
         async function syncWithBackend() {
+            // Check if connected to index.html
+            if (window.location.href.includes('index.html') {
+                elements.syncStatus.textContent = 'Connected to Dashboard';
+                elements.syncStatus.className = 'sync-status connected';
+                return true;
+            }
+            
             if (!isOnline) {
                 elements.syncStatus.textContent = 'Offline - Changes saved locally';
                 elements.syncStatus.className = 'sync-status offline';
@@ -1611,19 +1623,34 @@
             // Set up online/offline detection
             window.addEventListener('online', () => {
                 isOnline = true;
-                elements.syncStatus.textContent = 'Online - Syncing...';
-                elements.syncStatus.className = 'sync-status';
-                syncWithBackend();
+                // Check if connected to index.html
+                if (window.location.href.includes('index.html')) {
+                    elements.syncStatus.textContent = 'Connected to Dashboard';
+                    elements.syncStatus.className = 'sync-status connected';
+                } else {
+                    elements.syncStatus.textContent = 'Online - Syncing...';
+                    elements.syncStatus.className = 'sync-status';
+                    syncWithBackend();
+                }
             });
             
             window.addEventListener('offline', () => {
                 isOnline = false;
-                elements.syncStatus.textContent = 'Offline - Changes saved locally';
-                elements.syncStatus.className = 'sync-status offline';
+                // Check if connected to index.html
+                if (window.location.href.includes('index.html')) {
+                    elements.syncStatus.textContent = 'Connected to Dashboard';
+                    elements.syncStatus.className = 'sync-status connected';
+                } else {
+                    elements.syncStatus.textContent = 'Offline - Changes saved locally';
+                    elements.syncStatus.className = 'sync-status offline';
+                }
             });
             
             // Initial sync check
-            if (isOnline) {
+            if (window.location.href.includes('index.html')) {
+                elements.syncStatus.textContent = 'Connected to Dashboard';
+                elements.syncStatus.className = 'sync-status connected';
+            } else if (isOnline) {
                 syncWithBackend();
             } else {
                 elements.syncStatus.textContent = 'Offline - Changes saved locally';
