@@ -632,8 +632,8 @@
     <audio id="coinLandSound" src="https://assets.mixkit.co/sfx/preview/mixkit-metal-hit-impact-2065.mp3" preload="auto"></audio>
     
     <script>
-        // API Configuration
-        const API_BASE_URL = 'https://your-api-endpoint.com/api';
+        // ===== BALANCE SYNC SYSTEM =====
+        // Get the user ID from localStorage or generate one
         const USER_ID = localStorage.getItem('userId') || `user_${Math.random().toString(36).substr(2, 9)}`;
         
         // Initialize user ID if not set
@@ -678,9 +678,7 @@
             syncStatus: document.getElementById('syncStatus')
         };
         
-        // ========================
-        // DATA PERSISTENCE FUNCTIONS
-        // ========================
+        // ===== DATA SYNC FUNCTIONS =====
         
         // Load data from localStorage
         function loadUserData() {
@@ -707,17 +705,14 @@
         // Save data to localStorage
         function saveUserData() {
             localStorage.setItem('userGameData', JSON.stringify(userData));
-            
-            // Also sync with dashboard if it exists
             syncWithDashboard();
         }
         
-        // Check connection to index.html
+        // Check connection to index.html (dashboard)
         function checkIndexConnection() {
             try {
                 // Check if we're in an iframe or similar context
                 if (typeof window.parent !== 'undefined' && window.parent !== window) {
-                    // We're in an iframe or similar context
                     isConnectedToIndex = true;
                     updateSyncStatus();
                     return true;
@@ -775,88 +770,37 @@
             }
         }
         
-        // Sync data with backend
-        async function syncWithBackend() {
-            if (!isOnline) {
-                updateSyncStatus();
-                return;
-            }
-            
-            elements.syncStatus.textContent = 'Syncing with server...';
-            elements.syncStatus.className = 'sync-status';
-            
-            try {
-                const response = await fetch(`${API_BASE_URL}/sync`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
-                    },
-                    body: JSON.stringify({
-                        userId: USER_ID,
-                        data: userData
-                    })
-                });
-                
-                if (!response.ok) throw new Error('Sync failed');
-                
-                const result = await response.json();
-                userData.lastSync = new Date().toISOString();
-                saveUserData();
-                
-                // Check if server has newer data
-                if (result.data && new Date(result.data.lastSync) > new Date(userData.lastSync || 0)) {
-                    userData = {
-                        ...userData,
-                        ...result.data,
-                        games: {
-                            ...userData.games,
-                            ...(result.data.games || {})
-                        }
-                    };
-                    saveUserData();
-                    updateUI();
-                    showNotification('Synced latest data from server');
-                }
-                
-                updateSyncStatus();
-                return true;
-            } catch (error) {
-                console.error('Sync error:', error);
-                updateSyncStatus();
-                return false;
-            }
-        }
-        
-        // Sync with dashboard
+        // Sync data with dashboard
         function syncWithDashboard() {
-            // Check if we're in an iframe or similar context
-            if (typeof window.parent !== 'undefined' && window.parent !== window) {
-                // Send data to parent (dashboard)
-                window.parent.postMessage({
+            // Check if we're connected to the dashboard
+            if (isConnectedToIndex) {
+                // Send balance update to dashboard
+                const balanceUpdate = {
                     type: 'balanceUpdate',
-                    balance: userData.balance,
-                    games: userData.games
-                }, '*');
+                    balance: userData.balance
+                };
+                
+                if (window.opener) {
+                    window.opener.postMessage(balanceUpdate, '*');
+                } else if (window.parent !== window) {
+                    window.parent.postMessage(balanceUpdate, '*');
+                }
             }
             
-            // Also update localStorage for dashboard to read
-            localStorage.setItem('dashboardBalance', userData.balance);
-            localStorage.setItem('dashboardGameData', JSON.stringify(userData.games));
+            // Also update localStorage for dashboard to access
+            localStorage.setItem('gameBalance', userData.balance.toString());
         }
         
-        // Periodic sync (every 2 minutes)
-        function startSyncInterval() {
-            setInterval(() => {
-                if (isOnline) {
-                    syncWithBackend();
-                }
-            }, 120000); // 2 minutes
-        }
+        // Listen for balance updates from dashboard
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'balanceUpdate') {
+                // Update our balance to match dashboard
+                userData.balance = event.data.balance;
+                updateUI();
+            }
+        });
         
-        // ========================
-        // GAME MANAGEMENT FUNCTIONS
-        // ========================
+        // ===== GAME MANAGEMENT FUNCTIONS =====
         
         // Show notification
         function showNotification(message) {
@@ -878,10 +822,8 @@
             updateBalance();
             saveUserData();
             
-            // Try to sync with backend
-            if (isOnline) {
-                syncWithBackend();
-            }
+            // Show notification
+            showNotification(`🎉 You earned ₦${amount.toLocaleString()}!`);
         }
         
         // Show game
@@ -951,9 +893,7 @@
             document.getElementById('wheelEarnings').textContent = userData.games.wheel.earnings;
         }
         
-        // ========================
-        // GAME IMPLEMENTATIONS
-        // ========================
+        // ===== GAME IMPLEMENTATIONS =====
         
         // Memory Game
         const memoryGame = {
@@ -1044,4 +984,55 @@
                     if (this.matchedPairs === 8) {
                         showNotification('🎉 You won ₦6,400!');
                         setTimeout(() => {
-                            this
+                            this.matchedPairs = 0;
+                            this.init();
+                        }, 2000);
+                    }
+                } else {
+                    setTimeout(() => {
+                        card1.classList.remove('flipped');
+                        card2.classList.remove('flipped');
+                        card1.textContent = '?';
+                        card2.textContent = '?';
+                        document.getElementById('loseSound').play();
+                    }, 500);
+                }
+                
+                this.flippedCards = [];
+                this.canPlay = true;
+                
+                if (userData.games.memory.attempts <= 0) {
+                    showNotification('Memory game attempts exhausted.');
+                }
+            }
+        };
+
+        // Dice Game
+        const diceGame = {
+            lastRoll: null,
+            
+            init: function() {
+                document.getElementById('rollDiceBtn').addEventListener('click', () => this.rollDice());
+            },
+            
+            rollDice: function() {
+                if (userData.games.dice.attempts <= 0) {
+                    showNotification('Dice game attempts exhausted.');
+                    return;
+                }
+                
+                userData.games.dice.attempts--;
+                updateUI();
+                saveUserData();
+                document.getElementById('clickSound').play();
+                
+                const roll = Math.floor(Math.random() * 6) + 1;
+                this.lastRoll = roll;
+                document.getElementById('diceResult').textContent = roll;
+                
+                let rolls = 0;
+                const animateRoll = setInterval(() => {
+                    document.getElementById('diceResult').textContent = Math.floor(Math.random() * 6) + 1;
+                    rolls++;
+                    if (rolls > 10) {
+                        clearInterval(animateRoll);
