@@ -408,6 +408,42 @@
             color: white;
         }
         
+        /* Cooldown Timer */
+        .cooldown-timer {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--danger);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 100;
+            display: none;
+        }
+        
+        .cooldown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 99;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            display: none;
+        }
+        
+        .cooldown-overlay h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        
         /* Responsive Design */
         @media (max-width: 600px) {
             .cards-grid {
@@ -423,19 +459,9 @@
                 height: 250px;
             }
         }
-
-        .nav-bar a {
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
-    <nav>
-        <div class="nav-bar">
-            <a href="index.html">Dashboard</a>
-            <a href="game.html">Games</a>
-        </div>
-    </nav>
     <div class="container">
         <div class="app-bar">
             <h1>AI REF-TRADERS Games</h1>
@@ -445,6 +471,16 @@
         </div>
         
         <div class="sync-status" id="syncStatus">Syncing...</div>
+        
+        <div class="cooldown-timer" id="cooldownTimer">
+            <span id="cooldownTime">60:00</span> remaining
+        </div>
+        
+        <div class="cooldown-overlay" id="cooldownOverlay">
+            <h2>Game Attempts Exhausted</h2>
+            <p>Please wait <span id="overlayCooldownTime">60:00</span> before playing again</p>
+            <p>You will be redirected to dashboard shortly</p>
+        </div>
         
         <div class="game-cards">
             <div class="game-card" data-game="memory">
@@ -601,18 +637,54 @@
     <audio id="coinLandSound" src="https://assets.mixkit.co/sfx/preview/mixkit-metal-hit-impact-2065.mp3" preload="auto"></audio>
     
     <script>
-        // API Configuration
-        const API_BASE_URL = 'https://your-api-endpoint.com/api';
-        const USER_ID = localStorage.getItem('userId') || `user_${Math.random().toString(36).substr(2, 9)}`;
+        // ========================
+        // DATA MANAGEMENT
+        // ========================
         
-        // Initialize user ID if not set
-        if (!localStorage.getItem('userId')) {
-            localStorage.setItem('userId', USER_ID);
+        // Load balance from parent window if in iframe, or localStorage otherwise
+        function getCurrentBalance() {
+            try {
+                // Try to get balance from parent window (if we're in an iframe)
+                if (window.parent && window.parent.userData) {
+                    return window.parent.userData.balance || 5000;
+                }
+                
+                // Try to get balance from localStorage
+                const savedData = localStorage.getItem('userGameData');
+                if (savedData) {
+                    const parsedData = JSON.parse(savedData);
+                    return parsedData.balance || 5000;
+                }
+            } catch (e) {
+                console.log('Could not access parent window data:', e);
+            }
+            
+            // Default balance
+            return 5000;
+        }
+        
+        // Update balance in parent window if in iframe, or localStorage otherwise
+        function updateCurrentBalance(newBalance) {
+            try {
+                // Try to update balance in parent window (if we're in an iframe)
+                if (window.parent && window.parent.updateGameEarnings) {
+                    window.parent.updateGameEarnings(newBalance);
+                    return;
+                }
+                
+                // Fallback to localStorage
+                const savedData = localStorage.getItem('userGameData') || '{}';
+                const userData = JSON.parse(savedData);
+                userData.balance = newBalance;
+                localStorage.setItem('userGameData', JSON.stringify(userData));
+            } catch (e) {
+                console.log('Could not update parent window balance:', e);
+            }
         }
         
         // User data with default values
         let userData = {
-            balance: 5000, // Starting balance
+            balance: getCurrentBalance(),
             games: {
                 memory: { attempts: 10, wins: 0, earnings: 0 },
                 dice: { attempts: 10, wins: 0, earnings: 0 },
@@ -621,7 +693,8 @@
                 wheel: { attempts: 10, wins: 0, earnings: 0 }
             },
             lastSync: null,
-            pendingSync: false
+            pendingSync: false,
+            cooldownEnd: null // Added for cooldown timer
         };
         
         // Check online status
@@ -643,8 +716,128 @@
             backToGames3: document.getElementById('backToGames3'),
             backToGames4: document.getElementById('backToGames4'),
             backToGames5: document.getElementById('backToGames5'),
-            syncStatus: document.getElementById('syncStatus')
+            syncStatus: document.getElementById('syncStatus'),
+            cooldownTimer: document.getElementById('cooldownTimer'),
+            cooldownTime: document.getElementById('cooldownTime'),
+            cooldownOverlay: document.getElementById('cooldownOverlay'),
+            overlayCooldownTime: document.getElementById('overlayCooldownTime')
         };
+        
+        // Cooldown timer variables
+        let cooldownInterval;
+        let redirectTimer;
+        
+        // ========================
+        // COOLDOWN TIMER FUNCTIONS
+        // ========================
+        
+        // Start the cooldown timer
+        function startCooldownTimer() {
+            // Set cooldown end time to 60 minutes from now
+            const cooldownDuration = 60 * 60 * 1000; // 60 minutes in milliseconds
+            userData.cooldownEnd = Date.now() + cooldownDuration;
+            saveUserData();
+            
+            // Show cooldown timer
+            elements.cooldownTimer.style.display = 'block';
+            elements.cooldownOverlay.style.display = 'flex';
+            
+            // Update timer immediately
+            updateCooldownDisplay();
+            
+            // Start interval to update timer every second
+            cooldownInterval = setInterval(updateCooldownDisplay, 1000);
+            
+            // Set timer to redirect to dashboard when cooldown is over
+            redirectTimer = setTimeout(() => {
+                clearInterval(cooldownInterval);
+                resetAttempts();
+                redirectToDashboard();
+            }, cooldownDuration);
+        }
+        
+        // Update the cooldown timer display
+        function updateCooldownDisplay() {
+            if (!userData.cooldownEnd) return;
+            
+            const now = Date.now();
+            const remaining = Math.max(0, userData.cooldownEnd - now);
+            
+            if (remaining <= 0) {
+                clearInterval(cooldownInterval);
+                resetAttempts();
+                redirectToDashboard();
+                return;
+            }
+            
+            // Convert remaining time to minutes:seconds
+            const minutes = Math.floor(remaining / (60 * 1000));
+            const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
+            
+            // Format as MM:SS
+            const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update display
+            elements.cooldownTime.textContent = formattedTime;
+            elements.overlayCooldownTime.textContent = formattedTime;
+        }
+        
+        // Check if cooldown is active on page load
+        function checkCooldownOnLoad() {
+            if (userData.cooldownEnd) {
+                const now = Date.now();
+                const remaining = userData.cooldownEnd - now;
+                
+                if (remaining > 0) {
+                    // Cooldown is still active
+                    startCooldownTimer();
+                } else {
+                    // Cooldown has expired
+                    resetAttempts();
+                }
+            }
+        }
+        
+        // Reset all game attempts
+        function resetAttempts() {
+            userData.games.memory.attempts = 10;
+            userData.games.dice.attempts = 10;
+            userData.games.snake.attempts = 10;
+            userData.games.trivia.attempts = 10;
+            userData.games.wheel.attempts = 10;
+            userData.cooldownEnd = null;
+            saveUserData();
+            updateUI();
+            
+            // Hide cooldown elements
+            elements.cooldownTimer.style.display = 'none';
+            elements.cooldownOverlay.style.display = 'none';
+            
+            // Clear timers
+            clearInterval(cooldownInterval);
+            clearTimeout(redirectTimer);
+        }
+        
+        // Redirect to dashboard
+        function redirectToDashboard() {
+            // In a real implementation, this would redirect to the dashboard
+            // For this example, we'll just show a notification
+            showNotification('Cooldown period over! Redirecting to dashboard...');
+            console.log('Redirecting to dashboard/index.html');
+            // window.location.href = 'dashboard/index.html';
+        }
+        
+        // Check if all attempts are exhausted
+        function checkAllAttemptsExhausted() {
+            const games = userData.games;
+            return (
+                games.memory.attempts <= 0 &&
+                games.dice.attempts <= 0 &&
+                games.snake.attempts <= 0 &&
+                games.trivia.attempts <= 0 &&
+                games.wheel.attempts <= 0
+            );
+        }
         
         // ========================
         // DATA PERSISTENCE FUNCTIONS
@@ -665,6 +858,9 @@
                             ...(parsedData.games || {})
                         }
                     };
+                    
+                    // Ensure balance is synced with parent window
+                    userData.balance = getCurrentBalance();
                 } catch (e) {
                     console.error('Error parsing saved data:', e);
                 }
@@ -689,41 +885,15 @@
             elements.syncStatus.className = 'sync-status';
             
             try {
-                const response = await fetch(`${API_BASE_URL}/sync`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
-                    },
-                    body: JSON.stringify({
-                        userId: USER_ID,
-                        data: userData
-                    })
-                });
+                // In a real app, this would sync with your backend
+                // For now, we'll just simulate a successful sync
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 
-                if (!response.ok) throw new Error('Sync failed');
-                
-                const result = await response.json();
                 userData.lastSync = new Date().toISOString();
                 saveUserData();
                 
                 elements.syncStatus.textContent = 'Synced just now';
                 elements.syncStatus.className = 'sync-status online';
-                
-                // Check if server has newer data
-                if (result.data && new Date(result.data.lastSync) > new Date(userData.lastSync || 0)) {
-                    userData = {
-                        ...userData,
-                        ...result.data,
-                        games: {
-                            ...userData.games,
-                            ...(result.data.games || {})
-                        }
-                    };
-                    saveUserData();
-                    updateUI();
-                    showNotification('Synced latest data from server');
-                }
                 
                 return true;
             } catch (error) {
@@ -761,13 +931,21 @@
             elements.balance.textContent = userData.balance.toLocaleString();
         }
         
-        // Add game earnings to balance
+        // Add game earnings to balance - UPDATED to sync with parent window
         function addGameEarnings(amount) {
+            // Update local balance
             userData.balance += amount;
-            updateBalance();
+            
+            // Update the balance in parent window or localStorage
+            updateCurrentBalance(userData.balance);
+            
+            // Save to localStorage
             saveUserData();
             
-            // Try to sync with backend
+            // Update the UI
+            updateBalance();
+            
+            // Try to sync with backend if online
             if (isOnline) {
                 syncWithBackend();
             }
@@ -787,6 +965,7 @@
                 case 'memory':
                     elements.memoryGame.classList.add('active');
                     elements.memoryGame.scrollIntoView({ behavior: 'smooth' });
+                    memoryGame.init();
                     break;
                 case 'dice':
                     elements.diceGame.classList.add('active');
@@ -799,6 +978,7 @@
                 case 'trivia':
                     elements.triviaGame.classList.add('active');
                     elements.triviaGame.scrollIntoView({ behavior: 'smooth' });
+                    triviaGame.init();
                     break;
                 case 'wheel':
                     elements.wheelGame.classList.add('active');
@@ -812,6 +992,7 @@
         
         // Update UI with loaded data
         function updateUI() {
+            // Update main balance
             updateBalance();
             
             // Update memory game stats
@@ -838,6 +1019,11 @@
             document.getElementById('wheelAttempts').textContent = userData.games.wheel.attempts;
             document.getElementById('wheelWins').textContent = userData.games.wheel.wins;
             document.getElementById('wheelEarnings').textContent = userData.games.wheel.earnings;
+            
+            // Check if all attempts are exhausted
+            if (checkAllAttemptsExhausted() && !userData.cooldownEnd) {
+                startCooldownTimer();
+            }
         }
         
         // ========================
@@ -916,8 +1102,8 @@
                 const [card1, card2] = this.flippedCards;
                 
                 userData.games.memory.attempts--;
-                updateUI();
                 saveUserData();
+                updateUI();
                 
                 if (card1.dataset.value === card2.dataset.value) {
                     card1.classList.add('matched');
@@ -926,7 +1112,6 @@
                     
                     userData.games.memory.wins++;
                     userData.games.memory.earnings += 800;
-                    updateUI();
                     addGameEarnings(800);
                     document.getElementById('winSound').play();
                     
@@ -952,6 +1137,9 @@
                 
                 if (userData.games.memory.attempts <= 0) {
                     showNotification('Memory game attempts exhausted.');
+                    if (checkAllAttemptsExhausted()) {
+                        startCooldownTimer();
+                    }
                 }
             }
         };
@@ -971,8 +1159,8 @@
                 }
                 
                 userData.games.dice.attempts--;
-                updateUI();
                 saveUserData();
+                updateUI();
                 document.getElementById('clickSound').play();
                 
                 const roll = Math.floor(Math.random() * 6) + 1;
@@ -991,7 +1179,6 @@
                             showNotification('🎲 You won ₦800!');
                             userData.games.dice.wins++;
                             userData.games.dice.earnings += 800;
-                            updateUI();
                             addGameEarnings(800);
                             document.getElementById('winSound').play();
                         } else {
@@ -1001,6 +1188,9 @@
                         
                         if (userData.games.dice.attempts <= 0) {
                             showNotification('Dice game attempts exhausted.');
+                            if (checkAllAttemptsExhausted()) {
+                                startCooldownTimer();
+                            }
                         }
                     }
                 }, 100);
@@ -1141,9 +1331,8 @@
                 // Check if snake ate food
                 if (head.x === this.food.x && head.y === this.food.y) {
                     userData.games.snake.score++;
-                    updateUI();
-                    addGameEarnings(800);
                     userData.games.snake.earnings += 800;
+                    addGameEarnings(800);
                     document.getElementById('winSound').play();
                     this.placeFood();
                     
@@ -1232,8 +1421,8 @@
                 clearInterval(this.gameInterval);
                 this.gameStarted = false;
                 userData.games.snake.attempts--;
-                updateUI();
                 saveUserData();
+                updateUI();
                 document.getElementById('loseSound').play();
                 
                 document.getElementById('startSnakeBtn').style.display = 'block';
@@ -1241,6 +1430,9 @@
                 
                 if (userData.games.snake.attempts <= 0) {
                     showNotification('Snake game attempts exhausted.');
+                    if (checkAllAttemptsExhausted()) {
+                        startCooldownTimer();
+                    }
                 } else {
                     showNotification('Game Over! Tap to play again');
                 }
@@ -1402,8 +1594,8 @@
                 }
                 
                 userData.games.trivia.attempts--;
-                updateUI();
                 saveUserData();
+                updateUI();
                 document.getElementById('clickSound').play();
                 
                 const question = this.questions[this.currentQuestion];
@@ -1413,7 +1605,6 @@
                     options[selectedOption-1].classList.add('correct');
                     userData.games.trivia.correct++;
                     userData.games.trivia.earnings += 800;
-                    updateUI();
                     addGameEarnings(800);
                     showNotification('✅ Correct! You earned ₦800');
                     document.getElementById('winSound').play();
@@ -1433,6 +1624,9 @@
                     
                     if (userData.games.trivia.attempts <= 0) {
                         showNotification('Trivia attempts exhausted.');
+                        if (checkAllAttemptsExhausted()) {
+                            startCooldownTimer();
+                        }
                     }
                 }, 1500);
             }
@@ -1484,8 +1678,8 @@
                 if (this.spinning) return;
                 
                 userData.games.wheel.attempts--;
-                updateUI();
                 saveUserData();
+                updateUI();
                 document.getElementById('clickSound').play();
                 
                 this.spinning = true;
@@ -1521,7 +1715,6 @@
                     if (prize > 0) {
                         userData.games.wheel.wins++;
                         userData.games.wheel.earnings += prize;
-                        updateUI();
                         addGameEarnings(prize);
                         document.getElementById('winSound').play();
                         showNotification(`🎡 You won ₦${prize}!`);
@@ -1532,6 +1725,9 @@
                     
                     if (userData.games.wheel.attempts <= 0) {
                         showNotification('Wheel spin attempts exhausted.');
+                        if (checkAllAttemptsExhausted()) {
+                            startCooldownTimer();
+                        }
                     }
                 }, 4000);
             },
@@ -1579,6 +1775,9 @@
             // Load saved data
             loadUserData();
             
+            // Check for active cooldown
+            checkCooldownOnLoad();
+            
             // Initialize games
             initGames();
             
@@ -1621,70 +1820,6 @@
             elements.backToGames4.addEventListener('click', () => showGame(''));
             elements.backToGames5.addEventListener('click', () => showGame(''));
         });
-
-        // Timer for 60 minutes access
-        const ACCESS_DURATION = 60 * 60 * 1000; // 60 minutes in milliseconds
-        const ACCESS_START_TIME_KEY = 'gameAccessStartTime';
-
-        // Check access duration
-        function checkAccessDuration() {
-            const accessStartTime = localStorage.getItem(ACCESS_START_TIME_KEY);
-            const currentTime = Date.now();
-
-            if (accessStartTime && currentTime - accessStartTime >= ACCESS_DURATION) {
-                // Reset game attempts
-                userData.games.memory.attempts = 10;
-                userData.games.dice.attempts = 10;
-                userData.games.snake.attempts = 10;
-                userData.games.trivia.attempts = 10;
-                userData.games.wheel.attempts = 10;
-                saveUserData();
-
-                // Redirect to ads.html
-                window.location.href = 'ads.html';
-            }
-        }
-
-        // Start access timer if not already started
-        if (!localStorage.getItem(ACCESS_START_TIME_KEY)) {
-            localStorage.setItem(ACCESS_START_TIME_KEY, Date.now());
-        }
-
-        // Periodically check access duration
-        setInterval(checkAccessDuration, 1000);
-
-        // Function to sync balance with dashboard
-        function syncBalanceWithDashboard() {
-            const balanceElement = document.getElementById('balance');
-            const dashboardBalanceElement = document.getElementById('dashboardBalance'); // Assuming dashboard.html has an element with this ID
-
-            if (balanceElement && dashboardBalanceElement) {
-                const currentBalance = parseFloat(balanceElement.textContent.replace(/[^0-9.-]+/g, ''));
-                const dashboardBalance = parseFloat(dashboardBalanceElement.textContent.replace(/[^0-9.-]+/g, ''));
-
-                if (currentBalance !== dashboardBalance) {
-                    dashboardBalanceElement.textContent = currentBalance.toLocaleString();
-                }
-            }
-        }
-
-        // Function to add earnings to balance in real-time
-        function addEarningsToBalance(amount) {
-            const balanceElement = document.getElementById('balance');
-
-            if (balanceElement) {
-                let currentBalance = parseFloat(balanceElement.textContent.replace(/[^0-9.-]+/g, ''));
-                currentBalance += amount;
-                balanceElement.textContent = currentBalance.toLocaleString();
-
-                // Sync with dashboard
-                syncBalanceWithDashboard();
-            }
-        }
-
-        // Example usage: Call addEarningsToBalance(800) whenever a user earns money in the game
-        // Periodically sync balance with dashboard
-        setInterval(syncBalanceWithDashboard, 1000);
     </script>
 </body>
 </html>
