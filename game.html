@@ -591,55 +591,65 @@
     <audio id="coinLandSound" src="https://assets.mixkit.co/sfx/preview/mixkit-metal-hit-impact-2065.mp3" preload="auto"></audio>
     
     <script>
-        // Get user ID from Telegram or use localStorage
-        const tg = window.Telegram?.WebApp;
-        const userId = tg?.initDataUnsafe?.user?.id || localStorage.getItem('userId') || `user_${Math.random().toString(36).substr(2, 9)}`;
-        localStorage.setItem('userId', userId);
-
-        // Load user data from index.html's storage
-        function loadUserData() {
-            // Try to get data from index.html's storage location
-            const savedData = localStorage.getItem(`userData_${userId}`) || 
-                             localStorage.getItem('userData');
-            
-            if (savedData) {
-                try {
-                    return JSON.parse(savedData);
-                } catch (e) {
-                    console.error('Error parsing saved data:', e);
+        // ========================
+        // DATA MANAGEMENT
+        // ========================
+        
+        // Load balance from parent window if in iframe, or localStorage otherwise
+        function getCurrentBalance() {
+            try {
+                // Try to get balance from parent window (if we're in an iframe)
+                if (window.parent && window.parent.userData) {
+                    return window.parent.userData.balance || 5000;
                 }
+                
+                // Try to get balance from localStorage
+                const savedData = localStorage.getItem('userGameData');
+                if (savedData) {
+                    const parsedData = JSON.parse(savedData);
+                    return parsedData.balance || 5000;
+                }
+            } catch (e) {
+                console.log('Could not access parent window data:', e);
             }
             
-            // Default data if nothing found
-            return {
-                balance: 5000,
-                games: {
-                    memory: { attempts: 10, wins: 0, earnings: 0 },
-                    dice: { attempts: 10, wins: 0, earnings: 0 },
-                    snake: { attempts: 10, score: 0, earnings: 0 },
-                    trivia: { attempts: 10, correct: 0, earnings: 0 },
-                    wheel: { attempts: 10, wins: 0, earnings: 0 }
-                }
-            };
+            // Default balance
+            return 5000;
         }
-
-        // Save user data to index.html's storage location
-        function saveUserData(data) {
-            localStorage.setItem(`userData_${userId}`, JSON.stringify(data));
-            localStorage.setItem('userData', JSON.stringify(data));
-            
-            // Also update the parent window if we're in an iframe
-            if (window.parent !== window) {
-                window.parent.postMessage({
-                    type: 'updateUserData',
-                    data: data
-                }, '*');
+        
+        // Update balance in parent window if in iframe, or localStorage otherwise
+        function updateCurrentBalance(newBalance) {
+            try {
+                // Try to update balance in parent window (if we're in an iframe)
+                if (window.parent && window.parent.updateGameEarnings) {
+                    window.parent.updateGameEarnings(newBalance);
+                    return;
+                }
+                
+                // Fallback to localStorage
+                const savedData = localStorage.getItem('userGameData') || '{}';
+                const userData = JSON.parse(savedData);
+                userData.balance = newBalance;
+                localStorage.setItem('userGameData', JSON.stringify(userData));
+            } catch (e) {
+                console.log('Could not update parent window balance:', e);
             }
         }
-
+        
         // User data with default values
-        let userData = loadUserData();
-
+        let userData = {
+            balance: getCurrentBalance(),
+            games: {
+                memory: { attempts: 10, wins: 0, earnings: 0 },
+                dice: { attempts: 10, wins: 0, earnings: 0 },
+                snake: { attempts: 10, score: 0, earnings: 0 },
+                trivia: { attempts: 10, correct: 0, earnings: 0 },
+                wheel: { attempts: 10, wins: 0, earnings: 0 }
+            },
+            lastSync: null,
+            pendingSync: false
+        };
+        
         // Check online status
         let isOnline = navigator.onLine;
         
@@ -663,6 +673,80 @@
         };
         
         // ========================
+        // DATA PERSISTENCE FUNCTIONS
+        // ========================
+        
+        // Load data from localStorage
+        function loadUserData() {
+            const savedData = localStorage.getItem('userGameData');
+            if (savedData) {
+                try {
+                    const parsedData = JSON.parse(savedData);
+                    // Merge with default data to ensure all properties exist
+                    userData = {
+                        ...userData,
+                        ...parsedData,
+                        games: {
+                            ...userData.games,
+                            ...(parsedData.games || {})
+                        }
+                    };
+                    
+                    // Ensure balance is synced with parent window
+                    userData.balance = getCurrentBalance();
+                } catch (e) {
+                    console.error('Error parsing saved data:', e);
+                }
+            }
+            updateUI();
+        }
+        
+        // Save data to localStorage
+        function saveUserData() {
+            localStorage.setItem('userGameData', JSON.stringify(userData));
+        }
+        
+        // Sync data with backend
+        async function syncWithBackend() {
+            if (!isOnline) {
+                elements.syncStatus.textContent = 'Offline - Changes saved locally';
+                elements.syncStatus.className = 'sync-status offline';
+                return;
+            }
+            
+            elements.syncStatus.textContent = 'Syncing with server...';
+            elements.syncStatus.className = 'sync-status';
+            
+            try {
+                // In a real app, this would sync with your backend
+                // For now, we'll just simulate a successful sync
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                userData.lastSync = new Date().toISOString();
+                saveUserData();
+                
+                elements.syncStatus.textContent = 'Synced just now';
+                elements.syncStatus.className = 'sync-status online';
+                
+                return true;
+            } catch (error) {
+                console.error('Sync error:', error);
+                elements.syncStatus.textContent = 'Sync failed - Working offline';
+                elements.syncStatus.className = 'sync-status offline';
+                return false;
+            }
+        }
+        
+        // Periodic sync (every 2 minutes)
+        function startSyncInterval() {
+            setInterval(() => {
+                if (isOnline) {
+                    syncWithBackend();
+                }
+            }, 120000); // 2 minutes
+        }
+        
+        // ========================
         // GAME MANAGEMENT FUNCTIONS
         // ========================
         
@@ -680,23 +764,23 @@
             elements.balance.textContent = userData.balance.toLocaleString();
         }
         
-        // Add game earnings to balance - UPDATED to sync with index.html
+        // Add game earnings to balance - UPDATED to sync with parent window
         function addGameEarnings(amount) {
-            // Update the balance
+            // Update local balance
             userData.balance += amount;
             
-            // Save to index.html's storage location
-            saveUserData(userData);
+            // Update the balance in parent window or localStorage
+            updateCurrentBalance(userData.balance);
+            
+            // Save to localStorage
+            saveUserData();
             
             // Update the UI
             updateBalance();
             
-            // Notify parent window if in iframe
-            if (window.parent !== window) {
-                window.parent.postMessage({
-                    type: 'updateBalance',
-                    amount: amount
-                }, '*');
+            // Try to sync with backend if online
+            if (isOnline) {
+                syncWithBackend();
             }
         }
         
@@ -714,6 +798,7 @@
                 case 'memory':
                     elements.memoryGame.classList.add('active');
                     elements.memoryGame.scrollIntoView({ behavior: 'smooth' });
+                    memoryGame.init();
                     break;
                 case 'dice':
                     elements.diceGame.classList.add('active');
@@ -726,6 +811,7 @@
                 case 'trivia':
                     elements.triviaGame.classList.add('active');
                     elements.triviaGame.scrollIntoView({ behavior: 'smooth' });
+                    triviaGame.init();
                     break;
                 case 'wheel':
                     elements.wheelGame.classList.add('active');
@@ -737,7 +823,7 @@
             }
         }
         
-        // Update UI with loaded data - UPDATED to ensure all elements are refreshed
+        // Update UI with loaded data
         function updateUI() {
             // Update main balance
             updateBalance();
@@ -769,10 +855,98 @@
         }
         
         // ========================
+        // COOLDOWN TIMER MANAGEMENT
+        // ========================
+
+        // Start free access timer when redirected from ads.html
+        function startFreeAccessTimer() {
+            const freeAccessEnd = Date.now() + 60 * 60 * 1000; // 60 minutes from now
+            localStorage.setItem('freeAccessEnd', freeAccessEnd);
+            updateFreeAccessUI();
+
+            // Redirect to dashboard after 60 minutes
+            setTimeout(() => {
+                window.location.href = 'index.html';
+                startCooldownTimer();
+            }, 60 * 60 * 1000);
+        }
+
+        // Start cooldown timer after free access ends
+        function startCooldownTimer() {
+            const cooldownEnd = Date.now() + 60 * 60 * 1000; // 60 minutes from now
+            localStorage.setItem('cooldownEnd', cooldownEnd);
+            updateCooldownUI();
+        }
+
+        // Update free access timer UI
+        function updateFreeAccessUI() {
+            const freeAccessEnd = parseInt(localStorage.getItem('freeAccessEnd'), 10);
+            const timerElement = document.getElementById('freeAccessTimer');
+
+            if (!freeAccessEnd || Date.now() >= freeAccessEnd) {
+                // Free access expired
+                localStorage.removeItem('freeAccessEnd');
+                if (timerElement) timerElement.textContent = '';
+                return;
+            }
+
+            // Calculate remaining time
+            const remainingTime = freeAccessEnd - Date.now();
+            const minutes = Math.floor(remainingTime / 60000);
+            const seconds = Math.floor((remainingTime % 60000) / 1000);
+
+            // Update timer display
+            if (timerElement) {
+                timerElement.textContent = `${minutes}m ${seconds}s`;
+            }
+
+            // Update every second
+            setTimeout(updateFreeAccessUI, 1000);
+        }
+
+        // Update cooldown timer UI
+        function updateCooldownUI() {
+            const cooldownEnd = parseInt(localStorage.getItem('cooldownEnd'), 10);
+            const timerElement = document.getElementById('cooldownTimer');
+
+            if (!cooldownEnd || Date.now() >= cooldownEnd) {
+                // Cooldown expired
+                localStorage.removeItem('cooldownEnd');
+                if (timerElement) timerElement.textContent = '';
+                return;
+            }
+
+            // Calculate remaining time
+            const remainingTime = cooldownEnd - Date.now();
+            const minutes = Math.floor(remainingTime / 60000);
+            const seconds = Math.floor((remainingTime % 60000) / 1000);
+
+            // Update timer display
+            if (timerElement) {
+                timerElement.textContent = `${minutes}m ${seconds}s`;
+            }
+
+            // Update every second
+            setTimeout(updateCooldownUI, 1000);
+        }
+
+        // Initialize timers on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const freeAccessEnd = localStorage.getItem('freeAccessEnd');
+            const cooldownEnd = localStorage.getItem('cooldownEnd');
+
+            if (freeAccessEnd && Date.now() < parseInt(freeAccessEnd, 10)) {
+                updateFreeAccessUI();
+            } else if (cooldownEnd && Date.now() < parseInt(cooldownEnd, 10)) {
+                updateCooldownUI();
+            }
+        });
+
+        // ========================
         // GAME IMPLEMENTATIONS
         // ========================
         
-        // Memory Game - UPDATED to ensure proper state management
+        // Memory Game
         const memoryGame = {
             fruits: ['🍎', '🍌', '🍒', '🍓', '🍊', '🍋', '🍐', '🍇'],
             values: [],
@@ -844,7 +1018,7 @@
                 const [card1, card2] = this.flippedCards;
                 
                 userData.games.memory.attempts--;
-                saveUserData(userData);
+                saveUserData();
                 updateUI();
                 
                 if (card1.dataset.value === card2.dataset.value) {
@@ -883,7 +1057,7 @@
             }
         };
 
-        // Dice Game - UPDATED to ensure proper state management
+        // Dice Game
         const diceGame = {
             lastRoll: null,
             
@@ -898,7 +1072,7 @@
                 }
                 
                 userData.games.dice.attempts--;
-                saveUserData(userData);
+                saveUserData();
                 updateUI();
                 document.getElementById('clickSound').play();
                 
@@ -933,7 +1107,7 @@
             }
         };
 
-        // Snake Game - UPDATED to ensure proper state management
+        // Snake Game
         const snakeGame = {
             canvas: null,
             ctx: null,
@@ -1157,7 +1331,7 @@
                 clearInterval(this.gameInterval);
                 this.gameStarted = false;
                 userData.games.snake.attempts--;
-                saveUserData(userData);
+                saveUserData();
                 updateUI();
                 document.getElementById('loseSound').play();
                 
@@ -1172,7 +1346,7 @@
             }
         };
 
-        // Trivia Game - UPDATED to ensure proper state management
+        // Trivia Game
         const triviaGame = {
             questions: [
                 // Nigeria General Knowledge (20)
@@ -1327,7 +1501,7 @@
                 }
                 
                 userData.games.trivia.attempts--;
-                saveUserData(userData);
+                saveUserData();
                 updateUI();
                 document.getElementById('clickSound').play();
                 
@@ -1362,7 +1536,7 @@
             }
         };
 
-        // Wheel Spin Game - UPDATED to ensure proper state management
+        // Wheel Spin Game
         const wheelGame = {
             spinning: false,
             wheel: null,
@@ -1408,7 +1582,7 @@
                 if (this.spinning) return;
                 
                 userData.games.wheel.attempts--;
-                saveUserData(userData);
+                saveUserData();
                 updateUI();
                 document.getElementById('clickSound').play();
                 
@@ -1499,6 +1673,9 @@
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
+            // Load saved data
+            loadUserData();
+            
             // Initialize games
             initGames();
             
@@ -1507,6 +1684,7 @@
                 isOnline = true;
                 elements.syncStatus.textContent = 'Online - Syncing...';
                 elements.syncStatus.className = 'sync-status';
+                syncWithBackend();
             });
             
             window.addEventListener('offline', () => {
@@ -1517,12 +1695,14 @@
             
             // Initial sync check
             if (isOnline) {
-                elements.syncStatus.textContent = 'Online';
-                elements.syncStatus.className = 'sync-status online';
+                syncWithBackend();
             } else {
                 elements.syncStatus.textContent = 'Offline - Changes saved locally';
                 elements.syncStatus.className = 'sync-status offline';
             }
+            
+            // Start periodic sync
+            startSyncInterval();
             
             // Game card click handlers
             elements.gameCards.forEach(card => {
@@ -1537,9 +1717,6 @@
             elements.backToGames3.addEventListener('click', () => showGame(''));
             elements.backToGames4.addEventListener('click', () => showGame(''));
             elements.backToGames5.addEventListener('click', () => showGame(''));
-            
-            // Update UI with loaded data
-            updateUI();
         });
     </script>
 </body>
