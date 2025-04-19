@@ -408,42 +408,6 @@
             color: white;
         }
         
-        /* Cooldown Timer */
-        .cooldown-timer {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: var(--danger);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-weight: bold;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            z-index: 100;
-            display: none;
-        }
-        
-        .cooldown-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 99;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            display: none;
-        }
-        
-        .cooldown-overlay h2 {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-        
         /* Responsive Design */
         @media (max-width: 600px) {
             .cards-grid {
@@ -471,16 +435,6 @@
         </div>
         
         <div class="sync-status" id="syncStatus">Syncing...</div>
-        
-        <div class="cooldown-timer" id="cooldownTimer">
-            <span id="cooldownTime">60:00</span> remaining
-        </div>
-        
-        <div class="cooldown-overlay" id="cooldownOverlay">
-            <h2>Game Attempts Exhausted</h2>
-            <p>Please wait <span id="overlayCooldownTime">60:00</span> before playing again</p>
-            <p>You will be redirected to dashboard shortly</p>
-        </div>
         
         <div class="game-cards">
             <div class="game-card" data-game="memory">
@@ -693,8 +647,7 @@
                 wheel: { attempts: 10, wins: 0, earnings: 0 }
             },
             lastSync: null,
-            pendingSync: false,
-            cooldownEnd: null // Added for cooldown timer
+            pendingSync: false
         };
         
         // Check online status
@@ -716,128 +669,8 @@
             backToGames3: document.getElementById('backToGames3'),
             backToGames4: document.getElementById('backToGames4'),
             backToGames5: document.getElementById('backToGames5'),
-            syncStatus: document.getElementById('syncStatus'),
-            cooldownTimer: document.getElementById('cooldownTimer'),
-            cooldownTime: document.getElementById('cooldownTime'),
-            cooldownOverlay: document.getElementById('cooldownOverlay'),
-            overlayCooldownTime: document.getElementById('overlayCooldownTime')
+            syncStatus: document.getElementById('syncStatus')
         };
-        
-        // Cooldown timer variables
-        let cooldownInterval;
-        let redirectTimer;
-        
-        // ========================
-        // COOLDOWN TIMER FUNCTIONS
-        // ========================
-        
-        // Start the cooldown timer
-        function startCooldownTimer() {
-            // Set cooldown end time to 60 minutes from now
-            const cooldownDuration = 60 * 60 * 1000; // 60 minutes in milliseconds
-            userData.cooldownEnd = Date.now() + cooldownDuration;
-            saveUserData();
-            
-            // Show cooldown timer
-            elements.cooldownTimer.style.display = 'block';
-            elements.cooldownOverlay.style.display = 'flex';
-            
-            // Update timer immediately
-            updateCooldownDisplay();
-            
-            // Start interval to update timer every second
-            cooldownInterval = setInterval(updateCooldownDisplay, 1000);
-            
-            // Set timer to redirect to dashboard when cooldown is over
-            redirectTimer = setTimeout(() => {
-                clearInterval(cooldownInterval);
-                resetAttempts();
-                redirectToDashboard();
-            }, cooldownDuration);
-        }
-        
-        // Update the cooldown timer display
-        function updateCooldownDisplay() {
-            if (!userData.cooldownEnd) return;
-            
-            const now = Date.now();
-            const remaining = Math.max(0, userData.cooldownEnd - now);
-            
-            if (remaining <= 0) {
-                clearInterval(cooldownInterval);
-                resetAttempts();
-                redirectToDashboard();
-                return;
-            }
-            
-            // Convert remaining time to minutes:seconds
-            const minutes = Math.floor(remaining / (60 * 1000));
-            const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
-            
-            // Format as MM:SS
-            const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            // Update display
-            elements.cooldownTime.textContent = formattedTime;
-            elements.overlayCooldownTime.textContent = formattedTime;
-        }
-        
-        // Check if cooldown is active on page load
-        function checkCooldownOnLoad() {
-            if (userData.cooldownEnd) {
-                const now = Date.now();
-                const remaining = userData.cooldownEnd - now;
-                
-                if (remaining > 0) {
-                    // Cooldown is still active
-                    startCooldownTimer();
-                } else {
-                    // Cooldown has expired
-                    resetAttempts();
-                }
-            }
-        }
-        
-        // Reset all game attempts
-        function resetAttempts() {
-            userData.games.memory.attempts = 10;
-            userData.games.dice.attempts = 10;
-            userData.games.snake.attempts = 10;
-            userData.games.trivia.attempts = 10;
-            userData.games.wheel.attempts = 10;
-            userData.cooldownEnd = null;
-            saveUserData();
-            updateUI();
-            
-            // Hide cooldown elements
-            elements.cooldownTimer.style.display = 'none';
-            elements.cooldownOverlay.style.display = 'none';
-            
-            // Clear timers
-            clearInterval(cooldownInterval);
-            clearTimeout(redirectTimer);
-        }
-        
-        // Redirect to dashboard
-        function redirectToDashboard() {
-            // In a real implementation, this would redirect to the dashboard
-            // For this example, we'll just show a notification
-            showNotification('Cooldown period over! Redirecting to dashboard...');
-            console.log('Redirecting to dashboard/index.html');
-            // window.location.href = 'dashboard/index.html';
-        }
-        
-        // Check if all attempts are exhausted
-        function checkAllAttemptsExhausted() {
-            const games = userData.games;
-            return (
-                games.memory.attempts <= 0 &&
-                games.dice.attempts <= 0 &&
-                games.snake.attempts <= 0 &&
-                games.trivia.attempts <= 0 &&
-                games.wheel.attempts <= 0
-            );
-        }
         
         // ========================
         // DATA PERSISTENCE FUNCTIONS
@@ -1019,13 +852,96 @@
             document.getElementById('wheelAttempts').textContent = userData.games.wheel.attempts;
             document.getElementById('wheelWins').textContent = userData.games.wheel.wins;
             document.getElementById('wheelEarnings').textContent = userData.games.wheel.earnings;
-            
-            // Check if all attempts are exhausted
-            if (checkAllAttemptsExhausted() && !userData.cooldownEnd) {
-                startCooldownTimer();
-            }
         }
         
+        // ========================
+        // COOLDOWN TIMER MANAGEMENT
+        // ========================
+
+        // Start free access timer when redirected from ads.html
+        function startFreeAccessTimer() {
+            const freeAccessEnd = Date.now() + 60 * 60 * 1000; // 60 minutes from now
+            localStorage.setItem('freeAccessEnd', freeAccessEnd);
+            updateFreeAccessUI();
+
+            // Redirect to dashboard after 60 minutes
+            setTimeout(() => {
+                window.location.href = 'index.html';
+                startCooldownTimer();
+            }, 60 * 60 * 1000);
+        }
+
+        // Start cooldown timer after free access ends
+        function startCooldownTimer() {
+            const cooldownEnd = Date.now() + 60 * 60 * 1000; // 60 minutes from now
+            localStorage.setItem('cooldownEnd', cooldownEnd);
+            updateCooldownUI();
+        }
+
+        // Update free access timer UI
+        function updateFreeAccessUI() {
+            const freeAccessEnd = parseInt(localStorage.getItem('freeAccessEnd'), 10);
+            const timerElement = document.getElementById('freeAccessTimer');
+
+            if (!freeAccessEnd || Date.now() >= freeAccessEnd) {
+                // Free access expired
+                localStorage.removeItem('freeAccessEnd');
+                if (timerElement) timerElement.textContent = '';
+                return;
+            }
+
+            // Calculate remaining time
+            const remainingTime = freeAccessEnd - Date.now();
+            const minutes = Math.floor(remainingTime / 60000);
+            const seconds = Math.floor((remainingTime % 60000) / 1000);
+
+            // Update timer display
+            if (timerElement) {
+                timerElement.textContent = `${minutes}m ${seconds}s`;
+            }
+
+            // Update every second
+            setTimeout(updateFreeAccessUI, 1000);
+        }
+
+        // Update cooldown timer UI
+        function updateCooldownUI() {
+            const cooldownEnd = parseInt(localStorage.getItem('cooldownEnd'), 10);
+            const timerElement = document.getElementById('cooldownTimer');
+
+            if (!cooldownEnd || Date.now() >= cooldownEnd) {
+                // Cooldown expired
+                localStorage.removeItem('cooldownEnd');
+                if (timerElement) timerElement.textContent = '';
+                return;
+            }
+
+            // Calculate remaining time
+            const remainingTime = cooldownEnd - Date.now();
+            const minutes = Math.floor(remainingTime / 60000);
+            const seconds = Math.floor((remainingTime % 60000) / 1000);
+
+            // Update timer display
+            if (timerElement) {
+                timerElement.textContent = `${minutes}m ${seconds}s`;
+            }
+
+            // Update every second
+            setTimeout(updateCooldownUI, 1000);
+        }
+
+        // Initialize timers on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const freeAccessEnd = localStorage.getItem('freeAccessEnd');
+            const cooldownEnd = localStorage.getItem('cooldownEnd');
+
+            if (freeAccessEnd && Date.now() < parseInt(freeAccessEnd, 10)) {
+                updateFreeAccessUI();
+            } else if (cooldownEnd && Date.now() < parseInt(cooldownEnd, 10)) {
+                updateCooldownUI();
+            }
+        });
+
         // ========================
         // GAME IMPLEMENTATIONS
         // ========================
@@ -1137,9 +1053,6 @@
                 
                 if (userData.games.memory.attempts <= 0) {
                     showNotification('Memory game attempts exhausted.');
-                    if (checkAllAttemptsExhausted()) {
-                        startCooldownTimer();
-                    }
                 }
             }
         };
@@ -1188,9 +1101,6 @@
                         
                         if (userData.games.dice.attempts <= 0) {
                             showNotification('Dice game attempts exhausted.');
-                            if (checkAllAttemptsExhausted()) {
-                                startCooldownTimer();
-                            }
                         }
                     }
                 }, 100);
@@ -1430,9 +1340,6 @@
                 
                 if (userData.games.snake.attempts <= 0) {
                     showNotification('Snake game attempts exhausted.');
-                    if (checkAllAttemptsExhausted()) {
-                        startCooldownTimer();
-                    }
                 } else {
                     showNotification('Game Over! Tap to play again');
                 }
@@ -1624,9 +1531,6 @@
                     
                     if (userData.games.trivia.attempts <= 0) {
                         showNotification('Trivia attempts exhausted.');
-                        if (checkAllAttemptsExhausted()) {
-                            startCooldownTimer();
-                        }
                     }
                 }, 1500);
             }
@@ -1725,9 +1629,6 @@
                     
                     if (userData.games.wheel.attempts <= 0) {
                         showNotification('Wheel spin attempts exhausted.');
-                        if (checkAllAttemptsExhausted()) {
-                            startCooldownTimer();
-                        }
                     }
                 }, 4000);
             },
@@ -1774,9 +1675,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Load saved data
             loadUserData();
-            
-            // Check for active cooldown
-            checkCooldownOnLoad();
             
             // Initialize games
             initGames();
