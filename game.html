@@ -591,18 +591,57 @@
     <audio id="coinLandSound" src="https://assets.mixkit.co/sfx/preview/mixkit-metal-hit-impact-2065.mp3" preload="auto"></audio>
     
     <script>
-        // API Configuration
-        const API_BASE_URL = 'https://your-api-endpoint.com/api';
-        const USER_ID = localStorage.getItem('userId') || `user_${Math.random().toString(36).substr(2, 9)}`;
+        // ========================
+        // DATA MANAGEMENT
+        // ========================
         
-        // Initialize user ID if not set
-        if (!localStorage.getItem('userId')) {
-            localStorage.setItem('userId', USER_ID);
+        // Load balance from parent window if in iframe, or localStorage otherwise
+        function getCurrentBalance() {
+            try {
+                // Try to get balance from parent window (if we're in an iframe)
+                if (window.parent && window.parent.userData) {
+                    return window.parent.userData.balance || 5000;
+                }
+                
+                // Try to get balance from localStorage
+                const savedData = localStorage.getItem('userGameData');
+                if (savedData) {
+                    const parsedData = JSON.parse(savedData);
+                    return parsedData.balance || 5000;
+                }
+            } catch (e) {
+                console.log('Could not access parent window data:', e);
+            }
+            
+            // Default balance
+            return 5000;
+        }
+        
+        // Update balance in parent window if in iframe, or localStorage otherwise
+        function updateCurrentBalance(newBalance) {
+            try {
+                // Try to update balance in parent window (if we're in an iframe)
+                if (window.parent && window.parent.updateGameEarnings) {
+                    const earnings = newBalance - getCurrentBalance();
+                    if (earnings > 0) {
+                        window.parent.updateGameEarnings(earnings);
+                    }
+                    return;
+                }
+                
+                // Fallback to localStorage
+                const savedData = localStorage.getItem('userGameData') || '{}';
+                const userData = JSON.parse(savedData);
+                userData.balance = newBalance;
+                localStorage.setItem('userGameData', JSON.stringify(userData));
+            } catch (e) {
+                console.log('Could not update parent window balance:', e);
+            }
         }
         
         // User data with default values
         let userData = {
-            balance: 5000, // Starting balance
+            balance: getCurrentBalance(),
             games: {
                 memory: { attempts: 10, wins: 0, earnings: 0 },
                 dice: { attempts: 10, wins: 0, earnings: 0 },
@@ -655,6 +694,9 @@
                             ...(parsedData.games || {})
                         }
                     };
+                    
+                    // Ensure balance is synced with parent window
+                    userData.balance = getCurrentBalance();
                 } catch (e) {
                     console.error('Error parsing saved data:', e);
                 }
@@ -679,41 +721,15 @@
             elements.syncStatus.className = 'sync-status';
             
             try {
-                const response = await fetch(`${API_BASE_URL}/sync`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
-                    },
-                    body: JSON.stringify({
-                        userId: USER_ID,
-                        data: userData
-                    })
-                });
+                // In a real app, this would sync with your backend
+                // For now, we'll just simulate a successful sync
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 
-                if (!response.ok) throw new Error('Sync failed');
-                
-                const result = await response.json();
                 userData.lastSync = new Date().toISOString();
                 saveUserData();
                 
                 elements.syncStatus.textContent = 'Synced just now';
                 elements.syncStatus.className = 'sync-status online';
-                
-                // Check if server has newer data
-                if (result.data && new Date(result.data.lastSync) > new Date(userData.lastSync || 0)) {
-                    userData = {
-                        ...userData,
-                        ...result.data,
-                        games: {
-                            ...userData.games,
-                            ...(result.data.games || {})
-                        }
-                    };
-                    saveUserData();
-                    updateUI();
-                    showNotification('Synced latest data from server');
-                }
                 
                 return true;
             } catch (error) {
@@ -751,13 +767,21 @@
             elements.balance.textContent = userData.balance.toLocaleString();
         }
         
-        // Add game earnings to balance
+        // Add game earnings to balance - UPDATED to sync with parent window
         function addGameEarnings(amount) {
+            // Update local balance
             userData.balance += amount;
-            updateBalance();
+            
+            // Update the balance in parent window or localStorage
+            updateCurrentBalance(userData.balance);
+            
+            // Save to localStorage
             saveUserData();
             
-            // Try to sync with backend
+            // Update the UI
+            updateBalance();
+            
+            // Try to sync with backend if online
             if (isOnline) {
                 syncWithBackend();
             }
@@ -777,6 +801,7 @@
                 case 'memory':
                     elements.memoryGame.classList.add('active');
                     elements.memoryGame.scrollIntoView({ behavior: 'smooth' });
+                    memoryGame.init();
                     break;
                 case 'dice':
                     elements.diceGame.classList.add('active');
@@ -789,6 +814,7 @@
                 case 'trivia':
                     elements.triviaGame.classList.add('active');
                     elements.triviaGame.scrollIntoView({ behavior: 'smooth' });
+                    triviaGame.init();
                     break;
                 case 'wheel':
                     elements.wheelGame.classList.add('active');
@@ -802,6 +828,7 @@
         
         // Update UI with loaded data
         function updateUI() {
+            // Update main balance
             updateBalance();
             
             // Update memory game stats
@@ -906,8 +933,8 @@
                 const [card1, card2] = this.flippedCards;
                 
                 userData.games.memory.attempts--;
-                updateUI();
                 saveUserData();
+                updateUI();
                 
                 if (card1.dataset.value === card2.dataset.value) {
                     card1.classList.add('matched');
@@ -916,7 +943,6 @@
                     
                     userData.games.memory.wins++;
                     userData.games.memory.earnings += 800;
-                    updateUI();
                     addGameEarnings(800);
                     document.getElementById('winSound').play();
                     
@@ -961,8 +987,8 @@
                 }
                 
                 userData.games.dice.attempts--;
-                updateUI();
                 saveUserData();
+                updateUI();
                 document.getElementById('clickSound').play();
                 
                 const roll = Math.floor(Math.random() * 6) + 1;
@@ -981,7 +1007,6 @@
                             showNotification('🎲 You won ₦800!');
                             userData.games.dice.wins++;
                             userData.games.dice.earnings += 800;
-                            updateUI();
                             addGameEarnings(800);
                             document.getElementById('winSound').play();
                         } else {
@@ -1131,9 +1156,8 @@
                 // Check if snake ate food
                 if (head.x === this.food.x && head.y === this.food.y) {
                     userData.games.snake.score++;
-                    updateUI();
-                    addGameEarnings(800);
                     userData.games.snake.earnings += 800;
+                    addGameEarnings(800);
                     document.getElementById('winSound').play();
                     this.placeFood();
                     
@@ -1222,8 +1246,8 @@
                 clearInterval(this.gameInterval);
                 this.gameStarted = false;
                 userData.games.snake.attempts--;
-                updateUI();
                 saveUserData();
+                updateUI();
                 document.getElementById('loseSound').play();
                 
                 document.getElementById('startSnakeBtn').style.display = 'block';
@@ -1392,8 +1416,8 @@
                 }
                 
                 userData.games.trivia.attempts--;
-                updateUI();
                 saveUserData();
+                updateUI();
                 document.getElementById('clickSound').play();
                 
                 const question = this.questions[this.currentQuestion];
@@ -1403,7 +1427,6 @@
                     options[selectedOption-1].classList.add('correct');
                     userData.games.trivia.correct++;
                     userData.games.trivia.earnings += 800;
-                    updateUI();
                     addGameEarnings(800);
                     showNotification('✅ Correct! You earned ₦800');
                     document.getElementById('winSound').play();
@@ -1474,8 +1497,8 @@
                 if (this.spinning) return;
                 
                 userData.games.wheel.attempts--;
-                updateUI();
                 saveUserData();
+                updateUI();
                 document.getElementById('clickSound').play();
                 
                 this.spinning = true;
@@ -1511,7 +1534,6 @@
                     if (prize > 0) {
                         userData.games.wheel.wins++;
                         userData.games.wheel.earnings += prize;
-                        updateUI();
                         addGameEarnings(prize);
                         document.getElementById('winSound').play();
                         showNotification(`🎡 You won ₦${prize}!`);
