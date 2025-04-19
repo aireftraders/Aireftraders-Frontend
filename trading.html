@@ -223,144 +223,7 @@
             opacity: 1;
         }
         
-        .bank-select-container {
-            position: relative;
-            margin-bottom: 15px;
-        }
-        
-        .bank-select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            background-size: 1em;
-        }
-        
-        .bank-search {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            display: none;
-        }
-        
-        .bank-search.active {
-            display: block;
-        }
-        
-        .other-bank-input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-top: 10px;
-            display: none;
-        }
-        
-        .other-bank-input.active {
-            display: block;
-        }
-        
-        /* Enhanced Trading Guide Styles */
-        .trading-guide {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .guide-section {
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .guide-section:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-        
-        .guide-title {
-            color: var(--primary);
-            margin-top: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .guide-icon {
-            font-size: 24px;
-        }
-        
-        .guide-item {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 10px;
-            gap: 10px;
-        }
-        
-        .guide-bullet {
-            font-size: 20px;
-            min-width: 24px;
-            text-align: center;
-        }
-        
-        .profit-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .profit-table th, .profit-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .profit-table th {
-            background: #f5f5f5;
-            font-weight: bold;
-            color: var(--dark);
-        }
-        
-        .profit-table tr:last-child td {
-            border-bottom: none;
-        }
-        
-        .time-emoji {
-            font-size: 20px;
-            margin-right: 8px;
-        }
-        
-        .profit-emoji {
-            font-size: 20px;
-            margin-right: 8px;
-        }
-        
-        @media (max-width: 600px) {
-            .action-bar {
-                flex-direction: column;
-            }
-            
-            .profit-table {
-                font-size: 14px;
-            }
-            
-            .profit-table th, .profit-table td {
-                padding: 8px 10px;
-            }
-        }
-
+        /* Navigation bar styles */
         .navigation-bar {
             background-color: var(--primary);
             color: white;
@@ -401,6 +264,20 @@
         .navigation-bar a.active {
             background-color: var(--secondary);
         }
+
+        /* Search bar styles */
+        .search-bar {
+            display: flex;
+            margin: 15px 0;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -413,20 +290,24 @@
             </div>
         </div>
         
+        <div class="search-bar">
+            <input type="text" placeholder="Type here to search">
+        </div>
+        
         <div class="status-card accent">
             <h3>🚀 Trading Status</h3>
-            <p id="tradingStatus">AI Bot: <b>Inactive</b></p>
+            <p id="tradingStatus">AI Bot: <b>Inactive</b> (Complete 6 referrals and 20 ads)</p>
             <progress id="referralProgress" value="0" max="6"></progress>
-            <small><span id="completedReferrals">0</span>/6 Referrals • <span id="adsWatched">0</span>/20 Ads</small>
+            <small><span id="completedReferrals">0</span>/6 Referrals • <span id="adsWatched">20</span>/20 Ads</small>
         </div>
         
         <div class="status-card">
             <h3>📊 Trading Dashboard</h3>
-            <p id="tradingCapital">Trading Capital: ₦0</p>
+            <p id="tradingCapital">Trading Capital: ₦800</p>
             <p id="dailyProfit">Daily Profit: ₦0</p>
             <p id="totalProfit">Total Profit: ₦0</p>
             <p id="withdrawableProfit">Withdrawable: ₦0</p>
-            <button id="toggleTrading" class="primary" style="background-color: var(--danger); color: white;" disabled>Activate Trading</button>
+            <button id="toggleTrading" class="primary" style="background-color: var(--danger); color: white;">Activate Trading</button>
         </div>
         
         <div class="status-card">
@@ -445,77 +326,6 @@
                 <div class="chart-bar system" style="width: 5%;">System (5%)</div>
             </div>
             <p>70% of all profits go directly to you</p>
-        </div>
-        
-        <div class="status-card">
-            <h3>💰 Payment Circle</h3>
-            <p>Batch: <span id="paidUsers">0</span>/1,000 users</p>
-            <progress id="paymentCircleProgress" value="0" max="1000"></progress>
-            <small>Next payment batch at 1,000 users</small>
-        </div>
-        
-        <!-- Enhanced Trading Guide -->
-        <div class="trading-guide">
-            <div class="guide-section">
-                <h3 class="guide-title"><span class="guide-icon">📚</span> AI Trading Guide</h3>
-                <p>Learn how to maximize your earnings with our AI trading system:</p>
-            </div>
-            
-            <div class="guide-section">
-                <h3 class="guide-title"><span class="guide-icon">🔘</span> Trading Button Behavior</h3>
-                <div class="guide-item">
-                    <div class="guide-bullet">🔴</div>
-                    <div><b>Red Button</b> - "Activate Trading" means trading is currently OFF</div>
-                </div>
-                <div class="guide-item">
-                    <div class="guide-bullet">🟢</div>
-                    <div><b>Green Button</b> - "Trading Activated" means trading is currently ON</div>
-                </div>
-            </div>
-            
-            <div class="guide-section">
-                <h3 class="guide-title"><span class="guide-icon">⏳</span> Daily Reset</h3>
-                <div class="guide-item">
-                    <div class="guide-bullet">🔄</div>
-                    <div>Trading automatically turns OFF at 12:00 AM (Nigerian Time)</div>
-                </div>
-                <div class="guide-item">
-                    <div class="guide-bullet">👀</div>
-                    <div>To turn it back ON, you must watch 20 ads daily</div>
-                </div>
-            </div>
-            
-            <div class="guide-section">
-                <h3 class="guide-title"><span class="guide-icon">💵</span> Profit Timing Strategy</h3>
-                <p>Your profit percentage depends on when you complete your 20 daily ads:</p>
-                
-                <table class="profit-table">
-                    <thead>
-                        <tr>
-                            <th>Time Range</th>
-                            <th>Profit %</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><span class="time-emoji">🌅</span> 12:01 AM – 7:00 AM</td>
-                            <td><span class="profit-emoji">🔥</span> 35% – 50%</td>
-                        </tr>
-                        <tr>
-                            <td><span class="time-emoji">🌞</span> 8:00 AM – 4:00 PM</td>
-                            <td><span class="profit-emoji">⚡</span> 21% – 34%</td>
-                        </tr>
-                        <tr>
-                            <td><span class="time-emoji">🌆</span> 5:00 PM – 11:30 PM</td>
-                            <td><span class="profit-emoji">💸</span> 20% Flat</td>
-                        </tr>
-                        <tr>
-                            <td><span class="time-emoji">🚫</span> No Ads Watched</td>
-                            <td><span class="profit-emoji">❌</span> 0% Profit</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
         </div>
         
         <div class="action-bar">
@@ -603,139 +413,44 @@
     </nav>
     
     <script>
-        // ===== DATA STORAGE AND SYNC MANAGER =====
-        class DataManager {
-            static async initialize() {
-                // Get user ID from Telegram or use a default
-                const tg = window.Telegram?.WebApp;
-                this.userId = tg?.initDataUnsafe?.user?.id || 'default_user';
-                
-                // Load data from backend with localStorage fallback
-                this.userData = await this.getUserData(this.userId);
-                this.adsData = await this.getAdsStatus(this.userId);
-                
-                return { userData: this.userData, adsData: this.adsData };
+        // ===== DATA STORAGE =====
+        // Load user data from localStorage
+        function loadUserData() {
+            const data = localStorage.getItem('userData');
+            if (data) {
+                return JSON.parse(data);
             }
             
-            static async getUserData(userId) {
-                try {
-                    // First try to get from localStorage
-                    const data = localStorage.getItem(`userData_${userId}`) || 
-                                 localStorage.getItem('userData');
-                    
-                    if (data) {
-                        return JSON.parse(data);
-                    }
-                    
-                    // Fallback to default data structure
-                    return {
-                        balance: 5000,
-                        referrals: 0,
-                        referralEarnings: 0,
-                        adsWatched: 0,
-                        tradingActive: false,
-                        verified: false,
-                        tradingCapital: 5000,
-                        dailyProfit: 0,
-                        totalProfit: 0,
-                        withdrawableProfit: 0,
-                        bankDetails: null,
-                        paymentCircle: { current: 0, total: 1000 },
-                        lastTradingUpdate: null,
-                        lastAdWatchTime: null
-                    };
-                } catch (error) {
-                    console.error('Error loading user data:', error);
-                    return {
-                        balance: 5000,
-                        referrals: 0,
-                        referralEarnings: 0,
-                        adsWatched: 0,
-                        tradingActive: false,
-                        verified: false,
-                        tradingCapital: 5000,
-                        dailyProfit: 0,
-                        totalProfit: 0,
-                        withdrawableProfit: 0,
-                        bankDetails: null,
-                        paymentCircle: { current: 0, total: 1000 },
-                        lastTradingUpdate: null,
-                        lastAdWatchTime: null
-                    };
-                }
-            }
-            
-            static async getAdsStatus(userId) {
-                try {
-                    // First try to get from localStorage
-                    const adsData = localStorage.getItem(`adsData_${userId}`) || 
-                                     localStorage.getItem('adsData');
-                    
-                    if (adsData) {
-                        return JSON.parse(adsData);
-                    }
-                    
-                    // Fallback to default data structure
-                    return {
-                        adsWatched: 0,
-                        lastAdWatchTime: null,
-                        adsRequired: 20
-                    };
-                } catch (error) {
-                    console.error('Error loading ads data:', error);
-                    return {
-                        adsWatched: 0,
-                        lastAdWatchTime: null,
-                        adsRequired: 20
-                    };
-                }
-            }
-            
-            static async saveData(userId, data) {
-                try {
-                    // Save to localStorage
-                    localStorage.setItem(`userData_${userId}`, JSON.stringify(data));
-                    localStorage.setItem('userData', JSON.stringify(data));
-                    return true;
-                } catch (error) {
-                    console.error('Error saving user data:', error);
-                    return false;
-                }
-            }
-            
-            static async saveAdsData(userId, data) {
-                try {
-                    // Save to localStorage
-                    localStorage.setItem(`adsData_${userId}`, JSON.stringify(data));
-                    localStorage.setItem('adsData', JSON.stringify(data));
-                    return true;
-                } catch (error) {
-                    console.error('Error saving ads data:', error);
-                    return false;
-                }
-            }
+            // Default data structure if none exists
+            return {
+                balance: 800,        // Default trading capital
+                referrals: 0,         // Default referrals
+                adsWatched: 20,       // Default ads watched (set to 20 as per your request)
+                referralEarnings: 0,  // Earnings from referrals
+                tradingActive: false,
+                verified: false,
+                tradingCapital: 800,  // Initial trading capital
+                dailyProfit: 0,
+                totalProfit: 0,
+                withdrawableProfit: 0,
+                bankDetails: null,
+                paymentCircle: {
+                    current: 0,
+                    total: 1000
+                },
+                lastTradingUpdate: null,
+                lastAdWatchTime: null
+            };
+        }
+
+        // Save user data to localStorage
+        function saveUserData(data) {
+            localStorage.setItem('userData', JSON.stringify(data));
         }
 
         // ===== CORE FUNCTIONALITY =====
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.expand();
-        }
-        
-        // User data will be loaded from DataManager
-        let userData = {};
-        let adsData = {};
-        
-        // Save user data using DataManager
-        async function saveUserData() {
-            await DataManager.saveData(DataManager.userId, userData);
-        }
-        
-        // Save ads data using DataManager
-        async function saveAdsData() {
-            await DataManager.saveAdsData(DataManager.userId, adsData);
-        }
-        
+        let userData = loadUserData();
+
         // DOM Elements
         const elements = {
             balance: document.getElementById('balance'),
@@ -788,7 +503,7 @@
             
             // Update referral and ads status
             elements.completedReferrals.textContent = userData.referrals;
-            elements.adsWatched.textContent = adsData.adsWatched || 0;
+            elements.adsWatched.textContent = userData.adsWatched;
             elements.referralProgress.value = userData.referrals;
             
             // Update verification status
@@ -798,7 +513,7 @@
             elements.paymentCircleProgress.value = userData.paymentCircle.current;
             
             // Trading status
-            if (userData.referrals >= 6 && (adsData.adsWatched || 0) >= 20) {
+            if (userData.referrals >= 6 && userData.adsWatched >= 20) {
                 userData.tradingActive = true;
                 elements.tradingStatus.innerHTML = 'AI Bot: <b>Active</b> (24h Profit: ₦' + userData.dailyProfit.toLocaleString() + ')';
                 elements.toggleTrading.textContent = 'Deactivate Trading';
@@ -808,56 +523,16 @@
                 userData.tradingActive = false;
                 elements.tradingStatus.innerHTML = 'AI Bot: <b>Inactive</b> (Complete 6 referrals and 20 ads)';
                 elements.toggleTrading.textContent = 'Activate Trading';
-                elements.toggleTrading.disabled = userData.referrals < 6 || (adsData.adsWatched || 0) < 20;
+                elements.toggleTrading.disabled = userData.referrals < 6 || userData.adsWatched < 20;
                 elements.toggleTrading.style.backgroundColor = 'var(--danger)';
-            }
-            
-            // Check for daily reset
-            checkDailyReset();
-        }
-
-        // Check if we need to reset trading for a new day
-        function checkDailyReset() {
-            const today = new Date().toLocaleDateString();
-            if (userData.lastTradingUpdate !== today) {
-                // New day - reset trading and ads
-                userData.tradingActive = false;
-                adsData.adsWatched = 0;
-                userData.dailyProfit = 0;
-                userData.lastTradingUpdate = today;
-                saveUserData();
-                saveAdsData();
-                updateUI();
-                showNotification('New day! Watch 20 ads to activate trading.');
-            }
-        }
-
-        // Get current profit percentage based on last ad watch time
-        function getCurrentProfitPercentage() {
-            if (!adsData.lastAdWatchTime || (adsData.adsWatched || 0) < 20) {
-                return 0; // No ads watched or not enough ads
-            }
-            
-            const watchTime = new Date(adsData.lastAdWatchTime);
-            const hours = watchTime.getHours();
-            
-            if (hours >= 0 && hours < 7) {
-                // Early morning bonus (35-50%)
-                return Math.random() * 0.15 + 0.35;
-            } else if (hours >= 7 && hours < 16) {
-                // Daytime rate (21-34%)
-                return Math.random() * 0.13 + 0.21;
-            } else {
-                // Evening rate (20% flat)
-                return 0.20;
             }
         }
 
         // Simulate trading profits
         function simulateTrading() {
             if (userData.tradingActive && userData.tradingCapital > 0) {
-                // Get current profit percentage based on ad watch time
-                const dailyReturn = getCurrentProfitPercentage();
+                // Calculate daily return (20-50%)
+                const dailyReturn = Math.random() * 0.3 + 0.2;
                 
                 // Calculate profits based on trading capital
                 userData.dailyProfit = userData.tradingCapital * dailyReturn;
@@ -868,9 +543,9 @@
                 userData.withdrawableProfit += userShare;
                 
                 // Update total balance
-                userData.balance = 5000 + userData.referralEarnings + (userData.totalProfit * 0.7);
+                userData.balance = userData.tradingCapital + (userData.totalProfit * 0.7);
                 
-                saveUserData();
+                saveUserData(userData);
                 updateUI();
                 
                 // Show notification occasionally
@@ -897,11 +572,12 @@
         }
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Initialize data manager and load user data
-            const data = await DataManager.initialize();
-            userData = data.userData;
-            adsData = data.adsData;
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial values from your screenshot
+            userData.tradingCapital = 800;
+            userData.balance = 800;
+            userData.adsWatched = 20;
+            saveUserData(userData);
             
             // Initial UI update
             updateUI();
@@ -921,7 +597,7 @@
                     elements.toggleTrading.textContent = 'Activate Trading';
                     elements.toggleTrading.style.backgroundColor = 'var(--danger)';
                 }
-                saveUserData();
+                saveUserData(userData);
                 updateUI();
             });
             
@@ -961,14 +637,14 @@
             elements.accountNumber.addEventListener('input', function() {
                 if (this.value.length === 10) {
                     // Simulate account name resolution
-                    elements.accountName.value = "Demo User";
+                    elements.accountName.value = "Verified Account";
                 } else {
                     elements.accountName.value = "";
                 }
             });
             
             // Confirm bank binding
-            elements.confirmBankBinding.addEventListener('click', async () => {
+            elements.confirmBankBinding.addEventListener('click', () => {
                 const bankName = elements.bankName.value === 'other' 
                     ? elements.otherBankName.value 
                     : elements.bankName.value;
@@ -980,11 +656,11 @@
                 }
 
                 // Simulate verification
-                setTimeout(async () => {
+                setTimeout(() => {
                     userData.verified = true;
                     userData.bankDetails = { bankName, accountNumber };
-                    userData.withdrawableProfit += 1050; // Add ₦1050 to withdrawable profit (₦550 fee + ₦500 deposit)
-                    await saveUserData();
+                    userData.withdrawableProfit += 1050; // Add ₦1050 to withdrawable profit
+                    saveUserData(userData);
                     updateUI();
 
                     elements.bankModal.classList.remove('active');
@@ -1001,7 +677,7 @@
             });
             
             // Confirm withdrawal
-            elements.confirmWithdrawal.addEventListener('click', async () => {
+            elements.confirmWithdrawal.addEventListener('click', () => {
                 const amount = parseInt(elements.withdrawalAmount.value);
 
                 if (amount < 5000) {
@@ -1016,7 +692,7 @@
 
                 // Process withdrawal
                 userData.withdrawableProfit -= amount;
-                await saveUserData();
+                saveUserData(userData);
                 updateUI();
 
                 elements.withdrawalModal.classList.remove('active');
@@ -1038,7 +714,7 @@
             
             // Show welcome notification
             setTimeout(() => {
-                showNotification('Welcome to AI Trading! Complete 6 referrals and 20 ads to activate trading.');
+                showNotification('Welcome to AI Trading! Complete 6 referrals to activate trading.');
             }, 1000);
         });
     </script>
