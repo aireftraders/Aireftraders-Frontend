@@ -1713,32 +1713,30 @@
             elements.backToGames5.addEventListener('click', () => showGame(''));
         });
 
-        // Function to sync balance with dashboard
-        function syncBalanceWithDashboard() {
-            const balanceElement = document.getElementById('balance');
-            if (balanceElement) {
-                const currentBalance = parseFloat(balanceElement.textContent.replace(/[^0-9.-]+/g, ''));
-                const dashboardBalance = parseFloat(localStorage.getItem('dashboardBalance') || '0');
+        // Sync balance with index.html
+        function syncBalanceWithIndex() {
+            const gameBalance = parseFloat(elements.balance.textContent.replace(/[^0-9.-]+/g, ''));
+            const dashboardBalance = parseFloat(localStorage.getItem('dashboardBalance') || '0');
 
-                // Update dashboard balance if different
-                if (currentBalance !== dashboardBalance) {
-                    localStorage.setItem('dashboardBalance', currentBalance);
-                }
+            // Update balance if different
+            if (gameBalance !== dashboardBalance) {
+                elements.balance.textContent = dashboardBalance.toLocaleString();
             }
+
+            // Save game balance to localStorage
+            localStorage.setItem('gameBalance', gameBalance);
+            localStorage.setItem('dashboardBalance', gameBalance);
         }
 
         // Listen for changes in localStorage to update balance live
         window.addEventListener('storage', (event) => {
             if (event.key === 'dashboardBalance') {
-                const balanceElement = document.getElementById('balance');
-                if (balanceElement) {
-                    const updatedBalance = parseFloat(event.newValue || '0');
-                    balanceElement.textContent = updatedBalance.toLocaleString();
-                }
+                const updatedBalance = parseFloat(event.newValue || '0');
+                elements.balance.textContent = updatedBalance.toLocaleString();
             }
         });
 
-        // Function to add earnings to balance in real-time
+        // Function to add earnings to balance
         function addEarningsToBalance(amount) {
             const balanceElement = document.getElementById('balance');
             if (balanceElement) {
@@ -1746,14 +1744,13 @@
                 currentBalance += amount;
                 balanceElement.textContent = currentBalance.toLocaleString();
 
-                // Sync with dashboard
-                syncBalanceWithDashboard();
+                // Sync with index.html
+                syncBalanceWithIndex();
             }
         }
 
-        // Example usage: Call addEarningsToBalance(800) whenever a user earns money in the game
-        // Periodically sync balance with dashboard
-        setInterval(syncBalanceWithDashboard, 1000);
+        // Periodically sync balance with index.html
+        setInterval(syncBalanceWithIndex, 1000);
     </script>
 </body>
 </html>
