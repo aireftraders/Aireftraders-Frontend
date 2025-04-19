@@ -252,6 +252,32 @@
         let cooldownInterval = null;
         let redirectTo = 'game.html'; // Default fallback
 
+        // Get user data from localStorage (shared with index.html)
+        function getUserData() {
+            const userData = JSON.parse(localStorage.getItem('userData')) || {
+                balance: 5000,
+                referrals: 0,
+                referralEarnings: 0,
+                adsWatched: 0,
+                tradingActive: false,
+                verified: false,
+                tradingCapital: 0,
+                dailyProfit: 0,
+                totalProfit: 0,
+                withdrawableProfit: 0,
+                bankDetails: null,
+                paymentCircle: { current: 0, total: 1000 },
+                supportTickets: [],
+                gameEarnings: 0
+            };
+            return userData;
+        }
+
+        // Save user data to localStorage (shared with index.html)
+        function saveUserData(userData) {
+            localStorage.setItem('userData', JSON.stringify(userData));
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             // Check if we should block access first
@@ -264,28 +290,13 @@
         });
 
         function checkAccessStatus() {
-            const adData = JSON.parse(localStorage.getItem('adAccessData')) || {
-                adsWatched: 0,
-                accessGranted: false,
-                accessExpiry: 0,
-                lastRedirect: null
-            };
+            const userData = getUserData();
             
-            // Check if access is on cooldown
-            if (adData.accessGranted && adData.accessExpiry > Date.now()) {
+            // Check if access is on cooldown (using the same system as index.html)
+            if (userData.adsWatched >= totalAds) {
                 accessDenied = true;
-                showAccessDenied(adData.accessExpiry, adData.lastRedirect || redirectTo);
+                showAccessDenied(Date.now() + accessCooldown, redirectTo);
                 return true;
-            }
-            
-            // Reset if cooldown is over
-            if (adData.accessGranted && adData.accessExpiry <= Date.now()) {
-                localStorage.setItem('adAccessData', JSON.stringify({
-                    adsWatched: 0,
-                    accessGranted: false,
-                    accessExpiry: 0,
-                    lastRedirect: null
-                }));
             }
             
             return false;
@@ -355,19 +366,12 @@
                 localStorage.setItem('postAdRedirect', redirectTo);
             }
 
-            // Load current progress
-            const adData = JSON.parse(localStorage.getItem('adAccessData')) || {
-                adsWatched: 0,
-                accessGranted: false,
-                accessExpiry: 0,
-                lastRedirect: redirectTo
-            };
-            
-            // Ensure we don't exceed the limit
-            currentAdCount = Math.min(adData.adsWatched, totalAds);
+            // Load current progress from shared user data
+            const userData = getUserData();
+            currentAdCount = Math.min(userData.adsWatched || 0, totalAds);
             
             // Immediately redirect if already completed
-            if (currentAdCount >= totalAds && !adData.accessGranted) {
+            if (currentAdCount >= totalAds) {
                 grantAccessAndRedirect();
                 return;
             }
@@ -475,28 +479,16 @@
             // Count the ad
             currentAdCount++;
             
-            // Get current ad data
-            const adData = JSON.parse(localStorage.getItem('adAccessData')) || {
-                adsWatched: 0,
-                accessGranted: false,
-                accessExpiry: 0,
-                lastRedirect: redirectTo
-            };
-            
-            // Update ad data
-            adData.adsWatched = currentAdCount;
+            // Update the shared user data
+            const userData = getUserData();
+            userData.adsWatched = currentAdCount;
+            saveUserData(userData);
             
             // Check if completed
             if (currentAdCount >= totalAds) {
-                adData.accessGranted = true;
-                adData.accessExpiry = Date.now() + accessCooldown;
-                localStorage.setItem('adAccessData', JSON.stringify(adData));
                 grantAccessAndRedirect();
                 return;
             }
-            
-            // Save progress
-            localStorage.setItem('adAccessData', JSON.stringify(adData));
             
             // Update display and load next ad
             updateProgressDisplay();
@@ -507,8 +499,7 @@
 
         function grantAccessAndRedirect() {
             // Get redirect URL
-            const adData = JSON.parse(localStorage.getItem('adAccessData'));
-            const redirectUrl = adData.lastRedirect || 'game.html';
+            const redirectUrl = localStorage.getItem('postAdRedirect') || 'game.html';
             
             // Immediately redirect - no chance to continue watching ads
             window.location.href = redirectUrl;
