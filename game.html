@@ -657,6 +657,7 @@
         
         // Check online status
         let isOnline = navigator.onLine;
+        let isConnectedToIndex = false;
         
         // DOM Elements
         const elements = {
@@ -708,18 +709,73 @@
             localStorage.setItem('userGameData', JSON.stringify(userData));
         }
         
-        // Sync data with backend
-        async function syncWithBackend() {
-            // Check if connected to index.html
-            if (window.location.href.includes('index.html') {
-                elements.syncStatus.textContent = 'Connected to Dashboard';
-                elements.syncStatus.className = 'sync-status connected';
-                return true;
+        // Check connection to index.html
+        function checkIndexConnection() {
+            try {
+                // Try to access a variable or function from index.html
+                if (typeof window.parent !== 'undefined' && window.parent !== window) {
+                    // We're in an iframe or similar context
+                    isConnectedToIndex = true;
+                    updateSyncStatus();
+                    return true;
+                }
+                
+                // Check if we can access localStorage items set by index.html
+                if (localStorage.getItem('dashboardConnected')) {
+                    isConnectedToIndex = true;
+                    updateSyncStatus();
+                    return true;
+                }
+                
+                // Check if we can communicate with index.html via postMessage
+                if (window.opener || window.parent !== window) {
+                    // Send a ping message
+                    const pingMessage = { type: 'ping', from: 'game.html' };
+                    
+                    if (window.opener) {
+                        window.opener.postMessage(pingMessage, '*');
+                    } else {
+                        window.parent.postMessage(pingMessage, '*');
+                    }
+                    
+                    // Set up listener for response
+                    window.addEventListener('message', function handler(event) {
+                        if (event.data.type === 'pong' && event.data.from === 'index.html') {
+                            isConnectedToIndex = true;
+                            updateSyncStatus();
+                            window.removeEventListener('message', handler);
+                        }
+                    });
+                    
+                    return true;
+                }
+            } catch (e) {
+                console.log('Connection check error:', e);
             }
             
-            if (!isOnline) {
+            isConnectedToIndex = false;
+            updateSyncStatus();
+            return false;
+        }
+        
+        // Update sync status display
+        function updateSyncStatus() {
+            if (isConnectedToIndex) {
+                elements.syncStatus.textContent = 'Connected to Dashboard';
+                elements.syncStatus.className = 'sync-status connected';
+            } else if (isOnline) {
+                elements.syncStatus.textContent = 'Online - Syncing...';
+                elements.syncStatus.className = 'sync-status online';
+            } else {
                 elements.syncStatus.textContent = 'Offline - Changes saved locally';
                 elements.syncStatus.className = 'sync-status offline';
+            }
+        }
+        
+        // Sync data with backend
+        async function syncWithBackend() {
+            if (!isOnline) {
+                updateSyncStatus();
                 return;
             }
             
@@ -745,9 +801,6 @@
                 userData.lastSync = new Date().toISOString();
                 saveUserData();
                 
-                elements.syncStatus.textContent = 'Synced just now';
-                elements.syncStatus.className = 'sync-status online';
-                
                 // Check if server has newer data
                 if (result.data && new Date(result.data.lastSync) > new Date(userData.lastSync || 0)) {
                     userData = {
@@ -763,11 +816,11 @@
                     showNotification('Synced latest data from server');
                 }
                 
+                updateSyncStatus();
                 return true;
             } catch (error) {
                 console.error('Sync error:', error);
-                elements.syncStatus.textContent = 'Sync failed - Working offline';
-                elements.syncStatus.className = 'sync-status offline';
+                updateSyncStatus();
                 return false;
             }
         }
@@ -1623,38 +1676,23 @@
             // Set up online/offline detection
             window.addEventListener('online', () => {
                 isOnline = true;
-                // Check if connected to index.html
-                if (window.location.href.includes('index.html')) {
-                    elements.syncStatus.textContent = 'Connected to Dashboard';
-                    elements.syncStatus.className = 'sync-status connected';
-                } else {
-                    elements.syncStatus.textContent = 'Online - Syncing...';
-                    elements.syncStatus.className = 'sync-status';
-                    syncWithBackend();
-                }
+                updateSyncStatus();
+                syncWithBackend();
             });
             
             window.addEventListener('offline', () => {
                 isOnline = false;
-                // Check if connected to index.html
-                if (window.location.href.includes('index.html')) {
-                    elements.syncStatus.textContent = 'Connected to Dashboard';
-                    elements.syncStatus.className = 'sync-status connected';
-                } else {
-                    elements.syncStatus.textContent = 'Offline - Changes saved locally';
-                    elements.syncStatus.className = 'sync-status offline';
-                }
+                updateSyncStatus();
             });
             
+            // Check connection to index.html
+            checkIndexConnection();
+            
             // Initial sync check
-            if (window.location.href.includes('index.html')) {
-                elements.syncStatus.textContent = 'Connected to Dashboard';
-                elements.syncStatus.className = 'sync-status connected';
-            } else if (isOnline) {
+            if (isOnline) {
                 syncWithBackend();
             } else {
-                elements.syncStatus.textContent = 'Offline - Changes saved locally';
-                elements.syncStatus.className = 'sync-status offline';
+                updateSyncStatus();
             }
             
             // Start periodic sync
